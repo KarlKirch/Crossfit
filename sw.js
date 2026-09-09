@@ -1,5 +1,5 @@
-const CACHE='crossfit-app-v4';
-const CORE=['./','./index.html','./styles.css?v=4','./app.js?v=4','./manifest.webmanifest?v=4','./icon-192.png','./icon-512.png'];
+const CACHE='crossfit-app-v5';
+const CORE=['./','./index.html','./styles.css?v=4','./app.js?v=4','./client-admin.js?v=1','./manifest.webmanifest?v=4','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));
