@@ -14,11 +14,58 @@
 <link rel="icon" href="./icon-192.png?v=1" type="image/png">
 <link rel="apple-touch-icon" href="./icon-192.png?v=1">
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e9eeeb;font-family:system-ui,-apple-system,Segoe UI,sans-serif}#app{display:block;width:100%;height:100dvh;border:0;background:#e9eeeb}.install{position:fixed;z-index:9999;left:12px;right:12px;bottom:12px;display:none;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:#111315;color:#fff;box-shadow:0 12px 35px #0005}.install.show{display:flex}.install-text{flex:1;font-size:13px;line-height:1.35}.install-text b{display:block;font-size:14px;margin-bottom:2px}.install button{border:0;border-radius:12px;background:#d94a32;color:#fff;font-weight:900;padding:11px 14px;cursor:pointer}.install .close{background:#303534;padding:9px 11px}.status{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9998;background:#111315;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;display:none;box-shadow:0 5px 18px #0004}.status.show{display:block}@media(min-width:800px){.install{left:auto;right:20px;bottom:20px;width:410px}}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e9eeeb;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172019}
+button{font:inherit;cursor:pointer}
+#app{display:block;width:100%;height:calc(100dvh - 66px - env(safe-area-inset-bottom));border:0;background:#e9eeeb}
+.bottom-bar{position:fixed;z-index:9000;left:0;right:0;bottom:0;height:calc(66px + env(safe-area-inset-bottom));padding:7px 12px calc(7px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dce4df;box-shadow:0 -5px 20px #00000012;display:flex;justify-content:center;align-items:flex-start}
+.bottom-inner{width:min(520px,100%);display:flex;justify-content:center}
+.share-tab{min-width:116px;height:50px;border:0;border-radius:15px;background:#111315;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px}
+.share-icon{font-size:19px;line-height:1}
+.sheet-backdrop{position:fixed;z-index:9500;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center;padding:16px 12px calc(82px + env(safe-area-inset-bottom))}
+.sheet-backdrop.show{display:flex}
+.share-sheet{width:min(500px,100%);background:#fff;border-radius:22px;padding:17px;box-shadow:0 20px 55px #0006}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sheet-title{font-size:18px;font-weight:950}
+.sheet-subtitle{margin-top:4px;color:#68746c;font-size:12px;line-height:1.45}
+.sheet-close{width:38px;height:38px;border:0;border-radius:50%;background:#edf1ef;color:#26312b;font-size:22px;line-height:1}
+.share-primary{width:100%;min-height:48px;margin-top:15px;border:0;border-radius:14px;background:#d94a32;color:#fff;font-weight:900}
+.share-apps{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.share-app{min-height:44px;border:1px solid #dce4df;border-radius:13px;background:#f6f8f7;color:#26312b;font-weight:850}
+.share-copy{grid-column:1/-1;background:#111315;color:#fff;border-color:#111315}
+.install{position:fixed;z-index:9999;left:12px;right:12px;bottom:82px;display:none;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:#111315;color:#fff;box-shadow:0 12px 35px #0005}.install.show{display:flex}.install-text{flex:1;font-size:13px;line-height:1.35}.install-text b{display:block;font-size:14px;margin-bottom:2px}.install button{border:0;border-radius:12px;background:#d94a32;color:#fff;font-weight:900;padding:11px 14px}.install .close{background:#303534;padding:9px 11px}.status{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9998;background:#111315;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;display:none;box-shadow:0 5px 18px #0004}.status.show{display:block}
+@media(min-width:800px){.install{left:auto;right:20px;bottom:88px;width:410px}.bottom-bar{background:#fff}.share-sheet{margin-bottom:6px}}
 </style>
 </head>
 <body>
 <iframe id="app" src="https://karlkirch.github.io/Futbol/wod/app.html?v=20" title="CrossFit" allow="fullscreen"></iframe>
+
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <button id="shareTab" class="share-tab" type="button"><span class="share-icon">↗</span><span>Jaga</span></button>
+  </div>
+</div>
+
+<div id="shareBackdrop" class="sheet-backdrop" aria-hidden="true">
+  <div class="share-sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <div class="sheet-head">
+      <div>
+        <div id="shareTitle" class="sheet-title">Kutsu sõber CrossFiti</div>
+        <div class="sheet-subtitle">Jaga linki, et sõber saaks konto luua, treeninguid vaadata ja ennast kirja panna.</div>
+      </div>
+      <button id="shareClose" class="sheet-close" type="button" aria-label="Sulge">×</button>
+    </div>
+    <button id="nativeShare" class="share-primary" type="button">Jaga telefonist</button>
+    <div class="share-apps">
+      <button class="share-app" data-share="whatsapp" type="button">WhatsApp</button>
+      <button class="share-app" data-share="messenger" type="button">Messenger</button>
+      <button class="share-app" data-share="viber" type="button">Viber</button>
+      <button class="share-app" data-share="instagram" type="button">Instagram</button>
+      <button id="copyShare" class="share-app share-copy" type="button">Kopeeri kutselink</button>
+    </div>
+  </div>
+</div>
+
 <div id="status" class="status"></div>
 <div id="install" class="install">
   <div class="install-text"><b>Paigalda CrossFit</b><span id="installMsg">Lisa CrossFit telefoni avakuvale või arvutisse eraldi rakendusena.</span></div>
@@ -33,11 +80,27 @@ const btn=document.getElementById('installBtn');
 const msg=document.getElementById('installMsg');
 const closeBtn=document.getElementById('closeBtn');
 const status=document.getElementById('status');
+const shareTab=document.getElementById('shareTab');
+const shareBackdrop=document.getElementById('shareBackdrop');
+const shareClose=document.getElementById('shareClose');
+const nativeShare=document.getElementById('nativeShare');
+const copyShare=document.getElementById('copyShare');
 let promptEvent=null,patchTimer=null;
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const isIOS=()=>/iPhone|iPad|iPod/i.test(navigator.userAgent);
+const inviteUrl=()=>location.origin+'/Crossfit/';
+const inviteText=()=> 'Tule meie CrossFit treeningutele! Vaata treeninguaegu ja registreeru:';
 function flash(t){status.textContent=t;status.classList.add('show');setTimeout(()=>status.classList.remove('show'),2800)}
 function showInstall(){if(!standalone())box.classList.add('show')}
+function openShare(){shareBackdrop.classList.add('show');shareBackdrop.setAttribute('aria-hidden','false')}
+function closeShare(){shareBackdrop.classList.remove('show');shareBackdrop.setAttribute('aria-hidden','true')}
+async function copyInvite(show=true){try{if(navigator.clipboard)await navigator.clipboard.writeText(inviteUrl());else window.prompt('Kopeeri CrossFiti link:',inviteUrl());if(show)flash('Kutselink kopeeritud')}catch(_){window.prompt('Kopeeri CrossFiti link:',inviteUrl())}}
+async function shareCrossfit(){const data={title:'CrossFit',text:inviteText(),url:inviteUrl()};try{if(navigator.share){await navigator.share(data);closeShare();return}await copyInvite();closeShare()}catch(e){if(e?.name!=='AbortError')flash('Jagamine ebaõnnestus')}}
+async function shareVia(app){const url=inviteUrl(),combined=inviteText()+' '+url;if(app==='whatsapp'){location.href='https://wa.me/?text='+encodeURIComponent(combined);return}if(app==='messenger'){await copyInvite(false);location.href='fb-messenger://share/?link='+encodeURIComponent(url);setTimeout(()=>flash('Link kopeeritud – saad selle Messengerisse kleepida'),700);return}if(app==='viber'){location.href='viber://forward?text='+encodeURIComponent(combined);return}if(app==='instagram'){await copyInvite(false);flash('Link kopeeritud – kleebi see Instagrami sõnumisse');return}}
+shareTab.onclick=openShare;shareClose.onclick=closeShare;nativeShare.onclick=shareCrossfit;copyShare.onclick=async()=>{await copyInvite();closeShare()};
+shareBackdrop.addEventListener('click',e=>{if(e.target===shareBackdrop)closeShare()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShare()});
+document.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>shareVia(b.dataset.share)));
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;showInstall()});
 window.addEventListener('appinstalled',()=>{promptEvent=null;box.classList.remove('show');flash('CrossFit on paigaldatud')});
 btn.onclick=async()=>{
@@ -56,7 +119,7 @@ function patchInner(){
 }
 frame.addEventListener('load',()=>{patchInner();clearInterval(patchTimer);patchTimer=setInterval(patchInner,1500)});
 if(!standalone())setTimeout(showInstall,1800);
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1',{scope:'./',updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=2',{scope:'./',updateViaCache:'none'}).catch(()=>{}));
 </script>
 </body>
 </html>
