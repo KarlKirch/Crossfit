@@ -1,161 +1,27 @@
 <!doctype html>
 <html lang="et">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111315">
-<meta name="application-name" content="CrossFit">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CrossFit">
-<title>CrossFit</title>
-<link rel="manifest" href="./manifest.webmanifest?v=1">
-<link rel="icon" href="./icon-192.png?v=1" type="image/png">
-<link rel="apple-touch-icon" href="./icon-192.png?v=1">
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e9eeeb;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172019}
-button{font:inherit;cursor:pointer}
-#app{display:block;width:100%;height:100dvh;border:0;background:#e9eeeb}
-.hidden{display:none!important}
-.bottom-nav{position:fixed;z-index:9000;left:0;right:0;bottom:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid #dfe5e1;box-shadow:0 -7px 25px rgba(17,24,20,.10);backdrop-filter:blur(12px)}
-.nav-inner{width:min(540px,100%);margin:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
-.nav-btn{position:relative;min-width:0;height:58px;padding:5px 2px;border:0;border-radius:14px;background:transparent;color:#738078;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:800;letter-spacing:.01em}
-.nav-icon{width:30px;height:28px;border-radius:10px;display:grid;place-items:center;transition:.18s ease}
-.nav-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.nav-btn.active{color:#c9432f}
-.nav-btn.active .nav-icon{background:#fff0ec;color:#d94a32}
-.nav-btn:active{transform:translateY(1px)}
-.sheet-backdrop{position:fixed;z-index:9500;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center;padding:16px 12px calc(84px + env(safe-area-inset-bottom))}
-.sheet-backdrop.show{display:flex}
-.share-sheet{width:min(500px,100%);background:#fff;border-radius:24px;padding:18px;box-shadow:0 22px 60px #0006}
-.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.sheet-title{font-size:19px;font-weight:950}.sheet-subtitle{margin-top:4px;color:#68746c;font-size:12px;line-height:1.45}
-.sheet-close{width:38px;height:38px;border:0;border-radius:50%;background:#edf1ef;color:#26312b;font-size:22px;line-height:1}
-.share-primary{width:100%;min-height:49px;margin-top:15px;border:0;border-radius:14px;background:#d94a32;color:#fff;font-weight:900}
-.share-apps{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.share-app{min-height:44px;border:1px solid #dce4df;border-radius:13px;background:#f6f8f7;color:#26312b;font-weight:850}.share-copy{grid-column:1/-1;background:#111315;color:#fff;border-color:#111315}
-.status{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9998;background:#111315;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;display:none;box-shadow:0 5px 18px #0004}.status.show{display:block}
-@media(min-width:800px){.share-sheet{margin-bottom:6px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111315">
+  <meta name="application-name" content="CrossFit">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CrossFit">
+  <title>CrossFit</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=4">
+  <link rel="icon" href="./icon-192.png?v=1" type="image/png">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=1">
+  <link rel="stylesheet" href="./styles.css?v=4">
 </head>
 <body>
-<iframe id="app" src="https://karlkirch.github.io/Futbol/wod/app.html?v=20" title="CrossFit" allow="fullscreen"></iframe>
-
-<nav id="bottomNav" class="bottom-nav hidden" aria-label="CrossFiti põhimenüü">
-  <div class="nav-inner">
-    <button class="nav-btn active" data-tab="home" type="button">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></svg></span><span>Avaleht</span>
-    </button>
-    <button class="nav-btn" data-tab="trainings" type="button">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><span>Treeningud</span>
-    </button>
-    <button id="roleNav" class="nav-btn" data-tab="role" type="button">
-      <span class="nav-icon"><svg id="roleIcon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span><span id="roleNavLabel">Minu</span>
-    </button>
-    <button class="nav-btn" data-tab="notifications" type="button">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span>Teavitused</span>
-    </button>
-    <button class="nav-btn" data-tab="more" type="button">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span>Veel</span>
-    </button>
+  <div id="appRoot"></div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="updateBanner" class="update-banner hidden">
+    <div><b>CrossFitist on uus versioon</b><span>Uuenda, et kasutada viimaseid muudatusi.</span></div>
+    <button id="updateNow" type="button">Uuenda</button>
   </div>
-</nav>
-
-<div id="shareBackdrop" class="sheet-backdrop" aria-hidden="true">
-  <div class="share-sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
-    <div class="sheet-head"><div><div id="shareTitle" class="sheet-title">Kutsu sõber CrossFiti</div><div class="sheet-subtitle">Jaga linki, et sõber saaks konto luua, treeninguid vaadata ja ennast kirja panna.</div></div><button id="shareClose" class="sheet-close" type="button" aria-label="Sulge">×</button></div>
-    <button id="nativeShare" class="share-primary" type="button">Jaga telefonist</button>
-    <div class="share-apps">
-      <button class="share-app" data-share="whatsapp" type="button">WhatsApp</button>
-      <button class="share-app" data-share="messenger" type="button">Messenger</button>
-      <button class="share-app" data-share="viber" type="button">Viber</button>
-      <button class="share-app" data-share="instagram" type="button">Instagram</button>
-      <button id="copyShare" class="share-app share-copy" type="button">Kopeeri kutselink</button>
-    </div>
-  </div>
-</div>
-<div id="status" class="status"></div>
-<script>
-'use strict';
-const frame=document.getElementById('app');
-const bottomNav=document.getElementById('bottomNav');
-const roleNavLabel=document.getElementById('roleNavLabel');
-const roleIcon=document.getElementById('roleIcon');
-const statusEl=document.getElementById('status');
-const shareBackdrop=document.getElementById('shareBackdrop');
-const shareClose=document.getElementById('shareClose');
-const nativeShare=document.getElementById('nativeShare');
-const copyShare=document.getElementById('copyShare');
-const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
-const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
-const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
-let activeTab='home',trainingSub='upcoming',promptEvent=null,patchTimer=null,pushBusy=false,lastDoc=null;
-const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const inviteUrl=()=>location.origin+'/Crossfit/';
-const inviteText=()=> 'Tule meie CrossFit treeningutele! Vaata treeninguaegu ja registreeru:';
-function flash(t){statusEl.textContent=t;statusEl.classList.add('show');setTimeout(()=>statusEl.classList.remove('show'),2800)}
-function openShare(){shareBackdrop.classList.add('show');shareBackdrop.setAttribute('aria-hidden','false')}
-function closeShare(){shareBackdrop.classList.remove('show');shareBackdrop.setAttribute('aria-hidden','true')}
-async function copyInvite(show=true){try{if(navigator.clipboard)await navigator.clipboard.writeText(inviteUrl());else window.prompt('Kopeeri CrossFiti link:',inviteUrl());if(show)flash('Kutselink kopeeritud')}catch(_){window.prompt('Kopeeri CrossFiti link:',inviteUrl())}}
-async function shareCrossfit(){const data={title:'CrossFit',text:inviteText(),url:inviteUrl()};try{if(navigator.share){await navigator.share(data);closeShare();return}await copyInvite();closeShare()}catch(e){if(e?.name!=='AbortError')flash('Jagamine ebaõnnestus')}}
-async function shareVia(app){const url=inviteUrl(),combined=inviteText()+' '+url;if(app==='whatsapp'){location.href='https://wa.me/?text='+encodeURIComponent(combined);return}if(app==='messenger'){await copyInvite(false);location.href='fb-messenger://share/?link='+encodeURIComponent(url);setTimeout(()=>flash('Link kopeeritud – saad selle Messengerisse kleepida'),700);return}if(app==='viber'){location.href='viber://forward?text='+encodeURIComponent(combined);return}if(app==='instagram'){await copyInvite(false);flash('Link kopeeritud – kleebi see Instagrami sõnumisse')}}
-shareClose.onclick=closeShare;nativeShare.onclick=shareCrossfit;copyShare.onclick=async()=>{await copyInvite();closeShare()};shareBackdrop.addEventListener('click',e=>{if(e.target===shareBackdrop)closeShare()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShare()});document.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>shareVia(b.dataset.share)));
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e});
-window.addEventListener('appinstalled',()=>{promptEvent=null;flash('CrossFit on paigaldatud')});
-async function installCrossfit(){if(standalone()){flash('CrossFit on juba paigaldatud');return}if(promptEvent){promptEvent.prompt();const r=await promptEvent.userChoice;promptEvent=null;if(r.outcome==='accepted')flash('CrossFit paigaldati');return}if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){alert('Vajuta brauseris Jaga ja vali „Lisa avakuvale“.');return}alert('Ava Chrome’i või Edge’i menüü ja vali „Installi rakendus“ või „Lisa avakuvale“.')}
-function getInner(){try{const wrapper=frame.contentDocument,innerFrame=wrapper?.getElementById('appFrame');const d=innerFrame?.contentDocument;return d?{wrapper,innerFrame,d}:null}catch(_){return null}}
-function isTrainer(d){return [...d.querySelectorAll('.section h2')].some(h=>h.textContent.trim()==='Kliendid ja paketid')}
-function pairByHeading(d,text){const h=[...d.querySelectorAll('.section h2')].find(x=>x.textContent.trim()===text);const section=h?.closest('.section');return section?[section,section.nextElementSibling].filter(Boolean):[]}
-function hidePair(pair,show){pair.forEach(el=>el.classList.toggle('cf-hide',!show))}
-function ensureInnerStyle(d){if(d.getElementById('crossfitProfessionalNavStyle'))return;const s=d.createElement('style');s.id='crossfitProfessionalNavStyle';s.textContent=`
-#crossfitInstallCard,#crossfitPushCard{display:none!important}.cf-hide{display:none!important}
-body{padding-bottom:86px!important}.content{padding-bottom:110px!important}.top .btn.secondary{display:none!important}
-.cf-page{margin:0 0 16px}.cf-page-title{font-size:22px;font-weight:950;margin:2px 0 4px;color:#172019}.cf-page-sub{font-size:12px;color:#6d7771;line-height:1.45;margin-bottom:14px}
-.cf-home-card,.cf-info-card{background:#fff;border:1px solid #dce4df;border-radius:20px;padding:15px;margin-bottom:11px;box-shadow:0 5px 18px rgba(20,40,28,.05)}
-.cf-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8b958f;font-weight:900}.cf-next-title{font-size:20px;font-weight:950;margin-top:5px}.cf-next-meta{font-size:12px;color:#68746c;margin-top:5px;line-height:1.45}.cf-next-people{font-size:12px;color:#415047;margin-top:9px;line-height:1.45}
-.cf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}.cf-metric{background:#f4f7f5;border-radius:14px;padding:11px 9px;min-width:0}.cf-metric b{display:block;font-size:19px;color:#172019;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cf-metric span{display:block;margin-top:3px;font-size:10px;color:#6d7771;line-height:1.25}
-.cf-action{width:100%;min-height:45px;border:0;border-radius:13px;background:#d94a32;color:#fff;font-weight:900}.cf-action.secondary{background:#111315}.cf-action.soft{background:#edf1ef;color:#26312b}
-.cf-segment{display:flex;background:#e9eeeb;border-radius:13px;padding:4px;margin:0 0 14px}.cf-segment button{flex:1;border:0;background:transparent;border-radius:10px;padding:9px;font-size:12px;font-weight:850;color:#6d7771}.cf-segment button.on{background:#fff;color:#172019;box-shadow:0 2px 8px #0001}
-.cf-settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #edf1ef}.cf-settings-row:first-of-type{border-top:0}.cf-settings-title{font-size:13px;font-weight:900}.cf-settings-sub{font-size:11px;color:#6d7771;margin-top:2px;line-height:1.35}.cf-small-btn{flex:0 0 auto;border:0;border-radius:11px;padding:9px 11px;background:#edf1ef;color:#26312b;font-size:11px;font-weight:900}.cf-small-btn.red{background:#d94a32;color:#fff}.cf-small-btn.dark{background:#111315;color:#fff}
-.cf-push-state{display:inline-flex;margin-top:8px;padding:5px 9px;border-radius:999px;background:#edf1ef;color:#536159;font-size:11px;font-weight:850}.cf-push-state.on{background:#e7f7ed;color:#11683a}.cf-push-state.bad{background:#fdebed;color:#9c3038}.cf-notify-list{display:grid;gap:8px;margin-top:12px}.cf-notify-item{padding:11px 12px;border-radius:13px;background:#f6f8f7;font-size:12px;color:#415047}.cf-notify-item b{display:block;color:#172019;margin-bottom:2px}
-@media(max-width:380px){.cf-grid{grid-template-columns:1fr 1fr}}
-`;d.head.appendChild(s)}
-function summaryMetrics(d,trainer){const source=trainer?[...d.querySelectorAll('.stats .stat')]:[...d.querySelectorAll('.profilemetric')];return source.slice(0,3).map(el=>({value:el.querySelector('b')?.textContent?.trim()||'–',label:el.querySelector('span')?.textContent?.trim()||''}))}
-function nextTrainingInfo(d){const upcoming=pairByHeading(d,'Tulevased treeningud');const card=upcoming[1]?.querySelector('.training');if(!card)return null;return{title:card.querySelector('h3')?.textContent?.trim()||'CrossFit',meta:card.querySelector('.meta')?.textContent?.trim()||'',people:card.querySelector('.people')?.textContent?.trim()||''}}
-function buildCustomPages(d,trainer){const content=d.querySelector('#mainScreen .content');if(!content)return;
-  let home=d.getElementById('cfHomePage');if(!home){home=d.createElement('div');home.id='cfHomePage';home.className='cf-page';const next=nextTrainingInfo(d),metrics=summaryMetrics(d,trainer);home.innerHTML=`<div class="cf-home-card"><div class="cf-kicker">Järgmine treening</div>${next?`<div class="cf-next-title">${escapeHtml(next.title)}</div><div class="cf-next-meta">${escapeHtml(next.meta)}</div>${next.people?`<div class="cf-next-people">${escapeHtml(next.people)}</div>`:''}`:'<div class="cf-next-title">Hetkel tulevasi treeninguid pole</div><div class="cf-next-meta">Uus treening ilmub siia kohe pärast avaldamist.</div>'}</div><div class="cf-grid">${metrics.map(m=>`<div class="cf-metric"><b>${escapeHtml(m.value)}</b><span>${escapeHtml(m.label)}</span></div>`).join('')}</div><button id="cfHomeAction" class="cf-action" type="button">${trainer?'Lisa treening':'Vaata treeninguid'}</button>`;const hero=content.querySelector('.hero');hero?hero.insertAdjacentElement('afterend',home):content.prepend(home);home.querySelector('#cfHomeAction').addEventListener('click',()=>{switchTab('trainings');setTimeout(()=>{if(trainer)d.getElementById('createCard')?.scrollIntoView({behavior:'smooth',block:'start'})},80)})}
-  let trainHead=d.getElementById('cfTrainHead');if(!trainHead){trainHead=d.createElement('div');trainHead.id='cfTrainHead';trainHead.className='cf-page';trainHead.innerHTML=`<div class="cf-page-title">Treeningud</div><div class="cf-page-sub">Vaata tulevasi treeninguid või sirvi varasemaid.</div><div class="cf-segment"><button type="button" data-sub="upcoming">Tulevased</button><button type="button" data-sub="history">Möödunud</button></div>`;content.prepend(trainHead);trainHead.querySelectorAll('[data-sub]').forEach(b=>b.addEventListener('click',()=>{trainingSub=b.dataset.sub;applyView(d,trainer)}))}
-  let notify=d.getElementById('cfNotificationsPage');if(!notify){notify=d.createElement('div');notify.id='cfNotificationsPage';notify.className='cf-page';notify.innerHTML=`<div class="cf-page-title">Teavitused</div><div class="cf-page-sub">CrossFit saab saata olulised treeninguteated otse telefoni või arvutisse.</div><div class="cf-info-card"><div class="cf-settings-title">Push-teavitused</div><div id="cfPushState" class="cf-push-state">Kontrollin…</div><div class="cf-notify-list"><div class="cf-notify-item"><b>Treeningu meeldetuletus</b>Teade umbes päev enne registreeritud treeningut.</div><div class="cf-notify-item"><b>Treeningu muutus või tühistamine</b>Saad teate kohe, kui treeningu aeg muutub või treening tühistatakse.</div><div class="cf-notify-item"><b>Ootenimekiri</b>Saad teate kohe, kui sulle vabaneb koht.</div>${trainer?'<div class="cf-notify-item"><b>Täis treening</b>Treener saab teate, kui treening täitub.</div>':''}</div><button id="cfPushButton" class="cf-action" style="margin-top:13px" type="button">Luba teavitused</button></div>`;content.appendChild(notify);notify.querySelector('#cfPushButton').addEventListener('click',togglePush)}
-  let more=d.getElementById('cfMorePage');if(!more){const session=getSession(),name=session?.user?.user_metadata?.display_name||session?.user?.email?.split('@')[0]||'Kasutaja',email=session?.user?.email||'';more=d.createElement('div');more.id='cfMorePage';more.className='cf-page';more.innerHTML=`<div class="cf-page-title">Veel</div><div class="cf-page-sub">Profiil, jagamine ja rakenduse seaded.</div><div class="cf-info-card"><div class="cf-settings-title">${escapeHtml(name)}</div><div class="cf-settings-sub">${escapeHtml(email)}</div></div><div class="cf-info-card"><div class="cf-settings-row"><div><div class="cf-settings-title">Kutsu sõber</div><div class="cf-settings-sub">Jaga CrossFiti linki WhatsAppi, Messengeri, Viberi või muu rakenduse kaudu.</div></div><button id="cfShareButton" class="cf-small-btn red" type="button">Jaga</button></div><div class="cf-settings-row"><div><div class="cf-settings-title">Paigalda rakendus</div><div class="cf-settings-sub">Lisa CrossFit telefoni avakuvale või arvutisse eraldi rakendusena.</div></div><button id="cfInstallButton" class="cf-small-btn dark" type="button">Paigalda</button></div><div class="cf-settings-row"><div><div class="cf-settings-title">Rakenduse info</div><div class="cf-settings-sub">Treeningutele registreerimine, paketid, ajalugu ja teavitused.</div></div></div><div class="cf-settings-row"><div><div class="cf-settings-title">Logi välja</div><div class="cf-settings-sub">Lõpeta selle seadme kasutusseanss.</div></div><button id="cfLogoutButton" class="cf-small-btn" type="button">Logi välja</button></div></div>`;content.appendChild(more);more.querySelector('#cfShareButton').addEventListener('click',openShare);more.querySelector('#cfInstallButton').addEventListener('click',installCrossfit);more.querySelector('#cfLogoutButton').addEventListener('click',()=>{try{const inner=getInner();inner?.innerFrame?.contentWindow?.logout?.()}catch(_){}})}
-}
-function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function applyView(d,trainer){buildCustomPages(d,trainer);const hero=d.querySelector('#mainScreen .hero'),home=d.getElementById('cfHomePage'),trainHead=d.getElementById('cfTrainHead'),notify=d.getElementById('cfNotificationsPage'),more=d.getElementById('cfMorePage');const stats=pairByHeading(d,'Statistika'),create=pairByHeading(d,'Lisa treening'),clients=pairByHeading(d,'Kliendid ja paketid'),profile=pairByHeading(d,'Minu profiil'),upcoming=pairByHeading(d,'Tulevased treeningud'),history=pairByHeading(d,'Treeningute ajalugu');
-  [hero,home,trainHead,notify,more,...stats,...create,...clients,...profile,...upcoming,...history].filter(Boolean).forEach(el=>el.classList.add('cf-hide'));
-  if(activeTab==='home'){hero?.classList.remove('cf-hide');home?.classList.remove('cf-hide')}
-  if(activeTab==='trainings'){trainHead?.classList.remove('cf-hide');const future=trainingSub==='upcoming';hidePair(upcoming,future);hidePair(history,!future);if(trainer)hidePair(create,future);trainHead?.querySelectorAll('[data-sub]').forEach(b=>b.classList.toggle('on',b.dataset.sub===trainingSub))}
-  if(activeTab==='role'){hidePair(trainer?clients:profile,true)}
-  if(activeTab==='notifications'){notify?.classList.remove('cf-hide');refreshPushState(d)}
-  if(activeTab==='more'){more?.classList.remove('cf-hide')}
-  const subtitle=d.querySelector('#mainScreen .top > div > div');if(subtitle)subtitle.textContent=activeTab==='home'?'Avaleht':activeTab==='trainings'?'Treeningud':activeTab==='role'?(trainer?'Kliendid':'Minu'):activeTab==='notifications'?'Teavitused':'Veel';
-  const heroH=hero?.querySelector('h1'),heroP=hero?.querySelector('p');if(heroH)heroH.textContent=trainer?'Treeneri ülevaade':'Sinu CrossFit';if(heroP)heroP.textContent=trainer?'Järgmine treening, täituvus ja kiire ülevaade.':'Järgmine treening ja sinu olulisem info ühes kohas.';
-}
-function switchTab(tab){activeTab=tab;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));const inner=getInner();if(inner){const trainer=isTrainer(inner.d);applyView(inner.d,trainer);try{inner.innerFrame.contentWindow.scrollTo({top:0,behavior:'smooth'})}catch(_){}}}
-document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
-function patchApp(){const inner=getInner();if(!inner)return;const d=inner.d;ensureInnerStyle(d);const main=d.getElementById('mainScreen'),authed=main&&!main.classList.contains('hidden');bottomNav.classList.toggle('hidden',!authed);if(!authed){lastDoc=d;return}const trainer=isTrainer(d);roleNavLabel.textContent=trainer?'Kliendid':'Minu';if(trainer)roleIcon.innerHTML='<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0"/><path d="M10.5 20a5.5 5.5 0 0 1 11 0"/>';else roleIcon.innerHTML='<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>';buildCustomPages(d,trainer);applyView(d,trainer);lastDoc=d}
-function getSession(){try{return JSON.parse(localStorage.getItem('wod_session')||'null')}catch(_){return null}}
-function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in window&&typeof Notification!=='undefined'}
-function urlBase64ToUint8Array(base64String){const padding='='.repeat((4-base64String.length%4)%4),base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function pushRequest(path,opt={}){const session=getSession();if(!session?.access_token||!session?.user?.id)throw new Error('Logi enne CrossFiti sisse.');const headers={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json',...(opt.headers||{})};const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{...opt,headers});if(!r.ok){const text=await r.text();throw new Error(text||('HTTP '+r.status))}return r}
-async function crossfitRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=3',{scope:'./',updateViaCache:'none'});await reg.update().catch(()=>{});return reg}
-async function migrateLegacyPush(){try{const oldReg=await navigator.serviceWorker.getRegistration('/Futbol/wod/'),oldSub=await oldReg?.pushManager?.getSubscription();if(oldSub){await pushRequest('wod_push_subscriptions?endpoint=eq.'+encodeURIComponent(oldSub.endpoint),{method:'DELETE'}).catch(()=>{});await oldSub.unsubscribe().catch(()=>{})}}catch(_){}}
-async function storePush(sub){const session=getSession(),json=sub.toJSON();await pushRequest('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:session.user.id,endpoint:sub.endpoint,p256dh:json.keys?.p256dh||'',auth:json.keys?.auth||'',updated_at:new Date().toISOString()})})}
-function setPushUI(d,state,text){const s=d.getElementById('cfPushState'),b=d.getElementById('cfPushButton');if(!s||!b)return;s.textContent=text;s.className='cf-push-state'+(state==='on'?' on':state==='bad'?' bad':'');b.textContent=state==='on'?'Lülita teavitused välja':'Luba teavitused';b.dataset.enabled=state==='on'?'1':'0';b.disabled=pushBusy}
-async function refreshPushState(d){if(!d?.getElementById('cfNotificationsPage'))return;if(!pushSupported()){setPushUI(d,'bad','See brauser ei toeta push-teavitusi.');return}if(Notification.permission==='denied'){setPushUI(d,'bad','Teavitused on brauseris blokeeritud.');return}try{const reg=await crossfitRegistration(),sub=await reg.pushManager.getSubscription();setPushUI(d,sub&&Notification.permission==='granted'?'on':'off',sub&&Notification.permission==='granted'?'Teavitused on lubatud':'Teavitused ei ole veel lubatud')}catch(_){setPushUI(d,'off','Teavitused ei ole veel lubatud')}}
-async function togglePush(){const inner=getInner(),d=inner?.d;if(!d||pushBusy)return;const enabled=d.getElementById('cfPushButton')?.dataset.enabled==='1';pushBusy=true;try{if(enabled){const reg=await crossfitRegistration(),sub=await reg.pushManager.getSubscription();if(sub){await pushRequest('wod_push_subscriptions?endpoint=eq.'+encodeURIComponent(sub.endpoint),{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}setPushUI(d,'off','Teavitused on välja lülitatud')}else{const session=getSession();if(!session?.access_token)throw new Error('Logi enne CrossFiti sisse.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await migrateLegacyPush();const reg=await crossfitRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});await storePush(sub);setPushUI(d,'on','Teavitused on lubatud')}}catch(e){setPushUI(d,'bad',e.message||'Teavituste muutmine ebaõnnestus.')}finally{pushBusy=false;const b=d.getElementById('cfPushButton');if(b)b.disabled=false}}
-frame.addEventListener('load',()=>{clearInterval(patchTimer);setTimeout(patchApp,500);patchTimer=setInterval(patchApp,900)});
-setTimeout(patchApp,800);
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=3',{scope:'./',updateViaCache:'none'}).catch(()=>{}));
-</script>
+  <script src="./app.js?v=4" defer></script>
 </body>
 </html>
