@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111315">
+<meta name="application-name" content="CrossFit">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CrossFit">
+<title>CrossFit</title>
+<link rel="manifest" href="./manifest.webmanifest?v=1">
+<link rel="icon" href="./icon-192.png?v=1" type="image/png">
+<link rel="apple-touch-icon" href="./icon-192.png?v=1">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e9eeeb;font-family:system-ui,-apple-system,Segoe UI,sans-serif}#app{display:block;width:100%;height:100dvh;border:0;background:#e9eeeb}.install{position:fixed;z-index:9999;left:12px;right:12px;bottom:12px;display:none;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:#111315;color:#fff;box-shadow:0 12px 35px #0005}.install.show{display:flex}.install-text{flex:1;font-size:13px;line-height:1.35}.install-text b{display:block;font-size:14px;margin-bottom:2px}.install button{border:0;border-radius:12px;background:#d94a32;color:#fff;font-weight:900;padding:11px 14px;cursor:pointer}.install .close{background:#303534;padding:9px 11px}.status{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9998;background:#111315;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;display:none;box-shadow:0 5px 18px #0004}.status.show{display:block}@media(min-width:800px){.install{left:auto;right:20px;bottom:20px;width:410px}}
+</style>
+</head>
+<body>
+<iframe id="app" src="https://karlkirch.github.io/Futbol/wod/app.html?v=20" title="CrossFit" allow="fullscreen"></iframe>
+<div id="status" class="status"></div>
+<div id="install" class="install">
+  <div class="install-text"><b>Paigalda CrossFit</b><span id="installMsg">Lisa CrossFit telefoni avakuvale või arvutisse eraldi rakendusena.</span></div>
+  <button id="installBtn">Paigalda</button>
+  <button id="closeBtn" class="close" aria-label="Sulge">×</button>
+</div>
+<script>
+'use strict';
+const frame=document.getElementById('app');
+const box=document.getElementById('install');
+const btn=document.getElementById('installBtn');
+const msg=document.getElementById('installMsg');
+const closeBtn=document.getElementById('closeBtn');
+const status=document.getElementById('status');
+let promptEvent=null,patchTimer=null;
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iPhone|iPad|iPod/i.test(navigator.userAgent);
+function flash(t){status.textContent=t;status.classList.add('show');setTimeout(()=>status.classList.remove('show'),2800)}
+function showInstall(){if(!standalone())box.classList.add('show')}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;showInstall()});
+window.addEventListener('appinstalled',()=>{promptEvent=null;box.classList.remove('show');flash('CrossFit on paigaldatud')});
+btn.onclick=async()=>{
+  if(standalone()){box.classList.remove('show');return}
+  if(promptEvent){promptEvent.prompt();const r=await promptEvent.userChoice;promptEvent=null;if(r.outcome==='accepted'){box.classList.remove('show')}else{msg.textContent='Paigaldus katkestati. Vajuta Paigalda, kui soovid uuesti proovida.'}return}
+  if(isIOS()){msg.textContent='iPhone/iPad: vajuta brauseris Jaga ja vali „Lisa avakuvale“.';return}
+  msg.textContent='Chrome/Edge: ava brauseri menüü ja vali „Installi rakendus“ või „Lisa avakuvale“.';
+};
+closeBtn.onclick=()=>box.classList.remove('show');
+function patchInner(){
+  try{
+    const d=frame.contentDocument;if(!d?.body)return;
+    let s=d.getElementById('crossfitSeparateHostStyle');
+    if(!s){s=d.createElement('style');s.id='crossfitSeparateHostStyle';s.textContent='#crossfitInstallCard{display:none!important}';d.head.appendChild(s)}
+  }catch(_){ }
+}
+frame.addEventListener('load',()=>{patchInner();clearInterval(patchTimer);patchTimer=setInterval(patchInner,1500)});
+if(!standalone())setTimeout(showInstall,1800);
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1',{scope:'./',updateViaCache:'none'}).catch(()=>{}));
+</script>
+</body>
+</html>
