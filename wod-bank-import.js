@@ -112,6 +112,14 @@
     }
   }
 
+  function driveViewUrl(id){
+    return id?'https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view':'';
+  }
+
+  function driveThumbUrl(id){
+    return id?'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w1000':'';
+  }
+
   function statusMeta(status){
     if(status==='ready') return ['Valmis','green'];
     if(status==='review') return ['Vajab ülevaatust','amber'];
@@ -128,9 +136,11 @@
     const excerpt=txt?window.esc(txt.slice(0,150))+(txt.length>150?'…':''):'Tekstimustandit pole veel.';
     const thumb=e.image_path
       ? `<img data-wod-import-path="${window.esc(e.image_path)}" alt="WOD originaalpilt" style="width:100%;height:100%;object-fit:cover;display:block">`
-      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:11px;color:#7a837e">Originaalpilt<br>lisamata</div>';
+      : e.source_drive_file_id
+        ? `<img src="${window.esc(driveThumbUrl(e.source_drive_file_id))}" alt="WOD originaalpilt Google Drive'is" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
+        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:11px;color:#7a837e">Originaalpilt<br>lisamata</div>';
     return `<div class="client-card" onclick="openWodEntry(${e.id})" style="cursor:pointer">
-      <div class="client-top"><div style="min-width:0"><div class="client-name">${window.esc(e.title||'WOD')}</div><div class="client-meta">${e.source_date?displayDate(e.source_date):window.shortDate(e.created_at)}${e.image_path?'':' · pilt puudu'}</div></div><span class="pill ${st[1]}">${st[0]}</span></div>
+      <div class="client-top"><div style="min-width:0"><div class="client-name">${window.esc(e.title||'WOD')}</div><div class="client-meta">${e.source_date?displayDate(e.source_date):window.shortDate(e.created_at)}${(e.image_path||e.source_drive_file_id)?'':' · pilt puudu'}</div></div><span class="pill ${st[1]}">${st[0]}</span></div>
       <div style="display:grid;grid-template-columns:84px 1fr;gap:10px;margin-top:10px;align-items:start"><div style="width:84px;height:108px;border-radius:10px;overflow:hidden;background:#eef1ef">${thumb}</div><div class="card-sub" style="white-space:pre-line;max-height:108px;overflow:hidden">${excerpt}</div></div>
     </div>`;
   }
@@ -138,7 +148,8 @@
   function bankSheet(){
     const pending=s.wodBank.filter(x=>x.status==='pending').length;
     const review=s.wodBank.filter(x=>x.status==='review').length;
-    const missing=s.wodBank.filter(x=>!x.image_path).length;
+    const missing=s.wodBank.filter(x=>!x.image_path&&!x.source_drive_file_id).length;
+    const driveLinked=s.wodBank.filter(x=>!x.image_path&&x.source_drive_file_id).length;
     setTimeout(hydrate,30);
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
@@ -150,7 +161,7 @@
       </div>
       <input id="oldWodImagesInput" type="file" accept="image/*" multiple style="display:none" onchange="oldWodImagesPicked(this)">
     </div>
-    <div class="metric-grid" style="margin-top:12px">${window.metric(s.wodBank.length,'WOD-i')}${window.metric(review,'Vajab ülevaatust')}${window.metric(missing,'Pilti puudu')}</div>
+    <div class="metric-grid" style="margin-top:12px">${window.metric(s.wodBank.length,'WOD-i')}${window.metric(review,'Vajab ülevaatust')}${window.metric(driveLinked,'Drive originaal')}${window.metric(missing,'Pilti puudu')}</div>
     <div class="section"><h2>Treeningud</h2><small>${s.wodBank.length}</small></div>
     <div class="stack">${s.wodBank.map(card).join('')||'<div class="empty">WOD-pank on tühi.</div>'}</div>`;
   }
@@ -160,6 +171,11 @@
       setTimeout(hydrate,30);
       return `<div style="border-radius:14px;overflow:hidden;background:#eef1ef;margin-bottom:12px"><img data-wod-import-path="${window.esc(e.image_path)}" alt="WOD originaalpilt" style="width:100%;max-height:480px;object-fit:contain;display:block"></div>`;
     }
+    if(e.source_drive_file_id){
+      const thumb=driveThumbUrl(e.source_drive_file_id);
+      const view=driveViewUrl(e.source_drive_file_id);
+      return `<div style="border-radius:14px;overflow:hidden;background:#eef1ef;margin-bottom:8px"><img src="${window.esc(thumb)}" alt="WOD originaalpilt Google Drive'is" style="width:100%;max-height:480px;object-fit:contain;display:block"></div><div class="training-actions" style="margin-bottom:12px"><a class="btn btn-soft" href="${window.esc(view)}" target="_blank" rel="noopener">Ava originaal Drive'is</a></div>`;
+    }
     return `<div class="card" style="margin-bottom:12px;border-style:dashed"><div class="card-title">Originaalpilt on veel lisamata</div><div class="card-sub">Tekst on juba WOD-pangas. Lisa selle juurde sama kuupäeva originaalfoto.</div><div class="training-actions" style="margin-top:10px"><button class="btn btn-primary" onclick="pickOneOldWodImage(${e.id})">Lisa originaalpilt</button></div><input id="oneOldWodInput-${e.id}" type="file" accept="image/*" style="display:none" onchange="oneOldWodImagePicked(${e.id},this)"></div>`;
   }
 
@@ -167,7 +183,7 @@
     const st=statusMeta(e.status);
     const hasText=(e.workout_text||e.draft_text||'').trim();
     return `${detailImage(e)}
-      <div class="training-meta" style="margin-bottom:12px"><span class="pill ${st[1]}">${st[0]}</span><span class="pill ${e.image_path?'green':'amber'}">${e.image_path?'Originaalpilt säilitatud':'Originaalpilt puudu'}</span></div>
+      <div class="training-meta" style="margin-bottom:12px"><span class="pill ${st[1]}">${st[0]}</span><span class="pill ${(e.image_path||e.source_drive_file_id)?'green':'amber'}">${e.image_path?'Originaalpilt Supabase’is':(e.source_drive_file_id?'Originaalpilt Drive’is':'Originaalpilt puudu')}</span></div>
       <div class="form">
         <div class="form-grid"><div class="field"><label>Kuupäev</label><input id="wodDate" type="date" value="${window.esc(e.source_date||'')}"></div><div class="field"><label>Pealkiri</label><input id="wodTitle" maxlength="120" value="${window.esc(e.title||'WOD')}"></div></div>
         <div class="field"><label>Lõplik WOD-tekst</label><textarea id="wodText" style="min-height:260px" placeholder="Paranda või täienda teksti siin...">${window.esc(e.workout_text||e.draft_text||'')}</textarea></div>
