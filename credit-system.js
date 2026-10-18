@@ -5,6 +5,12 @@
   if(!s) return;
 
   const baseRenderModal=window.renderModal;
+  const creditIcon={
+    plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    copy:'<svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>',
+    package:'<svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg>'
+  };
+
 
   s.removedClients=s.removedClients||[];
   s.packageTypes=[];
@@ -83,9 +89,9 @@
         <div class="metric-grid">${window.metric(att.noCredit,'0 krediidiga klienti')}${window.metric(att.waiting,'Ootenimekirjas')}${window.metric(att.clients,'Aktiivseid kliente')}</div>
         <div class="section"><h2>Kiirtoimingud</h2></div>
         <div class="quick-grid">
-          <button class="quick" onclick="openTrainingForm()">${window.icon.plus}<b>Lisa treening</b><span>Üksik või korduv treening</span></button>
-          <button class="quick" onclick="copyLatestTraining()">${window.icon.copy}<b>Kopeeri eelmine</b><span>Loo sarnane treening kiiresti</span></button>
-          <button class="quick" onclick="go('people');toast('Vali klient ja lisa talle krediiti')">${window.icon.package}<b>Lisa krediiti</b><span>Sularaha eest treeningkorrad</span></button>
+          <button class="quick" onclick="openTrainingForm()">${creditIcon.plus}<b>Lisa treening</b><span>Üksik või korduv treening</span></button>
+          <button class="quick" onclick="copyLatestTraining()">${creditIcon.copy}<b>Kopeeri eelmine</b><span>Loo sarnane treening kiiresti</span></button>
+          <button class="quick" onclick="go('people');toast('Vali klient ja lisa talle krediiti')">${creditIcon.package}<b>Lisa krediiti</b><span>Sularaha eest treeningkorrad</span></button>
         </div>
         ${next?`<div class="section"><h2>Täituvus</h2><small>${window.confirmedFor(next.id).length} registreerunud</small></div>${window.trainingCard(next,true)}`:''}`;
     }
@@ -287,7 +293,7 @@
   };
 
   window.quickSheet=function(){
-    return `<div class="quick-grid"><button class="quick" onclick="openTrainingForm()">${window.icon.plus}<b>Lisa treening</b><span>Üksik või korduv</span></button><button class="quick" onclick="copyLatestTraining()">${window.icon.copy}<b>Kopeeri eelmine</b><span>Loo kiiresti uus aeg</span></button><button class="quick" onclick="state.modal=null;go('people');toast('Vali klient ja lisa talle krediiti')">${window.icon.package}<b>Lisa krediiti</b><span>Vali klient</span></button></div>`;
+    return `<div class="quick-grid"><button class="quick" onclick="openTrainingForm()">${creditIcon.plus}<b>Lisa treening</b><span>Üksik või korduv</span></button><button class="quick" onclick="copyLatestTraining()">${creditIcon.copy}<b>Kopeeri eelmine</b><span>Loo kiiresti uus aeg</span></button><button class="quick" onclick="state.modal=null;go('people');toast('Vali klient ja lisa talle krediiti')">${creditIcon.package}<b>Lisa krediiti</b><span>Vali klient</span></button></div>`;
   };
 
   window.infoSheet=function(){
