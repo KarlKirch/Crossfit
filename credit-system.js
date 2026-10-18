@@ -297,7 +297,7 @@
   };
 
   window.infoSheet=function(){
-    return `<div class="card"><div class="card-title">CrossFit treeningurakendus</div><div class="card-sub">Registreerimine, ootenimekiri, treeningkrediit ja teavitused.</div><div style="margin-top:10px"><div class="info-row"><span>Versioon</span><b>5.1</b></div><div class="info-row"><span>Tasumine</span><b>Sularahas treenerile</b></div><div class="info-row"><span>Treeningkrediit</span><b>Treener lisab krediidi kontole</b></div><div class="info-row"><span>Treeningule registreerimine</span><b>1 krediit</b></div><div class="info-row"><span>Osalemine</span><b>Registreeritud ja tühistamata = osales</b></div><div class="info-row"><span>Hiline tühistus</span><b>Krediiti ei tagastata</b></div></div></div>`;
+    return `<div class="card"><div class="card-title">CrossFit treeningurakendus</div><div class="card-sub">Registreerimine, ootenimekiri, treeningkrediit ja teavitused.</div><div style="margin-top:10px"><div class="info-row"><span>Versioon</span><b>5.2</b></div><div class="info-row"><span>Tasumine</span><b>Sularahas treenerile</b></div><div class="info-row"><span>Treeningkrediit</span><b>Treener lisab krediidi kontole</b></div><div class="info-row"><span>Treeningule registreerimine</span><b>1 krediit</b></div><div class="info-row"><span>Osalemine</span><b>Registreeritud ja tühistamata = osales</b></div><div class="info-row"><span>Hiline tühistus</span><b>Krediiti ei tagastata</b></div></div></div>`;
   };
 
   Object.assign(window,{
