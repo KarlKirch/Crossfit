@@ -124,7 +124,7 @@
 
   function statusMeta(status){
     if(status==='ready') return ['Valmis','green'];
-    if(status==='review') return ['Vajab ülevaatust','amber'];
+    if(status==='review') return ['Kinnitamata','amber'];
     return ['Töötlemata',''];
   }
 
