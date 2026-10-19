@@ -675,8 +675,7 @@
       window.render();
       queueHydrate();
 
-      const current=s.wodBank.find(x=>x.image_path===path)||entry;
-      if(current) makeDraft(current,file,true);
+      // Käsikirjalise tahvlipildi OCR ei käivitu automaatselt.
     }catch(e){
       window.toast(e.message||'Pildi salvestamine ebaõnnestus');
       console.warn(e);
