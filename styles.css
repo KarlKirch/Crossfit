@@ -356,3 +356,72 @@ button:disabled{cursor:not-allowed;opacity:.55}
  .cf-person-row{gap:7px}
  .cf-myprofile-row>.cf-avatar{width:36px;height:36px}
 }
+
+
+/* 9. samm – treeningu detailvaade; kontrollitud fookus tegevustele ja WOD-ile */
+.td-content{display:grid;gap:12px}
+.td-sheet .sheet-body{padding:12px 14px calc(20px + env(safe-area-inset-bottom))}
+.td-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(145deg,#354F3C 0%,#617B58 100%);border-radius:21px;color:#fff;padding:19px 18px;box-shadow:0 12px 29px rgba(43,73,43,.15)}
+.td-hero::after{position:absolute;content:"";z-index:-1;width:195px;height:195px;border:1px solid #ffffff18;border-radius:50%;right:-72px;top:-80px;box-shadow:0 0 0 33px #ffffff09}
+.td-hero-header{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.td-kicker{font-size:10px;letter-spacing:.9px;color:#E9F1E6;font-weight:900}
+.td-badge{display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border-radius:100px;font-size:10px;font-weight:850;white-space:nowrap;line-height:1.2}
+.td-badge svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;stroke-linecap:round;fill:none}
+.td-badge-free,.td-badge-booked{background:#E5F2E1;color:#2E5932}
+.td-badge-waiting{background:#FFEECF;color:#78521A}
+.td-badge-neutral{background:#E4E9E0;color:#44584B}
+.td-badge-cancelled{background:#FCE6E7;color:#A03D42}
+.td-date{font-size:13px;font-weight:650;color:#F2F7EE;line-height:1.4;text-transform:capitalize;margin:14px 0 6px}
+.td-hero h2{font-size:clamp(23px,6vw,30px);line-height:1.18;letter-spacing:-.4px;margin:0 0 13px;overflow-wrap:anywhere}
+.td-hero-facts{display:flex;flex-wrap:wrap;align-items:center;gap:8px 17px;margin-bottom:15px;font-size:12px;color:#EAF1E7}
+.td-hero-facts>span{display:flex;align-items:center;gap:5px}
+.td-hero-facts svg,.td-section h3 svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.td-hero-progress{height:7px;border-radius:100px;background:#ffffff3d;overflow:hidden}
+.td-hero-progress>span{display:block;height:100%;background:#E9F4E3;border-radius:100px}
+.td-hero-capacity{font-size:11px;color:#EDF5E9;margin:8px 0 0}
+.td-section{background:#fff;border-radius:18px;border:1px solid var(--line);padding:16px}
+.td-section h3{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 0 11px;line-height:1.35;color:var(--text)}
+.td-section p{font-size:13px;line-height:1.6;margin:0;color:#3D4F42}
+.td-wod{border-color:#C8D8C3;background:#FAFCF8}
+.td-wod h3{color:var(--accent)}
+.td-wod-body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.72;color:#263A2C;font-weight:550}
+.td-muted{color:var(--muted)!important;font-weight:400}
+.td-notes{background:#F5F8F2}
+.td-attendee-list{display:grid;gap:0}
+.td-attendee{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #EDF1EA;min-width:0}
+.td-attendee:last-child{border-bottom:0}
+.td-attendee-name{display:grid;min-width:0;gap:2px;flex:1}
+.td-attendee-name strong{font-size:13px;line-height:1.35;font-weight:850;overflow-wrap:anywhere}
+.td-attendee-name small{font-size:11px;color:var(--muted)}
+.td-attendee .cf-avatar{width:41px;height:41px}
+.td-attendee .cf-avatar-initials{font-size:13px}
+.td-avatar-fallback{flex:none;display:grid;place-items:center;width:41px;height:41px;background:#6B8564;color:#fff;border-radius:50%;font-weight:900}
+.td-person-credit{font-size:10px;white-space:nowrap;color:var(--accent);font-weight:800}
+.td-person-unpaid{color:var(--amber)}
+.td-empty-attendees{font-size:12px;line-height:1.5;color:var(--muted);padding:7px 0}
+.td-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.td-button{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:850;border:0;line-height:1.35}
+.td-button-main{background:var(--accent);color:#fff}
+.td-button-main:hover{background:var(--accent-hover)}
+.td-button-secondary{background:var(--accent-soft);color:var(--accent)}
+.td-button-danger{background:var(--red-soft);color:var(--red)}
+.td-booking-section>.td-button{margin-top:12px}
+.td-booking-status{padding:12px 13px;border-radius:13px;background:#EDF5E9;margin-bottom:11px;color:#285735}
+.td-booking-status strong{font-size:14px}
+.td-booking-status p{font-size:12px;color:#3E5B43;margin-top:6px}
+.td-position{display:block;font-size:12px;font-weight:850;color:#2B633C;margin-top:8px}
+.td-booking-intro{display:grid;gap:7px;margin-bottom:12px}
+.td-booking-intro>span{font-size:12px;color:var(--accent);font-weight:850}
+.td-no-credit{display:grid;gap:10px;padding:12px;background:#FFF7E8;border-radius:13px}
+.td-no-credit strong{font-size:13px;color:#80601E}
+.td-no-credit .td-button{margin-top:2px}
+.td-late-warning{margin-top:12px!important;padding:11px 13px;border-radius:11px;background:#FFF4E5;color:#875721!important;font-weight:700}
+.td-policy{color:#4E604D!important}
+.td-deadline{font-size:12px!important;color:var(--accent)!important;margin-top:8px!important;font-weight:750}
+.td-danger-zone{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.td-danger-zone summary{font-size:12px;line-height:1.4;color:var(--red);font-weight:850;cursor:pointer}
+.td-danger-zone .td-actions{margin-top:13px}
+.td-danger-zone p{font-size:11px;color:var(--muted);margin-top:7px}
+.td-rules h3{font-size:13px}
+@media(min-width:600px){.td-sheet{max-width:640px}.td-section{padding:18px}}
+@media(max-width:450px){.td-hero{padding:17px}.td-section{padding:13px}.td-hero-header{align-items:flex-start}.td-actions{grid-template-columns:1fr}.td-person-credit{display:none}}
