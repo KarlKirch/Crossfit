@@ -155,12 +155,12 @@
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
       <div class="card-sub">Originaalpilt ja redigeeritav WOD-tekst jäävad mõlemad alles.</div>
-      <div id="wodBatchOcrProgress" class="card-sub" style="margin-top:8px">${missingDrafts?`Tekstimustandita pilte: ${missingDrafts}. Loomine käivitub automaatselt.`:'Kõigil piltidel on tekstimustand olemas.'}</div>
+      <div id="wodBatchOcrProgress" class="card-sub" style="margin-top:8px">${missingDrafts?`Tekstimustandita pilte: ${missingDrafts}. Vajuta nuppu või jäta WOD-pank avatuks – edenemine kuvatakse siin.`:'Kõigil piltidel on tekstimustand olemas.'}</div>
       <div class="training-actions" style="margin-top:12px">
         <button class="btn btn-primary" onclick="pickWodCamera()">Tee pilt</button>
         <button class="btn btn-soft" onclick="pickWodGallery()">Vali galeriist</button>
         ${missing?`<button class="btn btn-soft" onclick="pickOldWodImages()">Lisa ${missing} vana originaalpilti</button>`:''}
-        ${missingDrafts?`<button class="btn btn-soft" onclick="buildAllWodDrafts()">Jätka tekstimustandite loomist</button>`:''}
+        ${missingDrafts?`<button class="btn btn-primary" onclick="buildAllWodDrafts()">Loo tekstimustandid (${missingDrafts})</button>`:''}
       </div>
       <input id="oldWodImagesInput" type="file" accept="image/*" multiple style="display:none" onchange="oldWodImagesPicked(this)">
     </div>
@@ -172,7 +172,7 @@
   function detailImage(e){
     if(e.image_path){
       setTimeout(hydrate,30);
-      return `<div style="border-radius:14px;overflow:hidden;background:#eef1ef;margin-bottom:12px"><img data-wod-import-path="${window.esc(e.image_path)}" alt="WOD originaalpilt" style="width:100%;max-height:480px;object-fit:contain;display:block"></div>`;
+      return `<div style="border-radius:14px;overflow:hidden;background:#eef1ef;margin-bottom:12px"><img data-wod-import-path="${window.esc(e.image_path)}" onclick="event.stopPropagation();openWodImage(\'${window.esc(e.image_path)}\')" alt="WOD originaalpilt" title="Ava originaalsuuruses" style="width:100%;max-height:480px;object-fit:contain;display:block;cursor:zoom-in"></div>`;
     }
     if(e.source_drive_file_id){
       const thumb=driveThumbUrl(e.source_drive_file_id);
