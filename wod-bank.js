@@ -152,6 +152,10 @@
     if(el) el.textContent=message||'';
   }
 
+  function hasMeaningfulDraft(value){
+    return String(value||'').replace(/[\u200B-\u200D\uFEFF]/g,'').trim().length>0;
+  }
+
   async function getImageUrl(path){
     const cached=imageUrlCache.get(path);
     if(cached?.url) return cached.url;
@@ -429,7 +433,7 @@
         ${e.draft_text?`<details class="card" style="box-shadow:none"><summary style="cursor:pointer;font-weight:700">Vaata automaatset algmustandit</summary><div class="card-sub" style="white-space:pre-wrap;margin-top:10px">${window.esc(e.draft_text)}</div></details>`:''}
         <div id="wodOcrProgress" class="card-sub"></div>
         <div class="form-actions">
-          <button class="btn btn-primary" onclick="saveWodEntry(${e.id},true)">Kinnita valmis</button>
+          <button class="btn btn-dark" onclick="copyWodText(${e.id})">Kopeeri kogu WOD</button>\n          <button class="btn btn-primary" onclick="saveWodEntry(${e.id},true)">Kinnita valmis</button>
           <button class="btn btn-soft" onclick="saveWodEntry(${e.id},false)">Salvesta mustand</button>
           <button class="btn btn-soft" onclick="retryWodDraft(${e.id})">Loo tekstimustand uuesti</button>
         </div>
@@ -461,7 +465,7 @@
 
   window.buildAllWodDrafts=async function(){
     if(!window.isTrainer()||s.wodBatchOcrRunning) return;
-    const queue=s.wodBank.filter(e=>e.image_path&&!String(e.draft_text||'').trim());
+    const queue=s.wodBank.filter(e=>e.image_path&&!hasMeaningfulDraft(e.draft_text));
     if(!queue.length){
       updateBatchOcrProgress('Kõigil piltidel on tekstimustand olemas.');
       return;
@@ -550,8 +554,30 @@
     }
   };
 
+  function pushWodHistory(kind,id=null){
+    const current=history.state||{};
+    if(current.wodModal===kind&&(kind!=='detail'||Number(current.wodId)===Number(id))) return;
+    history.pushState({...current,wodModal:kind,wodId:id},'');
+  }
+
+  function renderWodHistoryState(state){
+    const viewer=document.getElementById('wodImageViewer');
+    if(viewer) viewer.remove();
+    if(state?.wodModal==='detail'&&state.wodId){
+      s.modal='wodDetail';s.modalData=Number(state.wodId);window.render();queueHydrate();return;
+    }
+    if(state?.wodModal==='bank'){
+      s.modal='wodBank';s.modalData=null;window.render();queueHydrate();restoreWodBankScroll();return;
+    }
+    if(s.modal==='wodDetail'||s.modal==='wodBank'){
+      s.modal=null;s.modalData=null;window.render();
+    }
+  }
+
+  window.addEventListener('popstate',event=>renderWodHistoryState(event.state));
   window.openWodBank=async function(){
     if(!window.isTrainer()) return;
+    pushWodHistory('bank');
     s.modal='wodBank';
     s.modalData=null;
     window.render();
@@ -573,6 +599,7 @@
     if(!window.isTrainer()) return;
     const sheetEl=document.querySelector('.sheet');
     if(sheetEl) s.wodBankScrollTop=sheetEl.scrollTop||0;
+    pushWodHistory('detail',id);
     s.modal='wodDetail';
     s.modalData=id;
     window.render();
@@ -590,12 +617,14 @@
   }
 
   window.closeModal=function(){
-    if(s.modal==='wodDetail'){
-      s.modal='wodBank';
-      s.modalData=null;
-      window.render();
-      queueHydrate();
-      restoreWodBankScroll();
+    if(s.modal==='wodDetail'||s.modal==='wodBank'){
+      if(history.state?.wodModal){
+        history.back();
+      }else if(s.modal==='wodDetail'){
+        s.modal='wodBank';s.modalData=null;window.render();queueHydrate();restoreWodBankScroll();
+      }else{
+        baseCloseModal();
+      }
       return;
     }
     baseCloseModal();
@@ -682,6 +711,24 @@
     }
   };
 
+  window.copyWodText=async function(id){
+    const e=s.wodBank.find(x=>x.id===id);
+    const text=(document.getElementById('wodText')?.value||e?.workout_text||e?.draft_text||'').trim();
+    if(!text){window.toast('WOD-tekst on tühi');return}
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(text);
+      }else{
+        const ta=document.createElement('textarea');
+        ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+      }
+      window.toast('Kogu WOD-tekst kopeeritud');
+    }catch(err){
+      window.toast('Kopeerimine ebaõnnestus');
+      console.warn(err);
+    }
+  };
   window.saveWodEntry=async function(id,ready){
     const e=s.wodBank.find(x=>x.id===id);
     if(!e) return;
@@ -748,7 +795,7 @@
 
   Object.assign(window,{
     openWodBank,openWodEntry,pickWodCamera,pickWodGallery,wodFilePicked,
-    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts,openWodImage
+    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts,openWodImage,copyWodText
   });
 
   setTimeout(()=>{
