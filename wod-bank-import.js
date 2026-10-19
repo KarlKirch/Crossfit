@@ -120,6 +120,8 @@
     return id?'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w1000':'';
   }
 
+  function meaningfulDraft(value){return String(value||'').replace(/[\u200B-\u200D\uFEFF]/g,'').trim().length>0}
+
   function statusMeta(status){
     if(status==='ready') return ['Valmis','green'];
     if(status==='review') return ['Vajab ülevaatust','amber'];
@@ -150,7 +152,7 @@
     const review=s.wodBank.filter(x=>x.status==='review').length;
     const missing=s.wodBank.filter(x=>!x.image_path&&!x.source_drive_file_id).length;
     const driveLinked=s.wodBank.filter(x=>!x.image_path&&x.source_drive_file_id).length;
-    const missingDrafts=s.wodBank.filter(x=>x.image_path&&!String(x.draft_text||'').trim()).length;
+    const missingDrafts=s.wodBank.filter(x=>x.image_path&&!meaningfulDraft(x.draft_text)).length;
     setTimeout(hydrate,30);
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
@@ -191,7 +193,7 @@
         <div class="form-grid"><div class="field"><label>Kuupäev</label><input id="wodDate" type="date" value="${window.esc(e.source_date||'')}"></div><div class="field"><label>Pealkiri</label><input id="wodTitle" maxlength="120" value="${window.esc(e.title||'WOD')}"></div></div>
         <div class="field"><label>Lõplik WOD-tekst</label><textarea id="wodText" style="min-height:260px" placeholder="Paranda või täienda teksti siin...">${window.esc(e.workout_text||e.draft_text||'')}</textarea></div>
         ${e.draft_text?`<details class="card" style="box-shadow:none"><summary style="cursor:pointer;font-weight:700">Vaata algmustandit</summary><div class="card-sub" style="white-space:pre-wrap;margin-top:10px">${window.esc(e.draft_text)}</div></details>`:''}
-        <div class="form-actions"><button class="btn btn-primary" onclick="saveWodEntry(${e.id},true)">Kinnita valmis</button><button class="btn btn-soft" onclick="saveWodEntry(${e.id},false)">Salvesta mustand</button>${e.image_path?'<button class="btn btn-soft" onclick="retryWodDraft('+e.id+')">Loo tekstimustand uuesti</button>':''}</div>
+        <div class="form-actions"><button class="btn btn-dark" onclick="copyWodText(${e.id})">Kopeeri kogu WOD</button><button class="btn btn-primary" onclick="saveWodEntry(${e.id},true)">Kinnita valmis</button><button class="btn btn-soft" onclick="saveWodEntry(${e.id},false)">Salvesta mustand</button>${e.image_path?'<button class="btn btn-soft" onclick="retryWodDraft('+e.id+')">Loo tekstimustand uuesti</button>':''}</div>
         <div class="training-actions"><button class="btn btn-dark" onclick="useWodInTraining(${e.id})" ${hasText?'':'disabled'}>Kasuta treeningus</button><button class="btn btn-danger" onclick="deleteWodEntry(${e.id})">Kustuta WOD</button></div>
       </div>`;
   }
