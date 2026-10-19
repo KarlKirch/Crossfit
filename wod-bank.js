@@ -201,7 +201,13 @@
       s.wodBank=[];
       return;
     }
-    s.wodBank=await window.api('wod_bank_entries?select=*&order=created_at.desc')||[];
+    s.wodBank=await window.api('wod_bank_entries?select=*&order=source_date.desc.nullslast,created_at.desc')||[];
+    s.wodBank.sort((a,b)=>{
+      const ad=a.source_date||'';
+      const bd=b.source_date||'';
+      if(ad!==bd) return bd.localeCompare(ad);
+      return String(b.created_at||'').localeCompare(String(a.created_at||''));
+    });
   };
 
   function menuItem(){
