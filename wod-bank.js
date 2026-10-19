@@ -170,6 +170,94 @@
     imageUrlCache.delete(path);
   }
 
+  async function readExifOrientation(blob){
+    try{
+      const buf=await blob.slice(0,128*1024).arrayBuffer();
+      const v=new DataView(buf);
+      if(v.getUint16(0,false)!==0xFFD8) return 1;
+      let offset=2;
+      while(offset+4<v.byteLength){
+        if(v.getUint8(offset)!==0xFF){offset++;continue}
+        const marker=v.getUint8(offset+1);
+        if(marker===0xDA||marker===0xD9) break;
+        const len=v.getUint16(offset+2,false);
+        if(marker===0xE1&&offset+2+len<=v.byteLength){
+          const exif=offset+4;
+          if(v.getUint32(exif,false)===0x45786966){
+            const tiff=exif+6;
+            const little=v.getUint16(tiff,false)===0x4949;
+            const firstIfd=tiff+v.getUint32(tiff+4,little);
+            const count=v.getUint16(firstIfd,little);
+            for(let i=0;i<count;i++){
+              const e=firstIfd+2+i*12;
+              if(e+12>v.byteLength) break;
+              if(v.getUint16(e,little)===0x0112){
+                const o=v.getUint16(e+8,little);
+                return [1,3,6,8].includes(o)?o:1;
+              }
+            }
+          }
+        }
+        offset+=2+len;
+      }
+    }catch(_){}
+    return 1;
+  }
+
+  async function prepareOcrCanvas(blob,enhance=true){
+    const orientation=await readExifOrientation(blob);
+    let bitmap;
+    try{
+      bitmap=await createImageBitmap(blob,{imageOrientation:'none'});
+    }catch(_){
+      bitmap=await createImageBitmap(blob);
+    }
+    const rawW=bitmap.width, rawH=bitmap.height;
+    const swap=orientation===6||orientation===8;
+    const orientedW=swap?rawH:rawW;
+    const orientedH=swap?rawW:rawH;
+    const scale=Math.min(1,2200/Math.max(orientedW,orientedH));
+    const outW=Math.max(1,Math.round(orientedW*scale));
+    const outH=Math.max(1,Math.round(orientedH*scale));
+    const canvas=document.createElement('canvas');
+    canvas.width=outW;canvas.height=outH;
+    const ctx=canvas.getContext('2d',{willReadFrequently:enhance});
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH);
+    ctx.save();
+    if(orientation===6){
+      ctx.translate(outW,0);ctx.rotate(Math.PI/2);ctx.scale(scale,scale);
+    }else if(orientation===8){
+      ctx.translate(0,outH);ctx.rotate(-Math.PI/2);ctx.scale(scale,scale);
+    }else if(orientation===3){
+      ctx.translate(outW,outH);ctx.rotate(Math.PI);ctx.scale(scale,scale);
+    }else{
+      ctx.scale(scale,scale);
+    }
+    ctx.drawImage(bitmap,0,0);
+    ctx.restore();
+    bitmap.close?.();
+
+    if(enhance){
+      const img=ctx.getImageData(0,0,outW,outH);
+      const d=img.data;
+      const contrast=1.55;
+      for(let i=0;i<d.length;i+=4){
+        const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const v=Math.max(0,Math.min(255,(gray-128)*contrast+150));
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+      ctx.putImageData(img,0,0);
+    }
+    return canvas;
+  }
+
+  function usefulOcrText(text,confidence){
+    const clean=String(text||'').trim();
+    const letters=(clean.match(/[A-Za-zÀ-ž0-9]/g)||[]).length;
+    const words=(clean.match(/[A-Za-zÀ-ž]{2,}/g)||[]).length;
+    return clean.length>=12&&letters>=8&&words>=2&&(Number(confidence)||0)>=18;
+  }
+
   function loadOcr(){
     if(window.Tesseract) return Promise.resolve(window.Tesseract);
     if(ocrLoadPromise) return ocrLoadPromise;
@@ -190,7 +278,8 @@
     if(showToast) window.toast('Loon pildist tekstimustandit…');
     try{
       const T=await loadOcr();
-      const source=fileOrBlob||await downloadOriginal(entry.image_path);
+      const rawSource=fileOrBlob||await downloadOriginal(entry.image_path);
+      const source=await prepareOcrCanvas(rawSource,true);
       const result=await T.recognize(source,'eng',{
         logger:m=>{
           if(m.status==='recognizing text'&&typeof m.progress==='number'){
@@ -206,7 +295,7 @@
         .replace(/\n{3,}/g,'\n\n')
         .trim();
 
-      if(!text) throw new Error('Pildilt ei õnnestunud loetavat teksti tuvastada');
+      if(!usefulOcrText(text,result?.data?.confidence)) throw new Error('Pildilt ei õnnestunud piisavalt usaldusväärset teksti tuvastada');
 
       await window.api(`wod_bank_entries?id=eq.${entry.id}`,{
         method:'PATCH',
@@ -394,14 +483,28 @@
           }
         }
       });
+      await worker.setParameters({
+        tessedit_pageseg_mode:'11',
+        preserve_interword_spaces:'1'
+      });
 
       for(const entry of queue){
         try{
           const blob=await downloadOriginalUncached(entry.image_path);
-          const result=await worker.recognize(blob);
+          const canvas=await prepareOcrCanvas(blob,true);
+          let result=await worker.recognize(canvas);
           let text=cleanBatchOcrText(result?.data?.text||'');
-          if(!text){
-            text='Automaatne tekstituvastus ei leidnud loetavat teksti. Vaata originaalpilti ja täienda mustandit käsitsi.';
+
+          if(!usefulOcrText(text,result?.data?.confidence)){
+            const plain=await prepareOcrCanvas(blob,false);
+            const retry=await worker.recognize(plain);
+            if((Number(retry?.data?.confidence)||0)>(Number(result?.data?.confidence)||0)){
+              result=retry;
+              text=cleanBatchOcrText(retry?.data?.text||'');
+            }
+          }
+          if(!usefulOcrText(text,result?.data?.confidence)){
+            throw new Error('OCR confidence too low');
           }
 
           const keepWorkout=String(entry.workout_text||'').trim();
@@ -421,24 +524,9 @@
           if(entry.status!=='ready') entry.status='review';
         }catch(err){
           console.warn('WOD batch OCR failed',entry?.id,err);
-          const fallback='Automaatne tekstituvastus ebaõnnestus. Vaata originaalpilti ja täienda mustandit käsitsi.';
-          try{
-            await window.api(`wod_bank_entries?id=eq.${entry.id}`,{
-              method:'PATCH',
-              headers:{Prefer:'return=minimal'},
-              body:JSON.stringify({
-                draft_text:fallback,
-                workout_text:String(entry.workout_text||'').trim()||fallback,
-                status:entry.status==='ready'?'ready':'review',
-                updated_at:new Date().toISOString()
-              })
-            });
-            entry.draft_text=fallback;
-            if(!String(entry.workout_text||'').trim()) entry.workout_text=fallback;
-            if(entry.status!=='ready') entry.status='review';
-          }catch(patchErr){
-            console.warn('WOD fallback draft failed',entry?.id,patchErr);
-          }
+          // Madala kvaliteediga OCR-i ei salvestata prügitekstina.
+          // Kirje jääb töötlemata ja järgmine käivitus võib uuesti proovida.
+          entry._ocrFailed=true;
         }
 
         s.wodBatchOcrDone++;
