@@ -738,7 +738,8 @@
     const sourceDate=document.getElementById('wodDate')?.value||null;
     const title=document.getElementById('wodTitle')?.value.trim()||'WOD';
     const workout=document.getElementById('wodText')?.value.trim()||null;
-    const status=ready?'ready':(workout?'review':'pending');
+    if(ready&&!workout){window.toast('Kinnitamiseks lisa WOD-i tekst või paranda see originaalpildi põhjal.');return}
+    const status=ready?'ready':'review';
     try{
       await window.api(`wod_bank_entries?id=eq.${id}`,{
         method:'PATCH',
