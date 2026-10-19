@@ -70,7 +70,7 @@ async function rpc(name,body={}){return api(`rpc/${name}`,{method:'POST',headers
 function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'E-post ei ole kinnitatud. Ava kinnituskiri ja proovi uuesti.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas.';return s||'Toiming ebaõnnestus.'}
 
 async function refreshSession(){if(!state.session?.refresh_token)return false;try{const data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:headers(),body:JSON.stringify({refresh_token:state.session.refresh_token})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));return true}catch(_){state.session=null;localStorage.removeItem('wod_session');return false}}
-async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
+async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
 async function loadData(){
   const since=new Date(Date.now()-365*86400000).toISOString();
   const trainer=isTrainer();
@@ -78,7 +78,7 @@ async function loadData(){
   const queries=[
     api(`wod_trainings?select=*&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
     api('wod_registrations?select=*&order=created_at.asc'),
-    api('wod_profiles?select=user_id,display_name,role&order=display_name.asc'),
+    api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
     api(trainer?'wod_wallets?select=user_id,credits':`wod_wallets?select=user_id,credits&user_id=eq.${uid}`),
     api(trainer?'wod_credit_transactions?select=*&order=created_at.desc&limit=200':`wod_credit_transactions?select=*&user_id=eq.${uid}&order=created_at.desc&limit=50`),
     api('wod_package_types?select=*&order=sort_order.asc,id.asc'),
