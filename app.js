@@ -13,7 +13,7 @@ const updateBanner=document.getElementById('updateBanner');
 const updateNow=document.getElementById('updateNow');
 
 const state={
-  mode:'login',session:null,profile:null,view:'home',trainingTab:'upcoming',
+  mode:'login',session:null,profile:null,view:'home',notificationsReturnView:'home',trainingTab:'upcoming',
   trainings:[],registrations:[],profiles:[],wallets:[],creditTransactions:[],
   packageTypes:[],userPackages:[],notifications:[],
   modal:null,modalData:null,loading:false,installPrompt:null,swReg:null,pushBusy:false
@@ -90,21 +90,31 @@ async function loadData(){
 }
 async function reloadData(message){try{state.loading=true;await loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
-function navButton(view,label,svg,badge=''){return `<button class="nav-btn ${state.view===view?'on':''}" onclick="go('${view}')">${svg}<span>${label}</span>${badge?`<span class="nav-badge">${badge}</span>`:''}</button>`}
+function navButton(view,label,svg){
+  const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
+  return `<button class="nav-btn ${active?'on':''}" type="button" onclick="go('${view}')" aria-current="${active?'page':'false'}">${svg}<span>${label}</span></button>`;
+}
 function unreadCount(){return state.notifications.filter(n=>!n.read_at).length}
 function renderShell(content){
   const trainer=isTrainer();
   const badge=unreadCount();
   root.innerHTML=`<div class="app-shell">
-    <header class="topbar"><div class="brand-wrap"><div class="brand-mark">CF</div><div><div class="brand">CrossFit</div><div class="brand-sub">${trainer?'Treeneri vaade':esc(state.profile?.display_name||'')}</div></div></div><button class="top-action" onclick="reloadData('Andmed uuendatud')">Uuenda</button></header>
+    <header class="topbar">
+      <div class="brand-wrap"><div class="brand-mark">CF</div><div><div class="brand">CrossFit</div><div class="brand-sub">${trainer?'Treeneri vaade':esc(state.profile?.display_name||'')}</div></div></div>
+      <div class="top-actions">
+        <button class="top-icon-action" type="button" onclick="reloadData('Andmed uuendatud')" aria-label="Uuenda andmeid" title="Uuenda andmeid"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.8 9A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 12.2-2"/></svg></button>
+        ${state.view==='notifications'
+          ?`<button class="top-icon-action top-notifications-active" type="button" onclick="backFromNotifications()" aria-label="Tagasi eelmisesse vaatesse" title="Tagasi"><span class="top-back-icon">${icon.chevron}</span></button>`
+          :`<button class="top-icon-action" type="button" onclick="go('notifications')" aria-label="Teavitused${badge?', '+badge+' lugemata':''}" title="Teavitused">${icon.bell}${badge?`<span class="top-notification-badge">${badge>9?'9+':badge}</span>`:''}</button>`}
+      </div>
+    </header>
     <main class="main">${state.view==='home'?(window.crossfitInstall?.banner?.()||''):''}${content}</main>
     ${trainer?`<button class="fab" aria-label="Kiirtoimingud" onclick="openQuickActions()">+</button>`:''}
-    <nav class="bottom-nav">
-      ${navButton('home','Avaleht',icon.home)}
+    <nav class="bottom-nav ${trainer?'nav-four':'nav-three'}" aria-label="Põhimenüü">
+      ${navButton('home',trainer?'Ülevaade':'Avaleht',icon.home)}
       ${navButton('trainings','Treeningud',icon.dumbbell)}
       ${navButton('people',trainer?'Kliendid':'Minu',trainer?icon.users:icon.user)}
-      ${navButton('notifications','Teavitused',icon.bell,badge>9?'9+':badge||'')}
-      ${navButton('more','Veel',icon.more)}
+      ${trainer?navButton('more','Haldus',icon.settings):''}
     </nav>
   </div>${renderModal()}`;
   updatePushStateSoon();
@@ -118,11 +128,13 @@ function ensureViewHistory(){
 }
 function go(view){
   ensureViewHistory();
+  if(view==='notifications'&&state.view!=='notifications')state.notificationsReturnView=state.view;
   state.view=view;state.modal=null;state.modalData=null;
   history.pushState({...history.state,crossfitView:view,wodModal:null,wodId:null},'');
   window.scrollTo({top:0,behavior:'instant'});
   render();
 }
+function backFromNotifications(){go(state.notificationsReturnView||'home')}
 window.addEventListener('popstate',event=>{
   if(!state.session||event.state?.wodModal) return;
   const view=event.state?.crossfitView;
@@ -316,5 +328,5 @@ window.crossfitAuth.configure({
   complete:finishEmailSignIn
 });
 
-Object.assign(window,{go,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,togglePush,installApp,logout,toast,state,reloadData});
+Object.assign(window,{go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,togglePush,installApp,logout,toast,state,reloadData});
 boot();
