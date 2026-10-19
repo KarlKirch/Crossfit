@@ -220,3 +220,88 @@ button:disabled{cursor:not-allowed;opacity:.55}
   .home-action-grid button{min-height:85px}
 }
 @media(min-width:610px){.home-feature-card{min-height:255px}}
+
+
+/* 6. samm – treeningute selge kuupäevapõhine nimekiri */
+.tl-page{display:grid;gap:15px}
+.tl-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 1px 0}
+.tl-page-header h1{margin:0;font-size:27px;line-height:1.1;letter-spacing:-.65px}
+.tl-page-header p{margin:7px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
+.tl-header-actions{display:flex;align-items:center;gap:7px;flex:none}
+.tl-header-actions .page-action{display:flex;align-items:center;gap:5px}
+.tl-header-actions .page-action svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.tl-header-credit{display:flex;align-items:center;gap:7px;white-space:nowrap;align-self:flex-start;flex:none;border:1px solid #CCD9C8;background:#fff;border-radius:12px;color:var(--muted);padding:10px 11px;font-size:11px;font-weight:750}
+.tl-header-credit strong{font-size:16px;color:var(--accent);line-height:1}
+.tl-segment{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;background:#E6EDE2;border-radius:14px}
+.tl-segment button{display:flex;justify-content:center;align-items:center;gap:7px;min-width:0;min-height:43px;border:0;border-radius:10px;background:transparent;color:#536652;font-size:12px;font-weight:850}
+.tl-segment button span{display:grid;place-items:center;padding:2px 6px;min-width:21px;min-height:21px;border-radius:8px;background:#D8E2D4;color:#486044;font-size:10px}
+.tl-segment button.on{color:#fff;background:var(--accent);box-shadow:0 3px 12px rgba(46,77,48,.13)}
+.tl-segment button.on span{background:rgba(255,255,255,.2);color:#fff}
+.tl-groups{display:grid;gap:19px}
+.tl-day-group{display:grid;gap:10px}
+.tl-day-title{margin:0 2px;font-size:13px;font-weight:900;text-transform:capitalize;color:var(--accent);letter-spacing:.1px}
+.tl-day-items{display:grid;gap:10px}
+.tl-training-card{min-width:0;display:grid;gap:12px;padding:15px;background:var(--card);border:1px solid var(--line);border-radius:19px;box-shadow:var(--shadow)}
+.tl-card-cancelled{opacity:.78}
+.tl-card-top{display:grid;grid-template-columns:73px minmax(0,1fr) auto;align-items:start;gap:11px}
+.tl-card-datebox{display:grid;gap:5px;justify-items:center;align-content:center;min-height:68px;background:#EFF3EB;border-radius:12px;padding:8px 5px;text-align:center}
+.tl-card-day{color:#526950;font-size:11px;font-weight:800;white-space:nowrap}
+.tl-card-datebox strong{color:#2D4433;font-size:18px;font-weight:950;letter-spacing:-.6px;white-space:nowrap}
+.tl-card-heading{min-width:0;padding-top:3px}
+.tl-card-heading h3{font-size:16px;line-height:1.25;margin:0;overflow-wrap:anywhere}
+.tl-card-info{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:11px;color:var(--muted)}
+.tl-card-info span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.tl-card-info svg,.tl-card-actions svg,.tl-trainer-tool svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tl-card-info .tl-wait-count{color:var(--amber)}
+.tl-pill{display:inline-flex;align-items:center;justify-content:center;flex:none;max-width:150px;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:850;line-height:1.2;text-align:center;white-space:nowrap}
+.tl-free{background:#E3F1E5;color:#20603D}
+.tl-booked{background:#DBECDC;color:#275535}
+.tl-waiting{background:#FFF0D7;color:#876021}
+.tl-cancelled{background:#F8E9EA;color:var(--red)}
+.tl-neutral{background:#EDF0EC;color:#536354}
+.tl-capacity{display:grid;gap:5px}
+.tl-capacity-track{height:6px;overflow:hidden;border-radius:999px;background:#E7ECE4}
+.tl-capacity-track span{display:block;height:100%;background:var(--sage);border-radius:999px}
+.tl-capacity-label{font-size:10px;color:var(--muted)}
+.tl-participants{display:grid;gap:8px;padding:10px 0;border-top:1px solid #EDF1EA;border-bottom:1px solid #EDF1EA}
+.tl-participants-label{font-size:11px;font-weight:850;color:#465C47}
+.tl-participants-list{display:flex;flex-wrap:wrap;align-items:center;gap:6px 13px}
+.tl-person{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text);min-width:0}
+.tl-person-avatar{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:#788E70;color:#fff;font-size:9px;font-weight:900}
+.tl-person>span:last-child{max-width:116px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-people-extra{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#E9EFE5;color:var(--accent);font-size:10px;font-weight:850}
+.tl-participants-none{font-size:11px;color:var(--muted);font-style:italic}
+.tl-card-actions{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(100px,.65fr);gap:8px}
+.tl-action{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:43px;border-radius:12px;border:0;padding:8px 10px;font-weight:850;font-size:12px;line-height:1.25;text-align:center}
+.tl-action svg{flex:none}
+.tl-action-main{background:var(--accent);color:#fff}
+.tl-action-main:hover{background:var(--accent-hover)}
+.tl-action-secondary{background:var(--accent-soft);color:var(--accent-hover)}
+.tl-action-link{background:#F6F8F4;color:var(--accent);border:1px solid var(--line)}
+.tl-action:disabled{opacity:.65}
+.tl-empty{display:grid;justify-items:center;gap:8px;padding:28px 17px;border:1px dashed #CDDCC8;border-radius:18px;text-align:center;background:#FBFCF9}
+.tl-empty-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:var(--accent-soft);color:var(--accent)}
+.tl-empty-icon svg{height:24px;width:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tl-empty strong{font-size:14px}
+.tl-empty>span{font-size:12px;color:var(--muted);line-height:1.45}
+.tl-trainer-tool button{display:flex;align-items:center;gap:11px;width:100%;padding:12px 14px;border-radius:15px;border:1px solid #CADCC6;background:#FBFDF9;color:var(--accent);text-align:left}
+.tl-trainer-tool svg{width:22px;height:22px;flex:none}
+.tl-trainer-tool button>span{display:grid;gap:4px;flex:1}
+.tl-trainer-tool strong{font-size:13px;color:var(--text)}
+.tl-trainer-tool small{font-size:11px;color:var(--muted)}
+@media(max-width:580px){
+ .tl-card-top{grid-template-columns:65px minmax(0,1fr);gap:9px}
+ .tl-card-datebox{min-height:61px}
+ .tl-card-top>.tl-pill{grid-column:2;grid-row:2;justify-self:start;margin-top:-1px}
+ .tl-card-heading h3{font-size:15px}
+ .tl-training-card{padding:13px}
+ .tl-card-actions{grid-template-columns:minmax(0,1fr) minmax(96px,.55fr)}
+}
+@media(max-width:380px){
+ .tl-page-header{flex-wrap:wrap}
+ .tl-page-header .tl-header-actions,.tl-header-credit{margin-left:auto}
+ .tl-card-actions{grid-template-columns:1fr}
+ .tl-action-link{min-height:36px}
+ .tl-participants-list{gap:7px}
+ .tl-person>span:last-child{max-width:100px}
+}
