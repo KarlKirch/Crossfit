@@ -766,7 +766,8 @@
     window.openTrainingForm({
       title:'CrossFit',
       workout:text,
-      note:e.source_date?`WOD-pangast: ${displayDate(e.source_date)}`:'WOD-pangast',
+      duration_minutes:90,
+      note:'',
       price_cents:0
     });
   };
