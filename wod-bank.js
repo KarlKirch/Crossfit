@@ -13,9 +13,12 @@
   const baseRenderMore=window.renderMore;
   const baseRenderModal=window.renderModal;
   const baseQuickSheet=window.quickSheet;
+  const baseCloseModal=window.closeModal;
+  const baseBackdropClose=window.backdropClose;
 
   s.wodBank=s.wodBank||[];
   s.wodOcrBusy=false;
+  s.wodBankScrollTop=s.wodBankScrollTop||0;
 
   const imageUrlCache=new Map();
   let ocrLoadPromise=null;
@@ -344,10 +347,42 @@
 
   window.openWodEntry=function(id){
     if(!window.isTrainer()) return;
+    const sheetEl=document.querySelector('.sheet');
+    if(sheetEl) s.wodBankScrollTop=sheetEl.scrollTop||0;
     s.modal='wodDetail';
     s.modalData=id;
     window.render();
     queueHydrate();
+  };
+
+
+  function restoreWodBankScroll(){
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        const sheetEl=document.querySelector('.sheet');
+        if(sheetEl) sheetEl.scrollTop=s.wodBankScrollTop||0;
+      });
+    });
+  }
+
+  window.closeModal=function(){
+    if(s.modal==='wodDetail'){
+      s.modal='wodBank';
+      s.modalData=null;
+      window.render();
+      queueHydrate();
+      restoreWodBankScroll();
+      return;
+    }
+    baseCloseModal();
+  };
+
+  window.backdropClose=function(e){
+    if(e?.target?.classList?.contains('sheet-backdrop')){
+      window.closeModal();
+      return;
+    }
+    baseBackdropClose(e);
   };
 
   window.pickWodCamera=function(){
