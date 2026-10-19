@@ -477,7 +477,9 @@
     updateBatchOcrProgress(`Valmistan tekstimustandeid: 0 / ${queue.length}`);
 
     let worker=null;
+    let wakeLock=null;
     try{
+      try{wakeLock=await navigator.wakeLock?.request('screen')}catch(_){}
       const T=await loadOcr();
       worker=await T.createWorker('eng',1,{
         logger:m=>{
@@ -550,6 +552,7 @@
       window.toast('Tekstimustandite loomine peatus. Jätkame järgmisel avamisel.');
     }finally{
       if(worker) await worker.terminate().catch(()=>{});
+      try{await wakeLock?.release()}catch(_){}
       s.wodBatchOcrRunning=false;
     }
   };
