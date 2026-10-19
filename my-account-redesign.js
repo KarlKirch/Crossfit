@@ -85,6 +85,9 @@
     '</section>';
   }
   function creditCard(amount){
+    const uid=currentId();
+    const waiting=(s.registrations||[]).filter(r=>r.user_id===uid&&r.status==='waitlist'&&
+      s.trainings.some(t=>Number(t.id)===Number(r.training_id)&&t.status==='published'&&Date.parse(t.starts_at)>Date.now())).length;
     return '<section class="my-credit-card" aria-label="Treeningkrediit">'+
       '<div class="my-credit-top"><span>'+icons.wallet+' TREENINGKREDIIT</span>'+
       '<span class="my-credit-indicator">'+(amount>0?'Aktiivne':'Täiendamist vajav')+'</span></div>'+
@@ -92,6 +95,7 @@
       '<div><b>'+(amount===1?'treeningkord':'treeningkorda')+' alles</b>'+
       '<span>Üks kinnitatud registreering kasutab ühe krediidi.</span></div></div>'+
       (amount<=0?'<p class="my-credit-notice">Krediidi lisamiseks võta ühendust treeneriga. Krediit lisatakse sinu kontole.</p>':'')+
+      (waiting?'<p class="my-credit-wait-note">'+waiting+' tulevast ootenimekirja registreeringut. Krediit arvestatakse alles koha saamisel.</p>':'')+
       '<button type="button" class="my-credit-history-link" onclick="crossfitMyAccount.showCreditHistory()">'+
       'Vaata krediidi ajalugu '+icons.chevron+'</button></section>';
   }
@@ -143,8 +147,10 @@
       const delta=Number(item.delta)||0,creditDelta=delta>0?'+'+delta:String(delta);
       const reason=String(item.reason||'Treeningkrediidi muudatus');
       const sum=Number(item.amount_cents)||0;
+      const type=delta>0&&/^tagastus/i.test(reason)?'Tagastatud':
+        delta>0?'Lisatud':delta<0?'Maha arvestatud':'Korrigeeritud';
       return '<div class="my-transaction"><span class="my-transaction-badge '+(delta>=0?'positive':'negative')+'">'+esc(creditDelta)+'</span>'+
-        '<span class="my-transaction-main"><strong>'+esc(reason)+'</strong>'+
+        '<span class="my-transaction-main"><span class="my-transaction-kind">'+type+'</span><strong>'+esc(reason)+'</strong>'+
         '<small>'+esc(onlyDate(item.created_at))+
         (sum>0?' · sularaha '+(sum/100).toFixed(2).replace('.',',')+' €':'')+'</small></span>'+
       '</div>';
