@@ -150,14 +150,17 @@
     const review=s.wodBank.filter(x=>x.status==='review').length;
     const missing=s.wodBank.filter(x=>!x.image_path&&!x.source_drive_file_id).length;
     const driveLinked=s.wodBank.filter(x=>!x.image_path&&x.source_drive_file_id).length;
+    const missingDrafts=s.wodBank.filter(x=>x.image_path&&!String(x.draft_text||'').trim()).length;
     setTimeout(hydrate,30);
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
       <div class="card-sub">Originaalpilt ja redigeeritav WOD-tekst jäävad mõlemad alles.</div>
+      <div id="wodBatchOcrProgress" class="card-sub" style="margin-top:8px">${missingDrafts?`Tekstimustandita pilte: ${missingDrafts}. Loomine käivitub automaatselt.`:'Kõigil piltidel on tekstimustand olemas.'}</div>
       <div class="training-actions" style="margin-top:12px">
         <button class="btn btn-primary" onclick="pickWodCamera()">Tee pilt</button>
         <button class="btn btn-soft" onclick="pickWodGallery()">Vali galeriist</button>
         ${missing?`<button class="btn btn-soft" onclick="pickOldWodImages()">Lisa ${missing} vana originaalpilti</button>`:''}
+        ${missingDrafts?`<button class="btn btn-soft" onclick="buildAllWodDrafts()">Jätka tekstimustandite loomist</button>`:''}
       </div>
       <input id="oldWodImagesInput" type="file" accept="image/*" multiple style="display:none" onchange="oldWodImagesPicked(this)">
     </div>
