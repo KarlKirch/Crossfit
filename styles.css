@@ -118,3 +118,27 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .auth-email-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .auth-email-actions .btn{min-width:0;font-size:12px;padding:0 8px}
 @media(max-width:360px){.auth-method-switch button{font-size:11px}.auth-email-actions{grid-template-columns:1fr}}
+
+
+/* 4. samm: kolm põhivalikut treenijale, neli treenerile */
+.bottom-nav.nav-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.bottom-nav.nav-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.bottom-nav .nav-btn{min-height:48px;font-size:11px;gap:4px}
+.bottom-nav .nav-btn svg{width:22px;height:22px}
+.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-shrink:0}
+.top-icon-action{position:relative;display:grid;place-items:center;width:41px;height:41px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--accent);padding:0}
+.top-icon-action svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top-icon-action:active{background:var(--accent-soft)}
+.top-notification-badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;border-radius:999px;background:var(--accent);color:#fff;border:2px solid var(--bg);font-size:10px;font-weight:850;line-height:15px}
+.top-notifications-active{background:var(--accent-soft)}
+.top-back-icon{display:grid;place-items:center;transform:rotate(180deg)}
+.account-settings{margin:13px 0 6px}
+.account-settings>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:900;min-height:30px;color:var(--text)}
+.account-settings>summary::-webkit-details-marker{display:none}
+.account-settings>summary span{font-size:19px;font-weight:500;color:var(--accent);transition:transform .15s ease}
+.account-settings[open]>summary span{transform:rotate(180deg)}
+.account-settings-menu{margin-top:12px}
+.trainer-wod-entry{margin:4px 0 14px}
+.trainer-wod-entry .section{margin:6px 2px 9px}
+.trainer-wod-entry .menu-item{border-color:#C6D6C2;background:#FBFDF9}
+@media(max-width:360px){.top-icon-action{width:38px;height:38px}.bottom-nav .nav-btn{font-size:10px}.brand{font-size:17px}}
