@@ -408,7 +408,7 @@
 
   function detailImage(e){
     return `<div style="border-radius:14px;overflow:hidden;background:#eef1ef;margin-bottom:12px">
-      <img data-wod-path="${window.esc(e.image_path)}" alt="WOD originaalpilt" style="width:100%;max-height:480px;object-fit:contain;display:block">
+      <img data-wod-path="${window.esc(e.image_path)}" onclick="event.stopPropagation();openWodImage('${window.esc(e.image_path)}')" alt="WOD originaalpilt" title="Ava originaalsuuruses" style="width:100%;max-height:480px;object-fit:contain;display:block;cursor:zoom-in">
     </div>`;
   }
 
@@ -550,12 +550,21 @@
     }
   };
 
-  window.openWodBank=function(){
+  window.openWodBank=async function(){
     if(!window.isTrainer()) return;
     s.modal='wodBank';
     s.modalData=null;
     window.render();
     queueHydrate();
+    try{
+      await window.reloadData();
+      if(s.modal==='wodBank'){
+        window.render();
+        queueHydrate();
+      }
+    }catch(e){
+      console.warn('WOD bank refresh failed',e);
+    }
     if(s.wodBank.some(e=>e.image_path&&!String(e.draft_text||'').trim())){
       setTimeout(()=>window.buildAllWodDrafts(),250);
     }
@@ -599,6 +608,24 @@
       return;
     }
     baseBackdropClose(e);
+  };
+
+  window.openWodImage=async function(path){
+    if(!path) return;
+    try{
+      const url=await getImageUrl(path);
+      const overlay=document.createElement('div');
+      overlay.id='wodImageViewer';
+      overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;overflow:auto;padding:0;';
+      overlay.innerHTML=`<button type="button" aria-label="Sulge" style="position:fixed;top:14px;right:14px;z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:#ffffffdd;font-size:28px;line-height:1">×</button><img src="${url}" alt="WOD originaalpilt" style="display:block;max-width:none;max-height:none;width:auto;height:auto;min-width:100%;object-fit:contain;transform-origin:center center">`;
+      overlay.addEventListener('click',e=>{
+        if(e.target===overlay||e.target.tagName==='BUTTON') overlay.remove();
+      });
+      document.body.appendChild(overlay);
+    }catch(e){
+      window.toast('Originaalpilti ei õnnestunud avada');
+      console.warn(e);
+    }
   };
 
   window.pickWodCamera=function(){
@@ -723,7 +750,7 @@
 
   Object.assign(window,{
     openWodBank,openWodEntry,pickWodCamera,pickWodGallery,wodFilePicked,
-    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts
+    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts,openWodImage
   });
 
   setTimeout(()=>{
