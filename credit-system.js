@@ -199,19 +199,31 @@
 
   window.registerTraining=async function(id){
     try{
-      await window.rpc('wod_register',{p_training_id:id,p_use_credit:true});
-      await window.reloadData('Registreerimine õnnestus');
+      const result=await window.rpc('wod_register',{p_training_id:id,p_use_credit:true});
+      const status=Array.isArray(result)?result[0]?.registration_status:result?.registration_status;
+      await window.reloadData(status==='waitlist'
+        ?'Oled ootenimekirjas. Krediiti veel ei arvestatud.'
+        :'Registreerimine õnnestus. Kasutati 1 krediit.');
       s.modal='training';s.modalData=id;window.render();
     }catch(e){window.toast(e.message)}
   };
 
   window.cancelRegistration=async function(id){
-    const t=s.trainings.find(x=>x.id===id),late=t&&window.cancellationDeadline(t)<window.now();
-    const text=late?'Tasuta tühistamise aeg on möödas. Tühistamisel kasutatud krediiti ei tagastata. Kas jätkata?':'Kas tühistada registreering? Krediit tagastatakse sinu kontole.';
+    const t=s.trainings.find(x=>x.id===id);
+    const mine=window.mineFor(id);
+    const onWaitlist=mine?.status==='waitlist';
+    const late=!onWaitlist&&t&&window.cancellationDeadline(t)<window.now();
+    const text=onWaitlist
+      ?'Kas soovid ootenimekirjast lahkuda? Krediiti ei ole veel maha arvestatud.'
+      :late
+        ?'Tasuta tühistamise aeg on möödas. Tühistamisel kasutatud krediiti ei tagastata. Kas jätkata?'
+        :'Kas tühistada registreering? Kasutatud krediit tagastatakse sinu kontole.';
     if(!confirm(text))return;
     try{
       await window.rpc('wod_cancel_registration',{p_training_id:id});
-      await window.reloadData(late?'Registreering tühistatud. Krediiti ei tagastatud.':'Registreering tühistatud ja krediit tagastatud.');
+      await window.reloadData(onWaitlist
+        ?'Lahkusid ootenimekirjast. Krediidijääk ei muutunud.'
+        :late?'Registreering tühistatud. Krediiti ei tagastatud.':'Registreering tühistatud ja krediit tagastatud.');
       s.modal='training';s.modalData=id;window.render();
     }catch(e){window.toast(e.message)}
   };
