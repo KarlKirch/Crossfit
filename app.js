@@ -137,10 +137,7 @@ window.addEventListener('popstate',event=>{
 
 function render(){if(!state.session||!state.profile){renderAuth();return}ensureViewHistory();let content='';if(state.view==='home')content=renderHome();else if(state.view==='trainings')content=renderTrainings();else if(state.view==='people')content=isTrainer()?renderClients():renderMine();else if(state.view==='notifications')content=renderNotifications();else content=renderMore();renderShell(content)}
 
-function renderAuth(){
-  const signup=state.mode==='signup';
-  root.innerHTML=`<div class="auth"><div class="auth-box"><div class="auth-logo">CF</div><h1>CrossFit</h1><p class="auth-intro">Treeningud, registreerimine, treeningkrediit ja teavitused ühes kohas.</p><div class="auth-card"><div class="tabs"><button class="${signup?'':'on'}" onclick="setAuthMode('login')">Logi sisse</button><button class="${signup?'on':''}" onclick="setAuthMode('signup')">Loo konto</button></div><div id="authMessage"></div><div class="form">${signup?'<div class="field"><label>Ees- ja perekonnanimi</label><input id="authName" autocomplete="name"></div>':''}<div class="field"><label>E-post</label><input id="authEmail" type="email" autocomplete="email"></div><div class="field"><label>Parool</label><input id="authPassword" type="password" autocomplete="current-password"></div><button id="authSubmitBtn" class="btn btn-primary btn-block" onclick="submitAuth()">${signup?'Loo konto':'Logi sisse'}</button></div></div>${window.crossfitInstall?.authCard?.()||''}</div></div>`;
-}
+function renderAuth(){root.innerHTML=window.crossfitAuth.render(state.mode,window.crossfitInstall?.authCard?.()||'')}
 function setAuthMode(mode){state.mode=mode;renderAuth()}
 function authMessage(text,bad=false){const e=document.getElementById('authMessage');if(e)e.innerHTML=text?`<div class="notice ${bad?'bad':''}">${esc(text)}</div>`:''}
 async function submitAuth(){const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value,name=document.getElementById('authName')?.value.trim();if(!email||!password||(state.mode==='signup'&&!name)){authMessage('Täida kõik väljad.',true);return}const b=document.getElementById('authSubmitBtn');b.disabled=true;authMessage('Palun oota…');try{let data;if(state.mode==='signup'){data=await request(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(APP_URL)}`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,data:{display_name:name}})});if(!data.access_token){authMessage('Konto loodud. Kinnita e-postis saadetud link ja logi seejärel sisse.');return}}else data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:headers(),body:JSON.stringify({email,password})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));await ensureProfile();await loadData();state.view='home';render()}catch(e){authMessage(authError(e.message),true)}finally{if(b)b.disabled=false}}
@@ -292,6 +289,32 @@ async function logout(){try{if(state.session?.access_token)await fetch(`${SUPABA
 function parseAuthHash(){if(!location.hash)return null;const p=new URLSearchParams(location.hash.slice(1)),access=p.get('access_token'),refresh=p.get('refresh_token');if(!access||!refresh)return null;const expires=Number(p.get('expires_in')||3600);return {access_token:access,refresh_token:refresh,expires_in:expires,token_type:p.get('token_type')||'bearer',user:null}}
 async function fetchCurrentUser(){const r=await request(`${SUPABASE_URL}/auth/v1/user`,{headers:headers(state.session.access_token)});state.session.user=r;localStorage.setItem('wod_session',JSON.stringify(state.session))}
 async function boot(){setupServiceWorker();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal)closeModal()});try{const hash=parseAuthHash();if(hash){state.session=hash;await fetchCurrentUser();history.replaceState(null,'',location.pathname+location.search)}else{const raw=localStorage.getItem('wod_session');if(raw)state.session=JSON.parse(raw)}if(state.session){if(state.session.refresh_token){const ok=await refreshSession();if(!ok){renderAuth();return}}if(!state.session.user)await fetchCurrentUser();await ensureProfile();await loadData();render();return}}catch(e){console.warn(e);localStorage.removeItem('wod_session');state.session=null}renderAuth()}
+
+async function sendEmailSignInLink(email){
+  return request(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(APP_URL)}`,{
+    method:'POST',headers:headers(),body:JSON.stringify({email,create_user:false})
+  });
+}
+async function verifyEmailSignInCode(email,token){
+  return request(`${SUPABASE_URL}/auth/v1/verify`,{
+    method:'POST',headers:headers(),body:JSON.stringify({email,token,type:'email'})
+  });
+}
+async function finishEmailSignIn(session){
+  if(!session?.access_token||!session?.refresh_token)throw new Error('Sisselogimisseanss puudub');
+  state.session=session;
+  localStorage.setItem('wod_session',JSON.stringify(session));
+  if(!state.session.user)await fetchCurrentUser();
+  await ensureProfile();
+  await loadData();
+  state.view='home';
+  render();
+}
+window.crossfitAuth.configure({
+  send:sendEmailSignInLink,
+  verify:verifyEmailSignInCode,
+  complete:finishEmailSignIn
+});
 
 Object.assign(window,{go,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,togglePush,installApp,logout,toast,state,reloadData});
 boot();
