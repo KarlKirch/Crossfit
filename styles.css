@@ -425,3 +425,103 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .td-rules h3{font-size:13px}
 @media(min-width:600px){.td-sheet{max-width:640px}.td-section{padding:18px}}
 @media(max-width:450px){.td-hero{padding:17px}.td-section{padding:13px}.td-hero-header{align-items:flex-start}.td-actions{grid-template-columns:1fr}.td-person-credit{display:none}}
+
+
+/* 10. samm: kompaktne ja selge „Minu” leht */
+.my-account-page{display:grid;gap:13px;padding:2px 0 10px}
+.my-profile-card{display:grid;gap:14px;background:#fff;border:1px solid var(--line);border-radius:21px;padding:18px;box-shadow:var(--shadow)}
+.my-profile-main{display:flex;align-items:center;gap:15px;min-width:0}
+.my-profile-main>.cf-avatar{flex:none;width:72px;height:72px;box-shadow:0 0 0 4px var(--accent-soft)}
+.my-profile-identity{min-width:0;flex:1}
+.my-label{display:block;font-size:10px;letter-spacing:.9px;font-weight:900;color:var(--accent)}
+.my-profile-identity h1{margin:5px 0 4px;font-size:clamp(20px,5vw,25px);font-weight:900;letter-spacing:-.4px;line-height:1.2;overflow-wrap:anywhere}
+.my-profile-identity p{margin:0;font-size:12px;color:var(--muted);overflow-wrap:anywhere;line-height:1.45}
+.my-profile-edit{display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;width:100%;padding:9px 12px;background:#F0F5ED;border:1px solid #D4E0CF;border-radius:12px;font-size:12px;font-weight:850;color:var(--accent);text-align:center}
+.my-profile-edit:hover{background:#E6EFE2}
+.my-profile-edit svg,.my-credit-card svg,.my-settings-row svg,.my-collapsible>summary svg,.my-booking-icon svg,.my-booking-side svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.my-credit-card{position:relative;overflow:hidden;display:grid;gap:15px;padding:18px;background:linear-gradient(137deg,#36523B,#607B54);color:#fff;border-radius:21px;box-shadow:0 12px 28px rgba(41,65,41,.15)}
+.my-credit-card:before{content:"";position:absolute;right:-70px;top:-95px;width:210px;height:210px;border-radius:50%;border:1px solid #ffffff22;box-shadow:0 0 0 30px #ffffff06}
+.my-credit-card>*,.my-credit-card .my-credit-top{position:relative}
+.my-credit-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.my-credit-top>span:first-child{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:1px;font-weight:900}
+.my-credit-top svg{width:19px;height:19px}
+.my-credit-indicator{font-size:10px;font-weight:850;color:#E2F0DF;background:#ffffff19;border:1px solid #ffffff2b;padding:5px 8px;border-radius:100px}
+.my-credit-amount{display:flex;align-items:center;gap:17px}
+.my-credit-amount strong{font-size:clamp(51px,12vw,66px);font-weight:950;line-height:1;letter-spacing:-2px}
+.my-credit-amount>div{display:grid;gap:4px;min-width:0}
+.my-credit-amount b{font-size:14px;line-height:1.4}
+.my-credit-amount span{color:#E2EEE0;font-size:11px;line-height:1.45}
+.my-credit-notice{padding:10px 12px;background:#FFF6E8;color:#725020;font-size:12px;line-height:1.5;border-radius:11px;margin:0}
+.my-credit-history-link{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:41px;text-align:left;background:#ffffff1a;border:1px solid #ffffff35;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:850}
+.my-credit-history-link:hover{background:#ffffff29}
+.my-credit-history-link svg{width:16px;height:16px}
+.my-section{display:grid;gap:9px}
+.my-section-heading{display:flex;align-items:center;gap:9px;padding:4px 2px 1px}
+.my-section-heading h2{font-size:16px;letter-spacing:-.2px;line-height:1.3;margin:0}
+.my-count{display:inline-grid;place-items:center;min-width:23px;height:23px;padding:0 6px;background:#E8F0E4;border-radius:8px;color:#4E664A;font-size:11px;font-weight:900}
+.my-booking-list{display:grid;gap:8px}
+.my-booking-row{display:flex;align-items:center;gap:11px;width:100%;min-width:0;padding:13px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 8px rgba(32,48,36,.035);color:var(--text);text-align:left}
+.my-booking-row:active{background:#F5F8F2}
+.my-booking-icon{display:grid;place-items:center;flex:none;width:41px;height:41px;border-radius:12px;background:var(--accent-soft);color:var(--accent)}
+.my-booking-main{display:grid;gap:4px;min-width:0;flex:1}
+.my-booking-main>strong{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.my-booking-main>small{font-size:11px;color:var(--muted)}
+.my-booking-description{font-size:10px;line-height:1.35;color:#587054}
+.my-booking-side{display:flex;align-items:center;gap:5px;flex:none;color:var(--accent)}
+.my-booking-side svg{width:15px;height:15px}
+.my-pill{display:inline-flex;align-items:center;justify-content:center;max-width:128px;padding:6px 8px;border-radius:100px;font-size:10px;font-weight:850;line-height:1.2;text-align:center}
+.my-pill-booked{background:#E4F2E1;color:#28603D}
+.my-pill-waiting{background:#FFF1D9;color:#825B20}
+.my-pill-cancelled{background:#FCEBEC;color:#963F46}
+.my-pill-neutral{background:#ECEFEC;color:#506152}
+.my-empty{display:grid;gap:9px;justify-items:center;text-align:center;border:1px dashed #D3E0CE;background:#FCFDF9;border-radius:17px;padding:21px 14px}
+.my-empty strong{font-size:13px}
+.my-empty span{font-size:12px;color:var(--muted)}
+.my-empty .btn{margin-top:4px}
+.my-collapsible{border:1px solid var(--line);background:#fff;border-radius:17px;overflow:hidden}
+.my-collapsible>summary{display:flex;align-items:center;gap:10px;min-height:67px;padding:12px 15px;cursor:pointer;list-style:none}
+.my-collapsible>summary::-webkit-details-marker{display:none}
+.my-collapsible>summary>svg:first-child{width:22px;height:22px;color:var(--accent)}
+.my-collapsible>summary>span:nth-child(2){flex:1;display:grid;gap:3px;min-width:0}
+.my-collapsible>summary strong{font-size:13px;color:var(--text)}
+.my-collapsible>summary small{font-size:11px;line-height:1.35;color:var(--muted)}
+.my-collapsible>summary>svg:last-child{color:var(--muted);width:16px;height:16px;transition:transform .15s ease}
+.my-collapsible[open]>summary>svg:last-child{transform:rotate(90deg)}
+.my-details-inner{border-top:1px solid var(--line);padding:12px 13px 13px}
+.my-details-inner .my-booking-list{gap:7px}
+.my-details-inner .my-booking-row{padding:10px;border-radius:12px;box-shadow:none}
+.my-transaction-list{display:grid;gap:0}
+.my-transaction{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px solid #ECF1EA}
+.my-transaction:last-child{border:0}
+.my-transaction-badge{display:grid;place-items:center;flex:none;min-width:41px;min-height:39px;border-radius:11px;font-size:13px;font-weight:900}
+.my-transaction-badge.positive{background:#E7F3E7;color:#28613C}
+.my-transaction-badge.negative{background:#F8EDEC;color:#8D454A}
+.my-transaction-main{display:grid;gap:3px;flex:1;min-width:0}
+.my-transaction-main strong{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.my-transaction-main small{font-size:11px;line-height:1.4;color:var(--muted)}
+.my-section-note{font-size:11px;color:var(--muted);line-height:1.5;margin:6px 0}
+.my-settings .my-details-inner{padding:0 12px 10px}
+.my-settings-row{display:flex;align-items:center;gap:10px;width:100%;min-height:57px;text-align:left;border:0;border-bottom:1px solid #EDF1EB;background:#fff;padding:10px 3px;color:var(--text)}
+.my-settings-row:last-child{border-bottom:0}
+.my-settings-row:hover{background:#F8FAF6}
+.my-settings-icon{display:grid;place-items:center;flex:none;width:36px;height:36px;background:var(--accent-soft);color:var(--accent);border-radius:10px}
+.my-settings-icon svg{width:18px;height:18px}
+.my-settings-row>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}
+.my-settings-row strong{font-size:13px}
+.my-settings-row small{font-size:11px;color:var(--muted);line-height:1.35}
+.my-settings-row>svg{color:#7C8B78;width:17px;height:17px}
+@media(max-width:500px){
+ .my-profile-card,.my-credit-card{padding:15px}
+ .my-profile-main{gap:12px}
+ .my-profile-main>.cf-avatar{width:61px;height:61px}
+ .my-booking-row{gap:8px}
+ .my-booking-icon{width:37px;height:37px}
+ .my-booking-side .my-pill{font-size:9px;max-width:105px;padding:6px}
+ .my-booking-side svg{display:none}
+}
+@media(max-width:365px){
+ .my-booking-row{flex-wrap:wrap}
+ .my-booking-side{margin-left:45px}
+ .my-credit-amount strong{font-size:52px}
+ .my-collapsible>summary{padding:10px}
+}
