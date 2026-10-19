@@ -204,16 +204,16 @@ async function markNotificationsRead(){try{await rpc('wod_mark_notifications_rea
 function renderMore(){return `<div class="page-head"><div><h1 class="page-title">Veel</h1><div class="page-sub">Profiil, jagamine ja rakenduse seaded.</div></div></div><div class="card"><div class="card-title-row"><div><div class="card-title">${esc(state.profile.display_name)}</div><div class="card-sub">${esc(state.session.user.email||'')} · ${isTrainer()?'Treener':'Klient'}</div></div><span class="pill dark">CF</span></div></div><div class="section"><h2>Rakendus</h2></div><div class="menu-list"><button class="menu-item" onclick="openProfileEdit()"><div class="menu-main"><div class="menu-icon">${icon.user}</div><div><div class="menu-label">Minu profiil</div><div class="menu-desc">Muuda kuvatavat nime</div></div></div><span class="chev">›</span></button><button class="menu-item" onclick="openShare()"><div class="menu-main"><div class="menu-icon">${icon.share}</div><div><div class="menu-label">Kutsu sõber</div><div class="menu-desc">Jaga CrossFiti kutselinki</div></div></div><span class="chev">›</span></button>${window.crossfitInstall?.moreItem?.()||''}<button class="menu-item" onclick="openInfo()"><div class="menu-main"><div class="menu-icon">${icon.info}</div><div><div class="menu-label">Rakenduse info</div><div class="menu-desc">Versioon ja kasutuspõhimõtted</div></div></div><span class="chev">›</span></button><button class="menu-item" onclick="logout()"><div class="menu-main"><div class="menu-icon">${icon.logout}</div><div><div class="menu-label">Logi välja</div><div class="menu-desc">Lõpeta selle seadme sessioon</div></div></div><span class="chev">›</span></button></div>`}
 
 function renderModal(){if(!state.modal)return'';const close=`<button class="sheet-close" onclick="closeModal()" aria-label="Sulge">×</button>`;let title='',body='';
-  if(state.modal==='training'){const t=state.trainings.find(x=>x.id===state.modalData);if(!t)return'';title='Treening';body=trainingDetail(t)}
-  else if(state.modal==='trainingForm'){title=state.modalData?.id?'Muuda treeningut':'Lisa treening';body=trainingForm(state.modalData||{})}
-  else if(state.modal==='client'){const p=state.profiles.find(x=>x.user_id===state.modalData);if(!p)return'';title='Kliendikaart';body=clientDetail(p)}
+  if(state.modal==='training'){const t=state.trainings.find(x=>x.id===state.modalData);if(!t)return'';title='Treening';body=window.trainingDetail(t)}
+  else if(state.modal==='trainingForm'){title=state.modalData?.id?'Muuda treeningut':'Lisa treening';body=window.trainingForm(state.modalData||{})}
+  else if(state.modal==='client'){const p=state.profiles.find(x=>x.user_id===state.modalData);if(!p)return'';title='Kliendikaart';body=window.clientDetail(p)}
   else if(state.modal==='assignPackage'){title='Lisa pakett';body=assignPackageForm(state.modalData)}
   else if(state.modal==='packageType'){title=state.modalData?.id?'Muuda paketti':'Uus pakett';body=packageTypeForm(state.modalData||{})}
-  else if(state.modal==='share'){title='Kutsu sõber CrossFiti';body=shareSheet()}
+  else if(state.modal==='share'){title='Kutsu sõber CrossFiti';body=window.shareSheet()}
   else if(state.modal==='calendar'){title='Lisa kalendrisse';body=calendarSheet(state.modalData)}
   else if(state.modal==='profile'){title='Minu profiil';body=profileForm()}
-  else if(state.modal==='info'){title='CrossFit';body=infoSheet()}
-  else if(state.modal==='quick'){title='Kiirtoimingud';body=quickSheet()}
+  else if(state.modal==='info'){title='CrossFit';body=window.infoSheet()}
+  else if(state.modal==='quick'){title='Kiirtoimingud';body=window.quickSheet()}
   return `<div class="sheet-backdrop" onclick="backdropClose(event)"><div class="sheet" onclick="event.stopPropagation()"><div class="sheet-head"><div class="sheet-title">${title}</div>${close}</div><div class="sheet-body">${body}</div></div></div>`
 }
 function closeModal(){state.modal=null;state.modalData=null;render()}
