@@ -334,5 +334,20 @@ window.crossfitAuth.configure({
   complete:finishEmailSignIn
 });
 
+/* Moodulite ühised abifunktsioonid: ekspordime selgelt,
+   et krediidi-, WOD- ja profiilimoodulid ei sõltuks globaalsete
+   funktsioonide kaudsest nähtavusest. */
+Object.assign(window,{
+  render,api,rpc,esc,money,dateTime,fullDateTime,shortDate,
+  now,isTrainer,pname,confirmedFor,waitlistFor,mineFor,waitPosition,
+  cancellationDeadline,cancellationRule,metric,
+  upcomingTrainings,pastTrainings,nextClientTraining,clientStats,
+  localParts,timeOptions,tallinnLocalToIso,weekday,addDays,
+  renderHome,renderTrainings,renderMine,renderClients,renderNotifications,
+  renderMore,renderModal,loadData,trainingDetail,trainingCard,
+  personRow,clientCard,clientDetail,registrationRow,shareSheet,
+  quickSheet,infoSheet,
+  TZ,APP_URL
+});
 Object.assign(window,{go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,togglePush,installApp,logout,toast,state,reloadData});
 boot();
