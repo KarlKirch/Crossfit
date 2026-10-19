@@ -374,7 +374,7 @@
     window.toast('Koostan eksporti…');
     try{
       const [profiles,wallets,tx,trainings,regs,removed,ann]=await Promise.all([
-        window.api('wod_profiles?select=user_id,display_name,role&order=display_name.asc'),
+        window.api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
         window.api('wod_wallets?select=user_id,credits'),
         window.api('wod_credit_transactions?select=*&order=created_at.asc'),
         window.api('wod_trainings?select=*&order=starts_at.asc'),
