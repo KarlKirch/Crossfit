@@ -305,3 +305,54 @@ button:disabled{cursor:not-allowed;opacity:.55}
  .tl-participants-list{gap:7px}
  .tl-person>span:last-child{max-width:100px}
 }
+
+
+/* 7.–8. samm: profiilipildid, foto kärpimine ja osalejate avatarid */
+.cf-avatar{position:relative;display:inline-grid;place-items:center;flex:none;width:32px;height:32px;overflow:hidden;border-radius:50%;background:#6C8564;color:#fff;vertical-align:middle}
+.cf-avatar-small{width:27px;height:27px}
+.cf-avatar-medium{width:43px;height:43px}
+.cf-avatar-large{width:72px;height:72px}
+.cf-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.cf-avatar-initials{font-size:11px;font-weight:900;line-height:1}
+.cf-avatar-small .cf-avatar-initials{font-size:9px}
+.cf-avatar-medium .cf-avatar-initials{font-size:13px}
+.cf-avatar-large .cf-avatar-initials{font-size:22px}
+.cf-avatar img[hidden],.cf-avatar-initials[hidden]{display:none}
+.cf-person-row{justify-content:flex-start;align-items:center}
+.cf-person-row>.cf-avatar{margin-right:3px}
+.cf-person-row>div:not(.person-actions){flex:1;min-width:0}
+.cf-person-row .person-actions{margin-left:auto}
+.cf-client-top{align-items:center}
+.cf-client-top>.cf-avatar{margin-right:7px}
+.cf-client-top>div:nth-child(2){min-width:0;flex:1}
+.cf-client-top .pill{margin-left:auto}
+.cf-myprofile-row{align-items:center}
+.cf-myprofile-row>.cf-avatar{margin-right:4px}
+.cf-myprofile-row>div:nth-child(2){flex:1;min-width:0}
+.cf-myprofile-row .card-title{overflow-wrap:anywhere}
+.cf-photo-editor{display:grid;gap:14px;padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.cf-photo-current{display:flex;align-items:center;gap:14px}
+.cf-photo-current>div{display:grid;gap:5px}
+.cf-photo-current strong{font-size:15px}
+.cf-photo-current span:not(.cf-avatar):not(.cf-avatar-initials){color:var(--muted);font-size:12px;line-height:1.5}
+.cf-photo-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.cf-photo-buttons .btn{display:inline-flex;align-items:center;justify-content:center}
+.cf-file-input{position:absolute!important;width:1px;height:1px;overflow:hidden;opacity:0;clip-path:inset(50%)}
+.cf-file-input:focus-visible+.btn{outline:2px solid var(--accent)}
+.cf-photo-editor p{font-size:11px;line-height:1.45;color:var(--muted);margin:0}
+.cf-profile-form{margin-top:18px}
+.cf-crop-body{display:grid;gap:14px}
+.cf-crop-body>p{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
+.cf-crop-body canvas{display:block;align-self:center;width:min(320px,100%);height:auto;aspect-ratio:1;border-radius:50%;border:4px solid #E0E9DB;touch-action:none;cursor:grab;background:var(--accent-soft)}
+.cf-crop-body canvas:active{cursor:grabbing}
+.cf-crop-body>label{font-size:12px;font-weight:900}
+.cf-crop-body input[type=range]{width:100%;accent-color:var(--accent);min-height:26px}
+.tl-participants-list .cf-avatar{width:26px;height:26px}
+.tl-participants-list .cf-avatar-initials{font-size:9px}
+@media(max-width:390px){
+ .cf-photo-current{gap:10px}
+ .cf-photo-current>.cf-avatar{width:56px;height:56px}
+ .cf-photo-buttons .btn{flex:1}
+ .cf-person-row{gap:7px}
+ .cf-myprofile-row>.cf-avatar{width:36px;height:36px}
+}
