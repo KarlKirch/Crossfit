@@ -40,7 +40,7 @@
     const before=balance(uid);
     return {qty:q,before,after:before+q,cash,valid:validQty(q)&&!Number.isNaN(cash)};
   }
-  function preview(uid){
+  function preview(uid=String(s.modalData||'')){
     const p=previewData(uid);
     const amount=document.getElementById('creditBeforeAfter');
     const cash=document.getElementById('creditCashPreview');
