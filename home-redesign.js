@@ -109,7 +109,8 @@
     const nextBooked=future.find(t=>s.registrations.some(r=>r.user_id===uid&&r.training_id===t.id&&r.status==='confirmed'));
     // Too fookusesse järgmine registreerimata aeg; kui kõik ajad on
     // juba broneeritud, näita järgmise treeningu registreeringut.
-    const availableToBook=future.find(t=>!booking(t));
+    const openSpot=future.find(t=>!booking(t)&&seatCount(t).free>0);
+    const availableToBook=openSpot||future.find(t=>!booking(t));
     const spotlight=availableToBook||future[0]||null;
     const later=future.filter(t=>t.id!==spotlight?.id).slice(0,3);
     const credits=userBalance();
