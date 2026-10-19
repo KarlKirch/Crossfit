@@ -134,7 +134,13 @@ function go(view){
   window.scrollTo({top:0,behavior:'instant'});
   render();
 }
-function backFromNotifications(){go(state.notificationsReturnView||'home')}
+function backFromNotifications(){
+  if(history.state?.crossfitView==='notifications'&&history.length>1){
+    history.back();
+    return;
+  }
+  go(state.notificationsReturnView||'home');
+}
 window.addEventListener('popstate',event=>{
   if(!state.session||event.state?.wodModal) return;
   const view=event.state?.crossfitView;
