@@ -565,9 +565,8 @@
     }catch(e){
       console.warn('WOD bank refresh failed',e);
     }
-    if(s.wodBank.some(e=>e.image_path&&!String(e.draft_text||'').trim())){
-      setTimeout(()=>window.buildAllWodDrafts(),250);
-    }
+    // Käsikirjaliste tahvlipiltide automaatne OCR on välja lülitatud.
+    // Tekstimustandid lisatakse kontrollitud visuaalse lugemisega.
   };
 
   window.openWodEntry=function(id){
