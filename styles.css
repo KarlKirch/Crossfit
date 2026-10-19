@@ -100,3 +100,21 @@ button:disabled{cursor:not-allowed;opacity:.55}
   .install-promo-dismiss{grid-column:3;grid-row:1}
 }
 @media(min-width:650px){.install-guide-overlay{align-items:center}.install-guide-sheet{border-radius:24px}}
+
+
+/* 3. etapp: paroolita e-postiga sisselogimine ja lihtne konto loomine */
+.auth-method-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--accent-soft);padding:4px;border-radius:13px;margin:0 0 14px}
+.auth-method-switch button{border:0;border-radius:10px;min-height:42px;padding:4px 8px;background:transparent;color:#4B6050;font-size:12px;font-weight:800}
+.auth-method-switch button.on{background:var(--accent);color:#fff;box-shadow:0 3px 12px rgba(29,60,34,.12)}
+.auth-field-note{font-size:12px;line-height:1.55;margin:0 2px;color:var(--muted);text-align:center}
+.auth-email-confirm{display:grid;gap:12px}
+.auth-email-confirm-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;color:#fff;background:var(--accent);font-size:24px;font-weight:900}
+.auth-email-confirm h2{margin:0;font-size:20px;letter-spacing:-.3px}
+.auth-email-confirm p{margin:0;font-size:13px;line-height:1.6;color:#435448}
+.auth-email-confirm strong{overflow-wrap:anywhere}
+.auth-code-details{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0}
+.auth-code-details summary{cursor:pointer;font-size:12px;color:var(--accent);font-weight:850}
+.auth-code-details .form{margin-top:12px}
+.auth-email-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.auth-email-actions .btn{min-width:0;font-size:12px;padding:0 8px}
+@media(max-width:360px){.auth-method-switch button{font-size:11px}.auth-email-actions{grid-template-columns:1fr}}
