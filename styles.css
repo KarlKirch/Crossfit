@@ -142,3 +142,81 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .trainer-wod-entry .section{margin:6px 2px 9px}
 .trainer-wod-entry .menu-item{border-color:#C6D6C2;background:#FBFDF9}
 @media(max-width:360px){.top-icon-action{width:38px;height:38px}.bottom-nav .nav-btn{font-size:10px}.brand{font-size:17px}}
+
+
+/* 5. samm – salveiroheline, selge ja mobiilisõbralik avaleht */
+.home-dashboard{display:grid;gap:16px}
+.home-welcome{padding:10px 2px 0}
+.home-welcome-kicker{display:block;color:var(--accent);font-size:10px;letter-spacing:1.15px;font-weight:900}
+.home-welcome h1{margin:7px 0 6px;font-size:clamp(25px,6.5vw,32px);line-height:1.1;letter-spacing:-.7px;color:var(--text)}
+.home-welcome p{font-size:13px;line-height:1.45;margin:0;color:var(--muted);max-width:400px}
+.home-feature-card{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;gap:11px;padding:21px;border-radius:24px;background:linear-gradient(142deg,#334C37 0%,#526C4A 60%,#6F8260 100%);box-shadow:0 14px 32px rgba(40,67,41,.18);color:#fff}
+.home-feature-card::before{content:"";position:absolute;z-index:-1;right:-68px;top:-100px;width:220px;height:220px;border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 0 35px rgba(255,255,255,.035),0 0 0 76px rgba(255,255,255,.025)}
+.home-feature-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.home-eyebrow{color:#E1EBDC;font-weight:900;letter-spacing:.85px;font-size:10px}
+.home-date-label{color:#F3F7F0;font-size:13px;font-weight:700;line-height:1.55;margin-top:8px;text-transform:capitalize}
+.home-feature-card h2{font-size:clamp(23px,7vw,31px);line-height:1.13;letter-spacing:-.6px;margin:0 0 2px;font-weight:900;overflow-wrap:anywhere}
+.home-feature-meta{display:flex;flex-wrap:wrap;gap:9px 16px;align-items:center;color:#EAF2E7;font-size:12px;margin:4px 0 5px}
+.home-feature-meta>span{display:flex;align-items:center;gap:5px}
+.home-feature-meta svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home-status{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:850;white-space:nowrap}
+.home-feature-card .home-status-available{background:#E8F1E3;color:#294D2E}
+.home-feature-card .home-status-booked{background:#DCEED8;color:#214D29}
+.home-feature-card .home-status-waiting{background:#FFF0D5;color:#6D491D}
+.home-primary-cta{display:flex;justify-content:center;align-items:center;gap:10px;border:0;border-radius:13px;min-height:49px;width:100%;background:#F8FAF5;color:#294A2F;padding:11px 14px;font-size:14px;font-weight:900;box-shadow:0 4px 15px rgba(0,0,0,.07);margin-top:3px;text-align:center}
+.home-primary-cta:hover{background:#E7F0E3}
+.home-primary-cta svg,.home-upcoming-right svg,.home-section-header svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.home-hero-hint{font-size:11px;line-height:1.4;margin:0;color:#EFF4EC}
+.home-feature-empty p{font-size:13px;line-height:1.5;margin:0;color:#EDF3E8}
+.home-quick-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.home-trainer-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.home-stat-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:4px;border:1px solid var(--line);border-radius:18px;background:#fff;padding:14px;box-shadow:var(--shadow);color:var(--text)}
+.home-stat-card:active{background:#F3F7F0}
+.home-stat-icon{display:grid;place-items:center;width:34px;height:34px;background:var(--accent-soft);border-radius:10px;color:var(--accent);margin-bottom:5px}
+.home-stat-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home-stat-label{font-size:11px;line-height:1.3;color:var(--muted);font-weight:750}
+.home-stat-card strong{font-size:clamp(19px,5.5vw,25px);line-height:1.16;letter-spacing:-.3px;overflow-wrap:anywhere}
+.home-stat-detail{font-size:11px;color:var(--muted);line-height:1.3;overflow-wrap:anywhere}
+.home-credit-alert{display:grid;gap:4px;padding:12px 14px;background:#FFF7E9;border:1px solid #ECD8B5;color:#755121;border-radius:14px}
+.home-credit-alert strong{font-size:13px}
+.home-credit-alert span{font-size:12px;line-height:1.45}
+.home-section-header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:2px 1px 0;margin-bottom:11px}
+.home-section-header h2{font-size:17px;line-height:1.2;margin:0}
+.home-section-header button{display:flex;align-items:center;gap:2px;border:0;background:transparent;color:var(--accent);font-size:12px;font-weight:850;padding:6px 0;white-space:nowrap}
+.home-upcoming-list{display:grid;gap:8px}
+.home-upcoming-row{display:flex;align-items:center;gap:11px;text-align:left;width:100%;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff;min-width:0;box-shadow:0 2px 8px rgba(32,48,36,.03);color:var(--text)}
+.home-upcoming-row:active{background:var(--accent-soft)}
+.home-upcoming-date{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:12px;background:var(--accent-soft);color:var(--accent)}
+.home-upcoming-date svg{height:20px;width:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home-upcoming-description{display:grid;gap:4px;min-width:0;flex:1}
+.home-upcoming-description strong{font-size:13px;line-height:1.25;overflow-wrap:anywhere}
+.home-upcoming-description small{font-size:11px;color:var(--muted);line-height:1.35}
+.home-upcoming-right{display:flex;align-items:center;gap:5px;flex:none;color:var(--accent)}
+.home-upcoming-row .home-status{padding:5px 8px;font-size:10px}
+.home-upcoming-row .home-status-available{background:var(--green-soft);color:var(--green)}
+.home-upcoming-row .home-status-booked{background:var(--accent-soft);color:var(--accent)}
+.home-upcoming-row .home-status-waiting{background:var(--amber-soft);color:var(--amber)}
+.home-empty-small{padding:19px 15px;border:1px dashed var(--line);border-radius:14px;font-size:12px;line-height:1.5;color:var(--muted);text-align:center}
+.home-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.home-action-grid button{display:flex;align-items:center;justify-content:flex-start;flex-direction:column;gap:9px;min-width:0;min-height:99px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px 7px;color:var(--text);font-size:11px;font-weight:850;line-height:1.3;text-align:center}
+.home-action-grid button:hover{background:var(--accent-soft)}
+.home-action-grid svg{width:25px;height:25px;stroke:var(--accent);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.home-action-grid span{overflow-wrap:anywhere}
+@media(max-width:480px){
+  .home-dashboard{gap:14px}
+  .home-feature-card{padding:18px 16px}
+  .home-trainer-stats{gap:6px}
+  .home-trainer-stats .home-stat-card{padding:11px 9px}
+  .home-trainer-stats .home-stat-card strong{font-size:21px}
+  .home-trainer-stats .home-stat-icon{width:31px;height:31px}
+  .home-trainer-stats .home-stat-label{font-size:10px}
+  .home-trainer-stats .home-stat-detail{font-size:10px}
+}
+@media(max-width:360px){
+  .home-feature-top{align-items:flex-start}
+  .home-feature-card .home-status{font-size:9px}
+  .home-upcoming-right .home-status{display:none}
+  .home-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-action-grid button{min-height:85px}
+}
+@media(min-width:610px){.home-feature-card{min-height:255px}}
