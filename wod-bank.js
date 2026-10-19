@@ -18,6 +18,9 @@
 
   s.wodBank=s.wodBank||[];
   s.wodOcrBusy=false;
+  s.wodBatchOcrRunning=false;
+  s.wodBatchOcrDone=0;
+  s.wodBatchOcrTotal=0;
   s.wodBankScrollTop=s.wodBankScrollTop||0;
 
   const imageUrlCache=new Map();
@@ -117,6 +120,36 @@
     if(old?.url) URL.revokeObjectURL(old.url);
     imageUrlCache.set(path,{url,blob});
     return blob;
+  }
+
+  async function downloadOriginalUncached(path){
+    const r=await storageRequest(`${SB_URL}/storage/v1/object/authenticated/${BUCKET}/${encPath(path)}`,{
+      headers:authHeaders()
+    });
+    return await r.blob();
+  }
+
+  function cleanBatchOcrText(raw){
+    const exerciseWords=/\b(warm|strength|metcon|amrap|emom|round|rounds|reps|rep|for time|time cap|deadlift|squat|press|push|pull|burpee|swing|snatch|clean|thruster|lunge|sit|box|wall|run|row|bike|ski|jump|plank|carry|kettlebell|kb|db|barbell|front|back|overhead|ohs|toes|t2b|v-up|muscle|crawl|shuttle|cal|meter|metre|min|sec|rest|partner|team)\b/i;
+    const resultLine=/^[A-Za-zÀ-ž][A-Za-zÀ-ž .'-]{1,22}\s*[-–:]\s*\d+(?:[.,:]\d+)?(?:\s*[/x]\s*\d+(?:[.,]\d+)?)?(?:\s*(?:kg|pb|ob))?\s*$/i;
+    return String(raw||'')
+      .replace(/\r/g,'')
+      .split('\n')
+      .map(x=>x.replace(/[ \t]+$/,'').trimEnd())
+      .filter(line=>{
+        const t=line.trim();
+        if(!t) return true;
+        if(resultLine.test(t)&&!exerciseWords.test(t)) return false;
+        return true;
+      })
+      .join('\n')
+      .replace(/\n{3,}/g,'\n\n')
+      .trim();
+  }
+
+  function updateBatchOcrProgress(message){
+    const el=document.getElementById('wodBatchOcrProgress');
+    if(el) el.textContent=message||'';
   }
 
   async function getImageUrl(path){
@@ -337,12 +370,107 @@
     }));
   }
 
+  window.buildAllWodDrafts=async function(){
+    if(!window.isTrainer()||s.wodBatchOcrRunning) return;
+    const queue=s.wodBank.filter(e=>e.image_path&&!String(e.draft_text||'').trim());
+    if(!queue.length){
+      updateBatchOcrProgress('Kõigil piltidel on tekstimustand olemas.');
+      return;
+    }
+
+    s.wodBatchOcrRunning=true;
+    s.wodBatchOcrDone=0;
+    s.wodBatchOcrTotal=queue.length;
+    updateBatchOcrProgress(`Valmistan tekstimustandeid: 0 / ${queue.length}`);
+
+    let worker=null;
+    try{
+      const T=await loadOcr();
+      worker=await T.createWorker('eng',1,{
+        logger:m=>{
+          if(m.status==='recognizing text'&&typeof m.progress==='number'){
+            const pct=Math.round(m.progress*100);
+            updateBatchOcrProgress(`Tekstimustandid ${s.wodBatchOcrDone} / ${s.wodBatchOcrTotal} · praegune pilt ${pct}%`);
+          }
+        }
+      });
+
+      for(const entry of queue){
+        try{
+          const blob=await downloadOriginalUncached(entry.image_path);
+          const result=await worker.recognize(blob);
+          let text=cleanBatchOcrText(result?.data?.text||'');
+          if(!text){
+            text='Automaatne tekstituvastus ei leidnud loetavat teksti. Vaata originaalpilti ja täienda mustandit käsitsi.';
+          }
+
+          const keepWorkout=String(entry.workout_text||'').trim();
+          await window.api(`wod_bank_entries?id=eq.${entry.id}`,{
+            method:'PATCH',
+            headers:{Prefer:'return=minimal'},
+            body:JSON.stringify({
+              draft_text:text,
+              workout_text:keepWorkout||text,
+              status:entry.status==='ready'?'ready':'review',
+              updated_at:new Date().toISOString()
+            })
+          });
+
+          entry.draft_text=text;
+          if(!keepWorkout) entry.workout_text=text;
+          if(entry.status!=='ready') entry.status='review';
+        }catch(err){
+          console.warn('WOD batch OCR failed',entry?.id,err);
+          const fallback='Automaatne tekstituvastus ebaõnnestus. Vaata originaalpilti ja täienda mustandit käsitsi.';
+          try{
+            await window.api(`wod_bank_entries?id=eq.${entry.id}`,{
+              method:'PATCH',
+              headers:{Prefer:'return=minimal'},
+              body:JSON.stringify({
+                draft_text:fallback,
+                workout_text:String(entry.workout_text||'').trim()||fallback,
+                status:entry.status==='ready'?'ready':'review',
+                updated_at:new Date().toISOString()
+              })
+            });
+            entry.draft_text=fallback;
+            if(!String(entry.workout_text||'').trim()) entry.workout_text=fallback;
+            if(entry.status!=='ready') entry.status='review';
+          }catch(patchErr){
+            console.warn('WOD fallback draft failed',entry?.id,patchErr);
+          }
+        }
+
+        s.wodBatchOcrDone++;
+        updateBatchOcrProgress(`Valmistan tekstimustandeid: ${s.wodBatchOcrDone} / ${s.wodBatchOcrTotal}`);
+        await new Promise(resolve=>setTimeout(resolve,20));
+      }
+
+      await window.reloadData('Kõik WOD-i tekstimustandid on loodud');
+      if(s.modal==='wodBank'){
+        window.render();
+        queueHydrate();
+        restoreWodBankScroll();
+      }
+    }catch(err){
+      console.warn('WOD batch OCR stopped',err);
+      updateBatchOcrProgress('Tekstimustandite loomine peatus. Ava WOD-pank uuesti, et jätkata.');
+      window.toast('Tekstimustandite loomine peatus. Jätkame järgmisel avamisel.');
+    }finally{
+      if(worker) await worker.terminate().catch(()=>{});
+      s.wodBatchOcrRunning=false;
+    }
+  };
+
   window.openWodBank=function(){
     if(!window.isTrainer()) return;
     s.modal='wodBank';
     s.modalData=null;
     window.render();
     queueHydrate();
+    if(s.wodBank.some(e=>e.image_path&&!String(e.draft_text||'').trim())){
+      setTimeout(()=>window.buildAllWodDrafts(),250);
+    }
   };
 
   window.openWodEntry=function(id){
@@ -507,7 +635,7 @@
 
   Object.assign(window,{
     openWodBank,openWodEntry,pickWodCamera,pickWodGallery,wodFilePicked,
-    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry
+    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts
   });
 
   setTimeout(()=>{
