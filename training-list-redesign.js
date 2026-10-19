@@ -46,7 +46,7 @@
     const top=list.slice(0,3).map(r=>{
       const name=String(window.pname(r.user_id)||'Kasutaja');
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toLocaleUpperCase('et')||'?';
-      return '<span class="tl-person"><span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span><span>'+esc(name)+'</span></span>';
+      return '<span class="tl-person">'+(window.crossfitAvatars?.html(r.user_id,'small')||'<span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span>')+'<span>'+esc(name)+'</span></span>';
     }).join('');
     return top+(list.length>3?'<span class="tl-people-extra">+'+(list.length-3)+'</span>':'');
   }
