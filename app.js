@@ -109,9 +109,33 @@ function renderShell(content){
   </div>${renderModal()}`;
   updatePushStateSoon();
 }
-function go(view){state.view=view;state.modal=null;state.modalData=null;window.scrollTo({top:0,behavior:'instant'});render()}
+function ensureViewHistory(){
+  if(!state.session) return;
+  const current=history.state||{};
+  if(!current.crossfitView){
+    history.replaceState({...current,crossfitView:state.view||'home'},'');
+  }
+}
+function go(view){
+  ensureViewHistory();
+  state.view=view;state.modal=null;state.modalData=null;
+  history.pushState({...history.state,crossfitView:view,wodModal:null,wodId:null},'');
+  window.scrollTo({top:0,behavior:'instant'});
+  render();
+}
+window.addEventListener('popstate',event=>{
+  if(!state.session||event.state?.wodModal) return;
+  const view=event.state?.crossfitView;
+  if(view){
+    state.view=view;
+    state.modal=null;
+    state.modalData=null;
+    window.scrollTo({top:0,behavior:'instant'});
+    render();
+  }
+});
 
-function render(){if(!state.session||!state.profile){renderAuth();return}let content='';if(state.view==='home')content=renderHome();else if(state.view==='trainings')content=renderTrainings();else if(state.view==='people')content=isTrainer()?renderClients():renderMine();else if(state.view==='notifications')content=renderNotifications();else content=renderMore();renderShell(content)}
+function render(){if(!state.session||!state.profile){renderAuth();return}ensureViewHistory();let content='';if(state.view==='home')content=renderHome();else if(state.view==='trainings')content=renderTrainings();else if(state.view==='people')content=isTrainer()?renderClients():renderMine();else if(state.view==='notifications')content=renderNotifications();else content=renderMore();renderShell(content)}
 
 function renderAuth(){
   const signup=state.mode==='signup';
