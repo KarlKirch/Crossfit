@@ -525,3 +525,43 @@ button:disabled{cursor:not-allowed;opacity:.55}
  .my-credit-amount strong{font-size:52px}
  .my-collapsible>summary{padding:10px}
 }
+
+
+/* 11. samm – treeningkrediidi kuvamine ja treeneri lisamisvorm */
+.cx-add-page{display:grid;gap:15px}
+.cx-add-hero{border-radius:20px;padding:18px;background:linear-gradient(135deg,#36503B,#627C57);color:#fff}
+.cx-kicker{font-size:10px;font-weight:900;letter-spacing:.85px;color:#DDEADB}
+.cx-add-hero h2{font-size:22px;margin:10px 0 12px;line-height:1.2;overflow-wrap:anywhere}
+.cx-balance-current{font-size:37px;line-height:1.1;font-weight:950;letter-spacing:-.8px}
+.cx-balance-current span{font-size:12px;font-weight:600;color:#ECF3E8;letter-spacing:0}
+.cx-credit-form{display:grid;gap:11px}
+.cx-credit-form>label{font-size:12px;color:#314837;font-weight:900}
+.cx-credit-form>label span{font-weight:500;color:var(--muted)}
+.cx-credit-form>input{width:100%;min-height:46px;border:1px solid #CCD9C6;border-radius:13px;background:#fff;font:inherit;color:var(--text);padding:10px 13px;outline:none}
+.cx-credit-form>input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,143,107,.17)}
+.cx-credit-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.cx-credit-presets button{min-height:40px;border:1px solid #CCDCCA;background:#F0F5ED;border-radius:12px;color:var(--accent);font-weight:900;font-size:12px}
+.cx-credit-presets button:hover{background:#E2EFDE}
+.cx-credit-preview{display:grid;gap:7px;margin:4px 0 0;padding:15px 14px;background:#EEF4EA;border:1px solid #D0E0C9;border-radius:16px}
+.cx-credit-preview>span{font-size:12px;color:#4C6451;font-weight:750}
+.cx-credit-preview>strong{font-size:23px;line-height:1.2;color:#2F5636;font-weight:950}
+.cx-credit-preview>small{font-size:11px;color:#526B55;line-height:1.4}
+.cx-credit-preview>.cx-credit-error{color:var(--red);font-weight:750}
+.cx-credit-preview>.cx-credit-error:empty{display:none}
+.cx-form-hint{font-size:11px;line-height:1.5;color:var(--muted);margin:0}
+.cx-form-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.cx-form-actions .btn{min-height:46px}
+.cx-form-actions .btn:disabled{opacity:.6}
+.cx-client-credit{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 10px;margin:7px 0 10px;border-radius:12px;background:#EDF4E9;color:#2F613C}
+.cx-client-credit>span{font-size:10px;font-weight:850}
+.cx-client-credit strong{font-size:12px;font-weight:900;margin-left:auto}
+.cx-client-credit small{color:var(--muted);font-size:10px}
+.cx-client-credit.low{background:#FFF6E5;color:#835B1D}
+.cx-client-credit.zero{background:#FCEBEA;color:#923F43}
+.cx-client-explainer{border:1px solid #D5E3CE;background:#F5F9F2;padding:13px 14px;border-radius:15px;margin:12px 0}
+.cx-client-explainer>strong{display:block;color:#355A39;font-size:13px;margin-bottom:5px}
+.cx-client-explainer p{font-size:12px;line-height:1.55;margin:0;color:#445E47}
+.cx-client-explainer>span{display:inline-block;margin-top:7px;font-size:11px;font-weight:850;color:var(--amber)}
+.my-credit-wait-note{margin:0;padding:10px 12px;border-radius:12px;background:#ffffff24;color:#F5F9F3;font-size:11px;line-height:1.45}
+.my-transaction-kind{font-size:10px;font-weight:850;color:var(--accent);line-height:1.2}
+@media(max-width:420px){.cx-form-actions{grid-template-columns:1fr}.cx-credit-presets{gap:5px}.cx-credit-form>input{font-size:16px}.cx-credit-preview>strong{font-size:21px}}
