@@ -1,4 +1,4 @@
-const CACHE='crossfit-app-v47';
+const CACHE='crossfit-app-v48';
 const CORE=['./','./index.html','./styles.css?v=22','./install-guide.js?v=1','./auth-flow.js?v=1','./app.js?v=19','./credit-system.js?v=7','./pro-features.js?v=2','./wod-bank.js?v=10','./wod-bank-import.js?v=7','./simple-navigation.js?v=1','./home-redesign.js?v=2','./training-list-redesign.js?v=2','./avatar-ui.js?v=1','./training-detail-redesign.js?v=1','./my-account-redesign.js?v=2','./credit-experience.js?v=2','./trainer-dashboard.js?v=1','./admin-redesign.js?v=2','./client-directory.js?v=1','./wod-review-ui.js?v=4','./training-form-redesign.js?v=1','./notification-center.js?v=1','./manifest.webmanifest?v=5','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>{
@@ -49,7 +49,16 @@ self.addEventListener('fetch',event=>{
 self.addEventListener('push',event=>{
   let data={};
   try{data=event.data?event.data.json():{}}catch(_){data={}}
-  const target=data.url&&String(data.url).includes('/Crossfit/')?data.url:'/Crossfit/';
+  // Tõuketeate avamisel suuna otse teavituskeskusesse.
+  // Luba sihtkohaks ainult selle sama rakenduse aadress.
+  let target='/Crossfit/?view=notifications';
+  try{
+    const u=new URL(data.url||'/Crossfit/',self.location.origin);
+    if(u.origin===self.location.origin&&u.pathname.startsWith('/Crossfit/')){
+      u.searchParams.set('view','notifications');
+      target=u.href;
+    }
+  }catch(_){};
   event.waitUntil(self.registration.showNotification(data.title||'CrossFit',{
     body:data.body||'Sul on uus CrossFit teavitus.',
     icon:'./icon-192.png',
