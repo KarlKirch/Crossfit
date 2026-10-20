@@ -94,7 +94,7 @@ function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
   return `<button class="nav-btn ${active?'on':''}" type="button" onclick="go('${view}')" aria-current="${active?'page':'false'}">${svg}<span>${label}</span></button>`;
 }
-function viewFromPushLink(){try{return new URLSearchParams(window.location?.search||'').get('view')==='notifications'?'notifications':'home'}catch(_){return 'home'}}
+function viewFromPushLink(){const query=String(window.location?.search||'');return /(?:^\?|&)view=notifications(?:&|$)/.test(query)?'notifications':'home'}
 function unreadCount(){return state.notifications.filter(n=>!n.read_at).length}
 function renderShell(content){
   const trainer=isTrainer();
