@@ -156,6 +156,38 @@ test('Both roles have the RCF forest homepage',()=>{
     assert(htmlRoot.innerHTML.includes('Monday WOD'));
   }
 });
+test('Trainer can remove old test workouts from history',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.state.trainingTab='past';
+  context.state.modal=null;
+  context.state.view='trainings';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Old WOD'));
+  assert(htmlRoot.innerHTML.includes('tl-history-remove'));
+  assert(htmlRoot.innerHTML.includes('deleteTraining(12)'));
+  context.state.modal='training';context.state.modalData=12;
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Eemalda ajaloost'));
+});
+test('Client never sees past-training removal',()=>{
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;
+  context.state.trainingTab='past';
+  context.state.modal=null;context.state.view='trainings';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Old WOD'));
+  assert(!htmlRoot.innerHTML.includes('tl-history-remove'));
+  context.state.modal='training';context.state.modalData=12;
+  context.render();
+  assert(!htmlRoot.innerHTML.includes('deleteTraining(12)'));
+});
+test('Training removal uses server-side finance-safe RPC',()=>{
+  assert(read('app.js').includes("rpc('wod_remove_training',{p_training_id:numericId})"));
+  assert(read('app.js').includes('archived_at=is.null'));
+  assert(!read('app.js').includes("await api(\`wod_trainings?id=eq.\${id}\`,{method:'DELETE'"));
+  assert(read('forest-theme.css').includes('body .tl-history-remove'));
+});
 test('Client cannot see trainer-only actions',()=>{
   context.state.profile.role='client';
   context.state.session.user.id=clientId;
