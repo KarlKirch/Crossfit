@@ -788,3 +788,82 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .cl-danger button{justify-self:start}
 @media(max-width:520px){.cl-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cl-metric{min-height:68px;grid-template-columns:36px 1fr;align-items:center}.cl-metric strong{grid-row:1/3;font-size:25px}.cl-metric span{font-size:11px}}
 @media(max-width:380px){.cl-card-primary{gap:7px}.cl-card-primary>.cf-avatar,.cl-card-primary>.cl-avatar-fallback{width:39px;height:39px}.cl-credit{min-width:47px}.cl-credit small{font-size:8px}.cl-history-row em{max-width:84px;text-align:right}.cl-detail-stats>div{padding:7px 2px}.cl-detail-stats strong{font-size:19px}}
+
+
+/* 15. samm – filtreeritav WOD-pank, kompaktne fotode ülevaatus */
+.wb-sheet{max-width:760px}
+.wb-body{display:grid;gap:16px;padding:12px 14px calc(25px + env(safe-area-inset-bottom))}
+.wb-intro{padding:18px;border-radius:20px;background:linear-gradient(142deg,#344E39 0%,#667D59 100%);color:#fff}
+.wb-intro>span{font-size:10px;letter-spacing:.9px;font-weight:900;color:#E6F1DF}
+.wb-intro h2{font-size:22px;margin:8px 0 7px;letter-spacing:-.3px;color:#fff;line-height:1.2}
+.wb-intro p{font-size:12px;line-height:1.5;margin:0;color:#E8F0E4}
+.wb-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.wb-counts button{min-width:0;display:grid;gap:5px;text-align:left;align-content:center;min-height:72px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px}
+.wb-counts button:hover{background:#F4F8F2}
+.wb-counts button strong{font-size:24px;line-height:1.05;color:#3C5B42;font-weight:950}
+.wb-counts button span{font-size:10px;color:var(--muted);line-height:1.3;font-weight:750}
+.wb-upload{display:grid;gap:10px;padding:13px;background:#fff;border:1px solid var(--line);border-radius:17px}
+.wb-upload h3{font-size:14px;margin:0}
+.wb-upload-actions{display:flex;flex-wrap:wrap;gap:7px}
+.wb-upload-actions button{flex:1 1 auto}
+.wb-primary,.wb-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 12px;border-radius:11px;font-size:12px;font-weight:850;line-height:1.3;text-align:center;border:1px solid transparent}
+.wb-primary{color:#fff;background:var(--accent)}
+.wb-primary:hover{background:var(--accent-hover)}
+.wb-secondary{color:var(--accent);background:var(--accent-soft);border-color:#D5E0D0}
+.wb-secondary:hover{background:#E0ECDB}
+.wb-primary svg,.wb-secondary svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;fill:none}
+.wb-file{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0}
+.wb-upload-message{color:var(--muted);font-size:11px;line-height:1.5;margin:0}
+.wb-upload-message:empty{display:none}
+.wb-search-panel{display:grid;gap:7px}
+.wb-search-panel>label{font-size:12px;font-weight:900}
+.wb-search-input{display:flex;align-items:center;gap:9px;min-height:47px;background:#fff;border:1px solid #C8D9C4;padding:0 12px;border-radius:12px;color:var(--accent)}
+.wb-search-input:focus-within{outline:2px solid #B5C9AD;outline-offset:1px}
+.wb-search-input svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;stroke-linecap:round;fill:none}
+.wb-search-input input{border:0;background:transparent;outline:0;font:inherit;font-size:14px;color:var(--text);flex:1;width:100%;min-width:0;min-height:43px}
+.wb-filters{display:flex;align-items:center;gap:7px;overflow-x:auto;padding:1px 0 6px;scrollbar-width:thin}
+.wb-filter{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:35px;border-radius:100px;padding:8px 10px;border:1px solid #CCDCC7;background:#fff;color:#52694E;font-size:11px;font-weight:850;white-space:nowrap}
+.wb-filter span{display:grid;place-items:center;min-width:19px;min-height:19px;border-radius:50%;background:#E8F0E5;color:#4D674D;font-size:10px;padding:1px 4px}
+.wb-filter.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.wb-filter.on span{background:#ffffff30;color:#fff}
+.wb-sort{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.wb-sort label,.wb-count{font-size:11px;font-weight:750;color:var(--muted)}
+.wb-sort select{min-height:38px;max-width:180px;border:1px solid var(--line);border-radius:10px;padding:7px;background:#fff;color:var(--text);font:inherit;font-size:12px}
+#wbResults{display:grid;gap:12px;scroll-margin-top:45px}
+.wb-list{display:grid;gap:10px}
+.wb-card{display:grid;grid-template-columns:98px minmax(0,1fr);gap:12px;min-height:150px;background:#fff;border:1px solid var(--line);border-radius:17px;overflow:hidden;box-shadow:0 2px 8px rgba(37,55,38,.035)}
+.wb-card-photo{min-height:150px;background:#E9EFE6;display:grid;place-items:center;overflow:hidden}
+.wb-photo{display:block;width:100%;height:100%;max-height:210px;object-fit:cover}
+.wb-photo[hidden],.wb-photo-placeholder[hidden]{display:none}
+.wb-photo-placeholder{padding:10px;color:#60705F;font-size:11px;text-align:center;line-height:1.4}
+.wb-card-content{display:flex;align-items:flex-start;flex-direction:column;gap:6px;min-width:0;padding:11px 12px 11px 0}
+.wb-card-flags{display:flex;flex-wrap:wrap;gap:5px}
+.wb-status{display:inline-flex;align-items:center;justify-content:center;border-radius:100px;padding:5px 8px;font-size:10px;font-weight:900;line-height:1.2;white-space:nowrap}
+.wb-status-ready{color:#2D663F;background:#E4F1E2}
+.wb-status-review{color:#805B20;background:#FFF0D7}
+.wb-status-pending{color:#646E62;background:#EDF0EB}
+.wb-status-missing{color:#985450;background:#FCEAEA}
+.wb-card h3{font-size:14px;line-height:1.3;margin:0;color:var(--text);overflow-wrap:anywhere}
+.wb-date{color:var(--muted);font-size:11px;line-height:1.35;margin:0}
+.wb-excerpt{font-size:11px;line-height:1.4;color:#536553;white-space:pre-wrap;overflow-wrap:anywhere;max-height:50px;overflow:hidden;margin:0}
+.wb-card-open{display:flex;align-items:center;gap:5px;margin-top:auto;border:0;padding:6px 0;background:transparent;color:var(--accent);font-size:12px;font-weight:900;text-align:left}
+.wb-card-open svg{height:14px;width:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.wb-pages{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.wb-pages>span{color:var(--muted);font-size:12px;white-space:nowrap;font-weight:750}
+.wb-pages button{min-height:38px;border-radius:10px;border:1px solid #CBDCC7;background:#EFF4EB;color:var(--accent);font-weight:850;font-size:12px;padding:8px 12px}
+.wb-pages button:disabled{opacity:.4}
+.wb-empty{display:grid;justify-items:center;gap:9px;text-align:center;padding:25px 13px;border:1px dashed #CCDCC8;background:#FAFCF8;border-radius:16px}
+.wb-empty strong{font-size:13px}
+.wb-empty p{font-size:12px;color:var(--muted);margin:0}
+.wb-empty button{background:var(--accent);color:#fff;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:850;border:0}
+.wb-review-note{display:flex;align-items:flex-start;gap:9px;padding:12px;border-radius:12px;background:#EFF6EB;border:1px solid #D5E4D0;color:#385F40;font-size:12px;line-height:1.55;font-weight:700;margin-bottom:11px}
+.wb-review-note svg{width:18px;height:18px;flex:none;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.wb-use-panel{display:grid;gap:9px;margin-bottom:13px;padding:14px;border:1px solid #CBDCC7;border-radius:15px;background:#F7FAF5}
+.wb-use-panel h3{font-size:14px;margin:0;color:#34583D}
+.wb-use-panel p{font-size:12px;line-height:1.5;color:#526853;margin:0}
+.wb-use-panel label{font-size:11px;font-weight:850}
+.wb-use-panel select{min-height:42px;border:1px solid #CBDDC8;background:#fff;border-radius:10px;padding:9px;font:inherit;color:var(--text);width:100%}
+.wb-use-panel .wb-primary{justify-self:stretch}
+.wb-use-disabled{background:#FFF9ED;border-color:#E7DABF}
+@media(max-width:520px){.wb-body{padding:11px 12px 26px}.wb-intro{padding:16px}.wb-counts{grid-template-columns:repeat(2,minmax(0,1fr))}.wb-counts button{min-height:65px}.wb-card{grid-template-columns:86px minmax(0,1fr)}.wb-card-photo{min-height:150px}.wb-card-content{gap:5px;padding:10px 9px 10px 0}}
+@media(max-width:360px){.wb-card{grid-template-columns:75px minmax(0,1fr);gap:8px}.wb-card-content{padding-right:7px}.wb-status{font-size:9px;padding:4px 6px}.wb-card h3{font-size:13px}}
