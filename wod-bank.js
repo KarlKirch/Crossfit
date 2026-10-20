@@ -43,7 +43,7 @@
   // Näita nende kirjete redigeerimisvälja tühjana; käsitsi antud nimetused säilivad.
   function wodEditableTitle(raw){
     const title=String(raw||'').trim();
-    return /^WOD(?:[\\s-]+(?:\\d{4}-\\d{2}-\\d{2}|\\d{2}\\.\\d{2}\\.\\d{4}))?$/i.test(title)?'':title;
+    return /^WOD(?:[\s-]+(?:\d{4}-\d{2}-\d{2}|\d{2}\.\d{2}\.\d{4}))?$/i.test(title)?'':title;
   }
   window.wodEditableTitle=wodEditableTitle;
 
