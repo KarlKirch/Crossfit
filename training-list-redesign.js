@@ -79,7 +79,7 @@
       '<div class="tl-capacity-label">'+(past||stopped?'Registreerunuid '+c.confirmed.length:c.free>0?'Vabu kohti '+c.free:'Kõik kohad täidetud')+'</div></div>'+
       '<div class="tl-participants"><span class="tl-participants-label">Registreerunud</span><div class="tl-participants-list">'+names+'</div></div>'+
       '<div class="tl-card-actions">'+action(t,past,trainer,c)+
-      '<button type="button" class="tl-action tl-action-link" onclick="openTraining('+id+')">Täpsem info'+svg.arrow+'</button></div>'+
+      '<button type="button" class="tl-action tl-action-link" onclick="openTraining('+id+')">Täpsem info'+svg.arrow+'</button></div>'+(trainer&&(past||stopped)?'<button type="button" class="tl-history-remove" onclick="deleteTraining('+id+')">Eemalda ajaloost</button>':'')+
     '</article>';
   }
   function grouped(list,past,trainer){
