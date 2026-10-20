@@ -58,7 +58,7 @@
           <p class="auth-field-note">Parooli pole vaja. Saad e-kirja turvalise sisselogimislingiga.</p>
         </form>`;
     return `<div class="auth"><div class="auth-box">
-      <div class="auth-logo">CF</div><h1>CrossFit</h1>
+      <div class="auth-logo" role="img" aria-label="Rõuge CrossFit logo"></div><h1>Rõuge CrossFit</h1>
       <p class="auth-intro">Treeningud, registreerimine ja treeningkrediit ühes kohas.</p>
       <div class="auth-card"><div class="tabs">
         <button type="button" class="${signup?'':'on'}" onclick="setAuthMode('login')">Logi sisse</button>
