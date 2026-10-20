@@ -115,7 +115,7 @@
       '<details class="td-danger-zone"><summary>Treeningu tühistamine ja kustutamine</summary>'+
         '<div class="td-actions">'+
         (!closed?btn('cancelTraining('+id+')','Tühista treening','danger'):'')+
-        btn('deleteTraining('+id+')','Kustuta treening','danger')+
+        btn('deleteTraining('+id+')',closed?'Eemalda ajaloost':'Kustuta treening','danger')+
         '</div><p>Need toimingud nõuavad kinnitamist.</p></details>',
       'td-actions-section');
   }
