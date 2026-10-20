@@ -77,6 +77,16 @@
     const [year,month,day]=date.split('-');
     return day+'.'+month+'.'+year;
   }
+  // WOD-i pealkirjas on ajalooliselt kuupäev kujul YYYY-MM-DD.
+  // Kuvamisel näita Eesti kuupäevavormingut DD.MM.YYYY;
+  // algset pealkirja andmebaasis ei muudeta.
+  function displayWodTitle(entry){
+    const title=String(entry?.title||'WOD');
+    return title.replace(/\b(20\d{2})-(\d{2})-(\d{2})\b/g,(match,year,month,day)=>{
+      const iso=year+'-'+month+'-'+day;
+      return validDate(iso)?day+'.'+month+'.'+year:match;
+    });
+  }
   function dateCaption(entry){
     const kind=effectiveDate(entry).kind;
     return kind==='verified'?'Treeneri kinnitatud kuupäev':
@@ -197,7 +207,7 @@
         '<div class="wb-card-content">'+
           '<div class="wb-card-flags"><span class="wb-status wb-status-'+tone+'">'+label+'</span>'+
             (!entry.image_path&&!entry.source_drive_file_id?'<span class="wb-status wb-status-missing">Pilt puudu</span>':'')+'</div>'+
-          '<h3>'+esc(entry.title||'WOD')+'</h3><p class="wb-date">'+date+' · '+dateCaption(entry)+'</p>'+
+          '<h3>'+esc(displayWodTitle(entry))+'</h3><p class="wb-date">'+date+' · '+dateCaption(entry)+'</p>'+
           (dateInfo.conflict?'<span class="wb-date-conflict">Kuupäev erineb failinimest – kontrolli fotot</span>':'')+
         '</div></div>'+
       '<div class="wb-card-workout">'+structuredText(text,true)+'</div>'+
@@ -375,5 +385,5 @@
   }
 
   window.renderModal=renderModal;
-  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText};
+  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText,displayWodTitle};
 })();
