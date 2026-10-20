@@ -339,7 +339,8 @@ window.crossfitAuth.configure({
    funktsioonide kaudsest nähtavusest. */
 Object.assign(window,{
   render,api,rpc,esc,money,dateTime,fullDateTime,shortDate,
-  now,isTrainer,pname,confirmedFor,waitlistFor,mineFor,waitPosition,
+  now,isTrainer,pname,confirmedFor,waitlistFor,mineFor,mineAnyFor,waitPosition,
+  activeUserPackages,legacyCredits,totalCredits,
   cancellationDeadline,cancellationRule,metric,
   upcomingTrainings,pastTrainings,nextClientTraining,clientStats,
   localParts,timeOptions,tallinnLocalToIso,weekday,addDays,
