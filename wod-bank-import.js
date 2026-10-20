@@ -258,5 +258,7 @@
     return baseRenderModal();
   };
 
+  // Turvaline piltide laadimine ka WOD-panga uue filtreeritava vaate jaoks.
+  window.hydrateWodImportImages=hydrate;
   Object.assign(window,{pickOldWodImages,oldWodImagesPicked,pickOneOldWodImage,oneOldWodImagePicked});
 })();
