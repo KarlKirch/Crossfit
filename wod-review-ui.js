@@ -57,6 +57,8 @@
   }
   function effectiveDate(entry){
     const recorded=validDate(entry.source_date);
+    // Treeneri kinnitatud WOD-i käsitsi kontrollitud kuupäev jääb alati määravaks.
+    if(entry.status==='ready'&&recorded)return {date:recorded,kind:'verified',conflict:false,recorded};
     if(entry.source_drive_file_id){
       const board=imageDateFromText(entry);
       if(board)return {date:board,kind:'board',conflict:!!recorded&&recorded!==board,recorded};
@@ -77,7 +79,8 @@
   }
   function dateCaption(entry){
     const kind=effectiveDate(entry).kind;
-    return kind==='board'?'Kuupäev WOD-i tekstist':
+    return kind==='verified'?'Treeneri kinnitatud kuupäev':
+      kind==='board'?'Kuupäev WOD-i tekstist':
       kind==='filename'?'Foto kuupäev failinimest':
       kind==='new'?'Foto loomise kuupäev':'Kuupäev vajab kontrollimist';
   }
@@ -271,8 +274,16 @@
       '</div></div></div>';
   }
   function renderDetail(){
-    const original=beforeModal(),entry=(s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
+    let original=beforeModal();
+    const entry=(s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
     if(!entry||!window.isTrainer())return original;
+    // Vana WOD-i kuupäevaväljale paku fototekstist tuvastatud kuupäev.
+    // Treener saab selle enne kinnitamist üle kontrollida ja muuta.
+    const detected=effectiveDate(entry);
+    if(detected.kind==='board'&&detected.date!==validDate(entry.source_date)){
+      const existing='<input id="wodDate" type="date" value="'+esc(entry.source_date||'')+'">';
+      original=original.replace(existing,'<input id="wodDate" type="date" value="'+detected.date+'">');
+    }
     const canUse=entry.status==='ready'&&String(entry.workout_text||'').trim();
     const existing=(s.trainings||[]).filter(t=>t.status==='published'&&Date.parse(t.starts_at)>Date.now())
       .sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)).slice(0,50);
