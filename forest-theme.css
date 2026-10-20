@@ -373,3 +373,20 @@ body .tl-history-remove{
 body .tl-history-remove:hover{background:#624443;border-color:#A77970}
 body .tl-history-remove:focus-visible{outline:2px solid #FFC9B8;outline-offset:2px}
 @media(max-width:375px){body .tl-history-remove{width:100%;min-width:0}}
+
+/* Kliendikaardi valged statistikakastid: must tekst valgel taustal. */
+body .cl-detail .cl-detail-stats>div{
+  background:#FFFFFF;
+  color:#101B13;
+  border:1px solid #CEDDCE;
+  box-shadow:0 3px 10px rgba(0,0,0,.06);
+}
+body .cl-detail .cl-detail-stats>div>strong{
+  color:#0C1710;
+}
+body .cl-detail .cl-detail-stats>div>span{
+  color:#18231B;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.35;
+}
