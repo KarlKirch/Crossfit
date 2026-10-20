@@ -39,6 +39,14 @@
     return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Tallinn'}).format(new Date());
   }
 
+  // Automaatne 'WOD' / 'WOD + kuupäev' ei ole kasutaja kirjutatud pealkiri.
+  // Näita nende kirjete redigeerimisvälja tühjana; käsitsi antud nimetused säilivad.
+  function wodEditableTitle(raw){
+    const title=String(raw||'').trim();
+    return /^WOD(?:[\\s-]+(?:\\d{4}-\\d{2}-\\d{2}|\\d{2}\\.\\d{2}\\.\\d{4}))?$/i.test(title)?'':title;
+  }
+  window.wodEditableTitle=wodEditableTitle;
+
   function displayDate(date){
     if(!date) return '';
     const [y,m,d]=String(date).split('-');
@@ -428,7 +436,7 @@
       <div class="form">
         <div class="form-grid">
           <div class="field"><label>Kuupäev</label><input id="wodDate" type="date" value="${window.esc(e.source_date||'')}"></div>
-          <div class="field"><label>Pealkiri</label><input id="wodTitle" maxlength="120" value="${window.esc(e.title||'WOD')}"></div>
+          <div class="field"><label>Pealkiri</label><input id="wodTitle" maxlength="120" value="${window.esc(wodEditableTitle(e.title))}"></div>
         </div>
         <div class="field">
           <label>Lõplik WOD-tekst</label>
@@ -686,7 +694,7 @@
 
     const path=storagePath(file);
     const sourceDate=input?.id==='wodCameraInput'?today():dateFromFile(file);
-    const title=`WOD ${displayDate(sourceDate)}`;
+    const title='WOD'; // Tehniline baaspealkiri; kasutajale on pealkirjaväli tühi.
 
     window.toast('Salvestan originaalpilti…');
     try{
