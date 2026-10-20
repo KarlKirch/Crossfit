@@ -21,7 +21,7 @@
   --red-soft:#512B2B;
   --blue:#ACD8F4;
   --blue-soft:#1B3C4B;
-  --shadow:0 11px 32px rgba(0,0,0,.22);
+  --shadow:0 9px 27px rgba(0,0,0,.18);
 }
 html,body{background:#0A2118!important;color:var(--text)!important;color-scheme:dark}
 body{overflow-x:hidden}
