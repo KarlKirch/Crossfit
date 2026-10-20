@@ -246,3 +246,119 @@ body :is(.wb-pages,.wb-list,.cl-list,.nc-list,.ad-admin,.tb-dashboard,.tf-form){
 @media(max-width:500px){.rcf-brand-hero{min-height:210px}.rcf-shortcut{min-height:92px}.rcf-shortcuts{gap:6px;padding:8px}.rcf-metrics:has(>.rcf-metric-card:nth-child(3)){grid-template-columns:repeat(2,minmax(0,1fr))}.rcf-metrics:has(>.rcf-metric-card:nth-child(3)) .rcf-metric-card:last-child{grid-column:span 2;min-height:75px}}
 @media(max-width:375px){.rcf-brand-hero{padding:12px;min-height:197px}.rcf-main-logo{width:140px;height:140px}.rcf-shortcut strong{font-size:10px}.rcf-shortcut{min-height:88px}.rcf-feature-card{padding:15px}.rcf-metric-card{padding:9px 7px;gap:5px}.rcf-metric-icon{width:22px}.rcf-metric-card>svg{display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* TRENINGUTE VAATE VÄRVIPARANDUS 5.5.3
+   Vana hele tl-/td- kujundus ei tohi metsarohelisel taustal üle jääda.
+   Parandused on piiratud treeningute loendi ja detailaknaga. */
+body .tl-page{color:var(--text);min-width:0}
+body .tl-page-header h1,body .tl-card-heading h3{color:#F5FAF2}
+body .tl-page-header p,body .tl-card-info,body .tl-capacity-label,
+body .tl-participants-none,body .tl-trainer-tool small{color:#D3E0D5}
+body .tl-header-credit{
+  background:#285842;border:1px solid #5E8668;color:#D3E0D5
+}
+body .tl-header-credit strong{color:#C8F88A}
+body .tl-segment{background:#173C2B;border:1px solid #497454}
+body .tl-segment button{color:#D5E5D5;background:transparent}
+body .tl-segment button:not(.on):hover{background:#285842}
+body .tl-segment button span{background:#335C43;color:#E1F2DE}
+body .tl-segment button.on{
+  background:#B8F177;color:#173824;box-shadow:0 3px 12px rgba(0,0,0,.14)
+}
+body .tl-segment button.on span{background:#78BA5C;color:#102E1E}
+body .tl-day-title{color:#D6F9B0}
+body .tl-training-card{
+  background:#1E4634;color:#F5FAF2;border-color:#5E8668;
+  box-shadow:0 8px 22px rgba(0,0,0,.13)
+}
+body .tl-card-datebox{background:#2D5D43;border:1px solid #577F61}
+body .tl-card-day{color:#E1EEDD}
+body .tl-card-datebox strong{color:#F8FCF5}
+body .tl-card-info .tl-wait-count{color:#FFD79C}
+body .tl-pill{border:1px solid transparent}
+body .tl-pill.tl-free{background:#315F42;color:#DFFFCB;border-color:#548761}
+body .tl-pill.tl-booked{background:#315F42;color:#D6FFC7;border-color:#548761}
+body .tl-pill.tl-waiting{background:#574323;color:#FFE2AA;border-color:#876939}
+body .tl-pill.tl-cancelled{background:#543438;color:#FFD4D0;border-color:#8F585B}
+body .tl-pill.tl-neutral{background:#345240;color:#E1EEE0;border-color:#54725D}
+body .tl-capacity-track{background:#133627}
+body .tl-capacity-track span{background:#B8F177}
+body .tl-participants{border-top-color:#51745A;border-bottom-color:#51745A}
+body .tl-participants-label{color:#EBF5E9}
+body .tl-person{color:#F5FAF2}
+body .tl-person-avatar,body .tl-people-extra{background:#356C4B;color:#E3F9CF}
+body .tl-action-main{background:#B8F177;color:#102E1E}
+body .tl-action-main:hover{background:#C9FB98;color:#102E1E}
+body .tl-action-secondary{
+  background:#2D6045;color:#ECFCE2;border:1px solid #578764
+}
+body .tl-action-secondary:hover{background:#37724F}
+body .tl-action-link{
+  background:#285842;color:#F0F9EA;border:1px solid #638C6B
+}
+body .tl-action-link:hover{background:#356B4C}
+body .tl-empty{
+  background:#1E4634;color:#F4FAF0;border:1px dashed #688D6F
+}
+body .tl-empty-icon{background:#2D6045;color:#C9F990}
+body .tl-empty>span{color:#D3E0D5}
+body .tl-trainer-tool button{
+  background:#24513B;border:1px solid #5E8668;color:#C8F88A
+}
+body .tl-trainer-tool button:hover{background:#2E6346}
+body .tl-trainer-tool strong{color:#F5FAF2}
+
+/* Treeningu detailaken: tumeda teksti ja valgete kaartide jäägid. */
+body .td-content{color:#F5FAF2}
+body .td-hero{
+  background:linear-gradient(145deg,#2E6846,#1D4634);
+  border:1px solid #64936B;box-shadow:0 10px 25px rgba(0,0,0,.14)
+}
+body .td-hero h2{color:#FFF}
+body .td-hero-progress{background:#17452D}
+body .td-hero-progress>span{background:#B8F177}
+body .td-section{
+  background:#1E4634;border:1px solid #5E8668;color:#F5FAF2
+}
+body .td-section h3{color:#F5FAF2}
+body .td-section p,body .td-section .td-note,
+body .td-section .td-policy{color:#DDEBDD!important}
+body .td-wod{background:#264F39;border-color:#638B6A}
+body .td-wod h3{color:#C9F995}
+body .td-wod-body{
+  color:#F5FAF2;background:transparent;white-space:pre-wrap;overflow-wrap:anywhere
+}
+body .td-notes{background:#254D38}
+body .td-attendee{border-bottom-color:#507459}
+body .td-attendee-name strong{color:#F5FAF2}
+body .td-attendee-name small{color:#D2E3D1}
+body .td-avatar-fallback{background:#38734D;color:#F8FFF1}
+body .td-person-credit{color:#C5F58F}
+body .td-person-unpaid{color:#FFD9A3}
+body .td-empty-attendees{color:#D1E2D0}
+body .td-button-main{background:#B8F177;color:#102E1E}
+body .td-button-main:hover{background:#CAFAA0;color:#102E1E}
+body .td-button-secondary{background:#305E45;color:#F2FFE5;border:1px solid #5B8D68}
+body .td-button-secondary:hover{background:#3A7450}
+body .td-button-danger{background:#523135;color:#FFE0DA;border:1px solid #825057}
+body .td-booking-status{background:#2C6144;color:#F1FCEF;border:1px solid #65936B}
+body .td-booking-status strong{color:#F5FAF2}
+body .td-booking-status p,body .td-booking-status .td-position{color:#E0F1DB!important}
+body .td-booking-intro>span{color:#C9F88C}
+body .td-no-credit{background:#4A3C26;border:1px solid #796344}
+body .td-no-credit strong,body .td-no-credit p{color:#FFDFAD!important}
+body .td-late-warning{background:#523C25;color:#FFE1AF!important;border:1px solid #866A43}
+body .td-policy{color:#DDEBDD!important}
+body .td-deadline{color:#C5F58F!important}
+body .td-danger-zone{border-top-color:#5E8668}
+body .td-danger-zone summary{color:#FFD0C8}
+body .td-danger-zone p{color:#D3E0D5!important}
+
+@media(max-width:390px){
+  body .tl-card-top{min-width:0}
+  body .tl-card-heading{min-width:0}
+  body .tl-card-actions{grid-template-columns:minmax(0,1fr)}
+  body .tl-card-info span{white-space:normal}
+  body .tl-pill{max-width:100%;white-space:normal}
+}
