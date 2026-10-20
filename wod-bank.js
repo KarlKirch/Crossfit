@@ -46,12 +46,16 @@
   }
 
   function dateFromFile(file){
-    const m=String(file?.name||'').match(/(20\d{2})(\d{2})(\d{2})/);
-    if(m) return `${m[1]}-${m[2]}-${m[3]}`;
-    if(file?.lastModified){
-      try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Tallinn'}).format(new Date(file.lastModified))}
-      catch(_){}
+    // Galeriist valides eelista pildifaili loomise/muutmise kuupäeva
+    // failinimes sisalduvale võimalikule vanale kuupäevale.
+    if(Number.isFinite(file?.lastModified)&&file.lastModified>0){
+      const date=new Date(file.lastModified);
+      if(Number.isFinite(date.getTime())){
+        return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Tallinn',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+      }
     }
+    const m=String(file?.name||'').match(/(20\d{2})(\d{2})(\d{2})/);
+    if(m)return m[1]+'-'+m[2]+'-'+m[3];
     return today();
   }
 
@@ -681,7 +685,7 @@
     }
 
     const path=storagePath(file);
-    const sourceDate=dateFromFile(file);
+    const sourceDate=input?.id==='wodCameraInput'?today():dateFromFile(file);
     const title=`WOD ${displayDate(sourceDate)}`;
 
     window.toast('Salvestan originaalpilti…');
