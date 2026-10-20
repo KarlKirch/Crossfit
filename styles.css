@@ -970,3 +970,12 @@ button:disabled{cursor:not-allowed;opacity:.55}
 }
 
 .wb-top-pagination{min-width:0;max-width:100%;width:100%;padding:0 0 3px}
+
+
+/* WOD-panga pildikuupäevade järjestamise lisainfo */
+.wb-date{overflow-wrap:anywhere}
+.wb-date-conflict{display:block;margin-top:3px;font-size:10px;line-height:1.45;font-weight:800;color:#976024}
+.wb-photo-date-note{display:grid;gap:4px;background:#F2F7ED;border:1px solid #CADAC3;border-radius:13px;padding:12px;margin:0 0 11px;min-width:0}
+.wb-photo-date-note strong{font-size:13px;line-height:1.4;color:#365B3D}
+.wb-photo-date-note span{font-size:11px;color:#60745B}
+.wb-photo-date-note p{margin:4px 0 0;padding:8px 9px;background:#FFF2DD;color:#795921;border-radius:8px;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
