@@ -345,7 +345,7 @@ Object.assign(window,{
   upcomingTrainings,pastTrainings,nextClientTraining,clientStats,
   localParts,timeOptions,tallinnLocalToIso,weekday,addDays,
   renderHome,renderTrainings,renderMine,renderClients,renderNotifications,
-  renderMore,renderModal,loadData,trainingDetail,trainingCard,
+  renderMore,renderModal,loadData,trainingDetail,trainingCard,trainingForm,
   personRow,clientCard,clientDetail,registrationRow,shareSheet,
   quickSheet,infoSheet,
   TZ,APP_URL
