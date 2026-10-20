@@ -1,0 +1,152 @@
+'use strict';
+/* CrossFit: sõltuvusteta lokaalne suitsutest (Node.js >= 20).
+   Ei kasuta võrku, päris kasutajaid, Supabase'i kirjutusi ega push-teateid. */
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');
+const read=file=>fs.readFileSync(path.join(root,file),'utf8');
+const source=read('index.html');
+const worker=read('sw.js');
+const jsFiles=[...source.matchAll(/<script\s+src="\.\/([^"?]+)(?:\?[^"]+)?"\s+defer><\/script>/g)].map(x=>x[1]);
+const cssFiles=[...source.matchAll(/<link\s+rel="stylesheet"\s+href="\.\/([^"?]+)(?:\?[^"]+)?"\s*>/g)].map(x=>x[1]);
+let count=0;
+function test(name,fn){
+  try{fn();count++;process.stdout.write('✓ '+name+'\n');}
+  catch(e){process.stderr.write('✗ '+name+'\n'+(e.stack||e)+'\n');process.exitCode=1;}
+}
+test('Scripts included and in expected order',()=>{
+  assert(jsFiles.length>=18,'Expected modular app scripts');
+  assert.equal(jsFiles.at(-1),'notification-center.js');
+  assert(jsFiles.indexOf('training-form-redesign.js')>jsFiles.indexOf('wod-review-ui.js'));
+});
+test('All linked JS/CSS files exist and parse',()=>{
+  assert(cssFiles.length);
+  for(const file of [...jsFiles,...cssFiles]){
+    assert(fs.existsSync(path.join(root,file)),'Missing '+file);
+    if(file.endsWith('.js'))new vm.Script(read(file),{filename:file});
+  }
+  new vm.Script(worker,{filename:'sw.js'});
+});
+test('PWA precache includes all linked assets',()=>{
+  const match=worker.match(/const CORE=(\[[^\n]+\]);/);
+  assert(match,'Missing CORE array');
+  const precache=vm.runInNewContext(match[1]);
+  for(const file of [...jsFiles,...cssFiles]){
+    assert(precache.some(x=>x.split('?')[0]==='./'+file),'Not precached: '+file);
+  }
+  for(const entry of precache){
+    const disk=entry.split('?')[0].replace(/^\.\//,'');
+    if(!disk)continue;
+    assert(fs.existsSync(path.join(root,disk)),'Missing cached asset: '+disk);
+  }
+});
+test('Manifest and both PWA icons exist',()=>{
+  const manifest=JSON.parse(read('manifest.webmanifest'));
+  assert.equal(manifest.start_url,'/Crossfit/');
+  assert.equal(manifest.scope,'/Crossfit/');
+  for(const icon of manifest.icons){
+    assert(fs.existsSync(path.join(root,icon.src.replace(/^\/Crossfit\//,''))),'Missing '+icon.src);
+  }
+});
+const htmlRoot={innerHTML:''};
+const passive={classList:{add(){},remove(){}},textContent:'',addEventListener(){}};
+const document={
+  visibilityState:'visible',
+  getElementById(id){return id==='appRoot'?htmlRoot:id==='toast'||id==='updateBanner'||id==='updateNow'?passive:null;},
+  addEventListener(){},querySelectorAll(){return []},querySelector(){return null},
+  createElement(){return {style:{},click(){},setAttribute(){},addEventListener(){},append(){},remove(){},getContext(){return {clearRect(){},drawImage(){}}}};},
+  body:{appendChild(){},removeChild(){}}
+};
+const location={search:'',pathname:'/Crossfit/',hash:''};
+const history={state:{},length:1,pushState(value){this.state=value},replaceState(value){this.state=value}};
+const sandbox={
+  document,location,history,
+  console,Date,Intl,Math,Promise,JSON,Number,String,Set,Map,Array,URL,URLSearchParams,
+  navigator:{serviceWorker:{}},
+  localStorage:{getItem(){return null},setItem(){},removeItem(){}},
+  crossfitAuth:{configure(){}},
+  crossfitInstall:{banner(){return ''},installed(){return true},moreItem(){return ''}},
+  addEventListener(){},scrollTo(){},setInterval(){return 1},clearInterval(){},
+  setTimeout(){return 1},clearTimeout(){},
+  confirm(){return true},
+  fetch(){throw new Error('Network must not be called in smoke tests')},
+  atob(){return ''},
+  crypto:{randomUUID(){return '11111111-1111-4111-8111-111111111111'}}
+};
+sandbox.window=sandbox;
+const context=vm.createContext(sandbox);
+test('App and all feature modules initialize without browser network',()=>{
+  for(const file of jsFiles){
+    const code=file==='app.js'?read(file).replace(/\nboot\(\);\s*$/,'\n'):read(file);
+    vm.runInContext(code,context,{filename:file,timeout:10000});
+  }
+  assert(context.state&&typeof context.render==='function');
+});
+const uid='11111111-1111-4111-8111-111111111111';
+const clientId='22222222-2222-4222-8222-222222222222';
+const otherId='33333333-3333-4333-8333-333333333333';
+const future=new Date(Date.now()+3*86400000).toISOString();
+const past=new Date(Date.now()-3*86400000).toISOString();
+Object.assign(context.state,{
+  session:{user:{id:uid,email:'trainer@example.ee'},access_token:'test'},
+  profile:{user_id:uid,role:'trainer',display_name:'Test Coach'},
+  profiles:[{user_id:uid,role:'trainer',display_name:'Test Coach'},
+    {user_id:clientId,role:'client',display_name:'Anna Test'},
+    {user_id:otherId,role:'client',display_name:'Mari Test'}],
+  trainings:[{id:11,title:'Monday WOD',starts_at:future,status:'published',capacity:8,duration_minutes:90,price_cents:500,cancellation_hours:4,workout:'20 burpees'},
+    {id:12,title:'Old WOD',starts_at:past,status:'published',capacity:8,duration_minutes:90,price_cents:500,cancellation_hours:4}],
+  registrations:[{id:1,training_id:11,user_id:clientId,status:'confirmed',credit_charged:true,created_at:past},
+    {id:2,training_id:11,user_id:otherId,status:'waitlist',created_at:past}],
+  wallets:[{user_id:clientId,credits:4},{user_id:otherId,credits:1},{user_id:uid,credits:0}],
+  notifications:[{id:3,user_id:uid,title:'Koht vabanes!',body:'Treeningukoht kinnitatud.',kind:'waitlist_promoted',training_id:11,created_at:past,read_at:null}],
+  creditTransactions:[],userPackages:[],packageTypes:[],removedClients:[],
+  wodBank:[{id:25,title:'WOD 2020-01-01',status:'ready',source_date:'2020-01-01',workout_text:'10 squats',created_at:past}],
+  trainingTemplates:[],announcements:[],trainingTab:'upcoming',modal:null,modalData:null
+});
+for(const role of ['trainer','client']){
+  test(role+': all primary tabs render',()=>{
+    context.state.profile.role=role;
+    context.state.profile.user_id=role==='trainer'?uid:clientId;
+    context.state.profile.display_name=role==='trainer'?'Test Coach':'Anna Test';
+    context.state.session.user.id=context.state.profile.user_id;
+    for(const tab of ['home','trainings','people','more','notifications']){
+      context.state.modal=null;context.state.view=tab;
+      context.render();
+      assert(htmlRoot.innerHTML.length>150,'Empty '+tab);
+    }
+  });
+  test(role+': training details open',()=>{
+    context.state.modal='training';context.state.modalData=11;
+    context.render();
+    assert(htmlRoot.innerHTML.includes('Monday WOD'));
+  });
+}
+test('Coach: create/edit workout and WOD bank open',()=>{
+  context.state.session.user.id=uid;
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  for(const [modal,data,fragment] of [['trainingForm',null,'tfDuration'],['wodBank',null,'wb-body'],['wodDetail',25,'wod'],['client',clientId,'Anna Test']]){
+    context.state.modal=modal;context.state.modalData=data;context.render();
+    assert(htmlRoot.innerHTML.includes(fragment),'Missing '+fragment);
+  }
+});
+test('New workouts default to 90 minutes',()=>{
+  const form=context.trainingForm({});
+  assert(form.includes('id="tfDuration"'));
+  assert(form.includes('value="90"'));
+});
+test('Historical WOD dates and structure are kept',()=>{
+  assert.equal(context.crossfitWodUI.displayWodTitle({title:'WOD 2020-01-01'}),'WOD 01.01.2020');
+  const html=context.crossfitWodUI.structuredText('WOD: 10 burpees; 20 squats');
+  assert(html.includes('10 burpees')&&html.includes('20 squats'));
+});
+test('Client cannot see trainer-only actions',()=>{
+  context.state.profile.role='client';
+  context.state.session.user.id=clientId;
+  context.state.modal=null;context.state.view='home';context.render();
+  assert(!htmlRoot.innerHTML.includes('tb-dashboard'));
+  assert(!htmlRoot.innerHTML.includes('ad-admin'));
+});
+process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
+if(process.exitCode)process.exit(process.exitCode);
