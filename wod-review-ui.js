@@ -180,8 +180,10 @@
       '<div class="wb-empty"><strong>Selliseid WOD-e ei leitud.</strong>'+
       '<p>Proovi muuta otsingut või vali teine olek.</p>'+
       '<button type="button" onclick="crossfitWodUI.reset()">Näita kõiki</button></div>';
+    const navigation=pager(data);
     return '<div class="wb-count" id="wodShownCount">Kuvatud '+data.list.length+' / '+data.total+' WOD-i</div>'+
-      '<div class="wb-list">'+content+'</div>'+pager(data);
+      (navigation?'<div class="wb-top-pagination">'+navigation+'</div>':'')+
+      '<div class="wb-list">'+content+'</div>'+navigation;
   }
   function renderBank(){
     // Käivitab olemasoleva privaatfoto laadija, jättes fotoandmed ja OCR-i puutumata.
