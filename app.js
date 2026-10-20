@@ -94,6 +94,7 @@ function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
   return `<button class="nav-btn ${active?'on':''}" type="button" onclick="go('${view}')" aria-current="${active?'page':'false'}">${svg}<span>${label}</span></button>`;
 }
+function viewFromPushLink(){try{return new URLSearchParams(window.location?.search||'').get('view')==='notifications'?'notifications':'home'}catch(_){return 'home'}}
 function unreadCount(){return state.notifications.filter(n=>!n.read_at).length}
 function renderShell(content){
   const trainer=isTrainer();
@@ -158,7 +159,7 @@ function render(){if(!state.session||!state.profile){renderAuth();return}ensureV
 function renderAuth(){root.innerHTML=window.crossfitAuth.render(state.mode,window.crossfitInstall?.authCard?.()||'')}
 function setAuthMode(mode){state.mode=mode;renderAuth()}
 function authMessage(text,bad=false){const e=document.getElementById('authMessage');if(e)e.innerHTML=text?`<div class="notice ${bad?'bad':''}">${esc(text)}</div>`:''}
-async function submitAuth(){const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value,name=document.getElementById('authName')?.value.trim();if(!email||!password||(state.mode==='signup'&&!name)){authMessage('Täida kõik väljad.',true);return}const b=document.getElementById('authSubmitBtn');b.disabled=true;authMessage('Palun oota…');try{let data;if(state.mode==='signup'){data=await request(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(APP_URL)}`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,data:{display_name:name}})});if(!data.access_token){authMessage('Konto loodud. Kinnita e-postis saadetud link ja logi seejärel sisse.');return}}else data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:headers(),body:JSON.stringify({email,password})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));await ensureProfile();await window.loadData();state.view='home';render()}catch(e){authMessage(authError(e.message),true)}finally{if(b)b.disabled=false}}
+async function submitAuth(){const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value,name=document.getElementById('authName')?.value.trim();if(!email||!password||(state.mode==='signup'&&!name)){authMessage('Täida kõik väljad.',true);return}const b=document.getElementById('authSubmitBtn');b.disabled=true;authMessage('Palun oota…');try{let data;if(state.mode==='signup'){data=await request(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(APP_URL)}`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,data:{display_name:name}})});if(!data.access_token){authMessage('Konto loodud. Kinnita e-postis saadetud link ja logi seejärel sisse.');return}}else data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:headers(),body:JSON.stringify({email,password})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));await ensureProfile();await window.loadData();state.view=viewFromPushLink();render()}catch(e){authMessage(authError(e.message),true)}finally{if(b)b.disabled=false}}
 
 function metric(value,label){return `<div class="metric"><b>${value}</b><span>${label}</span></div>`}
 function trainerAttention(){const future=upcomingTrainings();const unpaid=state.registrations.filter(r=>r.status==='confirmed'&&r.payment_status==='unpaid'&&future.some(t=>t.id===r.training_id)).length;const waiting=state.registrations.filter(r=>r.status==='waitlist'&&future.some(t=>t.id===r.training_id)).length;const clients=state.profiles.filter(p=>p.role==='client').length;return {unpaid,waiting,clients}}
@@ -306,7 +307,7 @@ async function logout(){try{if(state.session?.access_token)await fetch(`${SUPABA
 
 function parseAuthHash(){if(!location.hash)return null;const p=new URLSearchParams(location.hash.slice(1)),access=p.get('access_token'),refresh=p.get('refresh_token');if(!access||!refresh)return null;const expires=Number(p.get('expires_in')||3600);return {access_token:access,refresh_token:refresh,expires_in:expires,token_type:p.get('token_type')||'bearer',user:null}}
 async function fetchCurrentUser(){const r=await request(`${SUPABASE_URL}/auth/v1/user`,{headers:headers(state.session.access_token)});state.session.user=r;localStorage.setItem('wod_session',JSON.stringify(state.session))}
-async function boot(){setupServiceWorker();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal)closeModal()});try{const hash=parseAuthHash();if(hash){state.session=hash;await fetchCurrentUser();history.replaceState(null,'',location.pathname+location.search)}else{const raw=localStorage.getItem('wod_session');if(raw)state.session=JSON.parse(raw)}if(state.session){if(state.session.refresh_token){const ok=await refreshSession();if(!ok){renderAuth();return}}if(!state.session.user)await fetchCurrentUser();await ensureProfile();await window.loadData();render();return}}catch(e){console.warn(e);localStorage.removeItem('wod_session');state.session=null}renderAuth()}
+async function boot(){setupServiceWorker();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal)closeModal()});try{const hash=parseAuthHash();if(hash){state.session=hash;await fetchCurrentUser();history.replaceState(null,'',location.pathname+location.search)}else{const raw=localStorage.getItem('wod_session');if(raw)state.session=JSON.parse(raw)}if(state.session){if(state.session.refresh_token){const ok=await refreshSession();if(!ok){renderAuth();return}}if(!state.session.user)await fetchCurrentUser();await ensureProfile();await window.loadData();state.view=viewFromPushLink();render();return}}catch(e){console.warn(e);localStorage.removeItem('wod_session');state.session=null}renderAuth()}
 
 async function sendEmailSignInLink(email){
   return request(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(APP_URL)}`,{
@@ -325,7 +326,7 @@ async function finishEmailSignIn(session){
   if(!state.session.user)await fetchCurrentUser();
   await ensureProfile();
   await window.loadData();
-  state.view='home';
+  state.view=viewFromPushLink();
   render();
 }
 window.crossfitAuth.configure({
