@@ -18,7 +18,8 @@ function test(name,fn){
 }
 test('Scripts included and in expected order',()=>{
   assert(jsFiles.length>=18,'Expected modular app scripts');
-  assert.equal(jsFiles.at(-1),'notification-center.js');
+  assert.equal(jsFiles.at(-1),'brand-home.js');
+  assert(jsFiles.indexOf('brand-home.js')>jsFiles.indexOf('notification-center.js'));
   assert(jsFiles.indexOf('training-form-redesign.js')>jsFiles.indexOf('wod-review-ui.js'));
 });
 test('All linked JS/CSS files exist and parse',()=>{
@@ -46,6 +47,9 @@ test('Manifest and both PWA icons exist',()=>{
   const manifest=JSON.parse(read('manifest.webmanifest'));
   assert.equal(manifest.start_url,'/Crossfit/');
   assert.equal(manifest.scope,'/Crossfit/');
+  assert.equal(manifest.name,'Rõuge CrossFit');
+  assert.equal(manifest.theme_color,'#061D15');
+  assert(fs.existsSync(path.join(root,'brand-rcf.webp')),'Missing RCF logo');
   for(const icon of manifest.icons){
     assert(fs.existsSync(path.join(root,icon.src.replace(/^\/Crossfit\//,''))),'Missing '+icon.src);
   }
@@ -140,6 +144,17 @@ test('Historical WOD dates and structure are kept',()=>{
   assert.equal(context.crossfitWodUI.displayWodTitle({title:'WOD 2020-01-01'}),'WOD 01.01.2020');
   const html=context.crossfitWodUI.structuredText('WOD: 10 burpees; 20 squats');
   assert(html.includes('10 burpees')&&html.includes('20 squats'));
+});
+test('Both roles have the RCF forest homepage',()=>{
+  for(const role of ['trainer','client']){
+    context.state.profile.role=role;
+    context.state.profile.user_id=role==='trainer'?uid:clientId;
+    context.state.session.user.id=context.state.profile.user_id;
+    context.state.modal=null;context.state.view='home';context.render();
+    assert(htmlRoot.innerHTML.includes('rcf-brand-hero'));
+    assert(htmlRoot.innerHTML.includes('brand-rcf.webp'));
+    assert(htmlRoot.innerHTML.includes('Monday WOD'));
+  }
 });
 test('Client cannot see trainer-only actions',()=>{
   context.state.profile.role='client';
