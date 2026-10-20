@@ -968,3 +968,5 @@ button:disabled{cursor:not-allowed;opacity:.55}
   .wb-pages button{font-size:11px;padding:8px 3px}
   .wb-pages .wb-page-current{font-size:10px}
 }
+
+.wb-top-pagination{min-width:0;max-width:100%;width:100%;padding:0 0 3px}
