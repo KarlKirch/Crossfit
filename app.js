@@ -4,7 +4,7 @@ const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
 const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
-const APP_VERSION='5.5.5';
+const APP_VERSION='5.6';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -76,7 +76,7 @@ async function loadData(){
   const trainer=isTrainer();
   const uid=state.session.user.id;
   const queries=[
-    api(`wod_trainings?select=*&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
+    api(`wod_trainings?select=*&archived_at=is.null&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
     api('wod_registrations?select=*&order=created_at.asc'),
     api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
     api(trainer?'wod_wallets?select=user_id,credits':`wod_wallets?select=user_id,credits&user_id=eq.${uid}`),
@@ -245,7 +245,26 @@ async function saveTrainingForm(id){const date=document.getElementById('tfDate')
 function copyTraining(id){const t=state.trainings.find(x=>x.id===id);if(!t)return;const d={...t};delete d.id;const p=localParts(t.starts_at);d.starts_at=tallinnLocalToIso(addDays(p.date,7),p.time);d.duration_minutes=90;d.note='';openTrainingForm(d)}
 function copyLatestTraining(){const list=[...state.trainings].sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));if(!list.length){openTrainingForm();return}copyTraining(list[0].id)}
 async function cancelTraining(id){if(!confirm('Tühistada see treening? Registreerunutele saadetakse teavitus ja paketiga tasutud korrad tagastatakse.'))return;try{await rpc('wod_cancel_training',{p_training_id:id});state.modal=null;await reloadData('Treening tühistatud')}catch(e){toast(e.message)}}
-async function deleteTraining(id){if(!confirm('Kustutada treening lõplikult? Seda ei saa tagasi võtta.'))return;try{await api(`wod_trainings?id=eq.${id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});state.modal=null;await reloadData('Treening kustutatud')}catch(e){toast(e.message)}}
+async function deleteTraining(id){
+  if(!isTrainer()){toast('Treeningu eemaldamine on ainult treenerile.');return}
+  const numericId=Number(id);
+  if(!Number.isSafeInteger(numericId)||numericId<1)return;
+  const training=state.trainings.find(t=>Number(t.id)===numericId);
+  if(!training){toast('Treeningut ei leitud.');return}
+  const related=state.registrations.filter(r=>Number(r.training_id)===numericId);
+  const hasHistory=related.length>0;
+  const past=new Date(training.starts_at)<=now()||training.status==='cancelled';
+  const message=hasHistory
+    ?'Eemaldada treening „'+training.title+'“ ajaloost? Registreeringud ja krediidi- ning maksearvestus säilivad. Kliendid ei näe seda treeningut enam ajaloos. Krediite automaatselt ei tagastata.'
+    :'Kustutada treening „'+training.title+'“ lõplikult? Registreeringuid pole ja kustutamist ei saa tagasi võtta.';
+  if(!confirm(message))return;
+  try{
+    const result=await rpc('wod_remove_training',{p_training_id:numericId});
+    state.modal=null;
+    state.modalData=null;
+    await reloadData(result==='deleted'?'Treening kustutatud.':'Treening eemaldatud ajaloost. Krediidi- ja makseandmed säilitati.');
+  }catch(e){toast(e.message||'Treeningu eemaldamine ebaõnnestus.')}
+}
 async function registerTraining(id,useCredit){try{await rpc('wod_register',{p_training_id:id,p_use_credit:useCredit});await reloadData('Registreerimine õnnestus');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
 async function cancelRegistration(id){const t=state.trainings.find(x=>x.id===id),late=t&&cancellationDeadline(t)<now();const text=late?'Tasuta tühistamise aeg on möödas. Tühistamisel treeningkorda või tasu ei tagastata. Kas jätkata?':'Kas tühistada registreering?';if(!confirm(text))return;try{await rpc('wod_cancel_registration',{p_training_id:id});await reloadData(late?'Registreering tühistatud hilise tühistusena':'Registreering tühistatud');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
 async function setPayment(regId,paid){try{await rpc('wod_set_registration_payment',{p_registration_id:regId,p_paid:paid});await reloadData(paid?'Märgitud tasutuks':'Märgitud tasumata');render()}catch(e){toast(e.message)}}
@@ -286,7 +305,7 @@ function quickSheet(){return `<div class="quick-grid"><button class="quick" oncl
 
 function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in window&&typeof Notification!=='undefined'}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=57',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=58',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render()}catch(e){toast(e.message)}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -299,7 +318,7 @@ async function installApp(){return window.crossfitInstall?.request?.()}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.installPrompt=e});
 window.addEventListener('appinstalled',()=>{state.installPrompt=null;toast('CrossFit on paigaldatud')});
 
-async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=57',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
+async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=58',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
 function showUpdateBanner(){updateBanner.classList.remove('hidden')}
 updateNow.addEventListener('click',()=>{if(state.swReg?.waiting)state.swReg.waiting.postMessage({type:'SKIP_WAITING'});else location.reload()});
 
