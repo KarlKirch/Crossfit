@@ -41,7 +41,7 @@
   function banner(trainer){
     const name=String(s.profile?.display_name||'').trim().split(/\s+/)[0]||'Treenija';
     return '<section class="rcf-brand-hero">'+
-      '<img class="rcf-main-logo" src="./brand-emblem.svg" alt="Rõuge CrossFit RCF logo" width="160" height="160">'+
+      '<img class="rcf-main-logo" src="./brand-rcf.webp" alt="Rõuge CrossFit RCF logo" width="160" height="160">'+
       '<div class="rcf-greeting"><span>Tere,</span><h1>'+esc(name)+'!</h1>'+
       '<p>'+(trainer?'Sinu treeningute juhtimiskeskus.':'Hea, et oled tagasi!')+'</p></div>'+
       '</section>';
