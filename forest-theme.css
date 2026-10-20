@@ -362,3 +362,14 @@ body .td-danger-zone p{color:#D3E0D5!important}
   body .tl-card-info span{white-space:normal}
   body .tl-pill{max-width:100%;white-space:normal}
 }
+
+/* Möödunud treeningu eemaldamine: ainult treeneri kaardil */
+body .tl-history-remove{
+  justify-self:end;display:inline-flex;align-items:center;justify-content:center;
+  min-height:40px;min-width:154px;margin-top:-3px;padding:9px 13px;
+  border:1px solid #876460;border-radius:12px;background:#503A38;
+  color:#FFE5DE;font-weight:800;font-size:12px;line-height:1.25
+}
+body .tl-history-remove:hover{background:#624443;border-color:#A77970}
+body .tl-history-remove:focus-visible{outline:2px solid #FFC9B8;outline-offset:2px}
+@media(max-width:375px){body .tl-history-remove{width:100%;min-width:0}}
