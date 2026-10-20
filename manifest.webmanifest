@@ -18,13 +18,13 @@
       "src": "/Crossfit/brand-rcf.webp",
       "sizes": "192x192",
       "type": "image/webp",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/Crossfit/icon-512.png",
+      "src": "/Crossfit/icon-512-rcf.webp",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "monochrome"
+      "type": "image/webp",
+      "purpose": "any maskable"
     }
   ]
 }
