@@ -926,3 +926,45 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .tf-save:disabled{opacity:.55}
 .tf-cancel{color:var(--accent);background:var(--accent-soft)}
 @media(max-width:390px){.tf-section,.tf-wod,.tf-recurrence{padding:12px}.tf-form .field input,.tf-form .field select{font-size:16px}.tf-two{gap:8px}.tf-weekday>span{width:34px;height:34px}.tf-actions{grid-template-columns:1fr}.tf-intro{padding:13px}}
+
+
+/* WOD-panga tekstiridade ja mobiilse leheküljevahetuse parandus */
+.wb-sheet{width:min(760px,100%);max-width:100%;min-width:0;overflow-x:hidden}
+.wb-body{grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;overflow-x:hidden}
+.wb-body>*,#wbResults,.wb-list,.wb-card,.wb-card-head,.wb-card-workout{min-width:0;max-width:100%}
+#wbResults{grid-template-columns:minmax(0,1fr)}
+.wb-card{grid-template-columns:minmax(0,1fr);gap:0;min-height:0}
+.wb-card-head{display:grid;grid-template-columns:88px minmax(0,1fr);gap:11px}
+.wb-card-photo{min-height:108px;height:100%;max-height:170px}
+.wb-card-photo .wb-photo{height:100%;max-height:170px}
+.wb-card-content{padding:12px 12px 10px 0;justify-content:center;gap:8px}
+.wb-card-workout{padding:13px 14px;border-top:1px solid #E7EEE4;background:#fff}
+.wb-structured-wod{display:grid;gap:12px;min-width:0}
+.wb-wod-section{display:grid;gap:5px;min-width:0}
+.wb-wod-section+.wb-wod-section{padding-top:9px;border-top:1px dashed #E2EADF}
+.wb-wod-heading{font-size:11px;line-height:1.4;font-weight:950;letter-spacing:.35px;text-transform:uppercase;color:#3E6144;margin:0;overflow-wrap:anywhere}
+.wb-wod-line{display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;font-size:12px;line-height:1.55;color:#374A3B}
+.wb-wod-line+.wb-wod-line{margin-top:2px}
+.wb-wod-more{margin:3px 0 0;color:#5C725B;font-size:11px;font-weight:800;line-height:1.45}
+.wb-wod-unavailable{font-size:12px;color:var(--muted);margin:0;line-height:1.55}
+.wb-card-open{margin:0 14px 12px;padding:10px 0 3px;max-width:calc(100% - 28px);align-self:start;white-space:normal}
+.wb-detail-preview{background:#fff;border:1px solid #D4E0CE;border-radius:16px;padding:15px;margin:12px 0}
+.wb-detail-preview h3{font-size:15px;font-weight:900;color:var(--text);margin:0 0 13px}
+.wb-detail-preview .wb-wod-heading{font-size:12px}
+.wb-detail-preview .wb-wod-line{font-size:13px;line-height:1.65}
+.wb-pages{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);width:100%;max-width:100%;min-width:0;gap:7px;align-items:center;justify-content:stretch;padding:8px 0 3px;overflow:hidden}
+.wb-pages button{display:grid;place-items:center;width:100%;min-width:0;max-width:100%;min-height:43px;padding:9px 5px;white-space:normal;overflow-wrap:anywhere;line-height:1.25;text-align:center}
+.wb-pages .wb-page-current{min-width:0;max-width:80px;color:var(--muted);font-size:11px;line-height:1.3;text-align:center;white-space:normal;font-weight:850}
+@media(max-width:520px){
+  .wb-card-head{grid-template-columns:80px minmax(0,1fr);gap:10px}
+  .wb-card-photo{min-height:100px}
+  .wb-card-content{padding:10px 10px 10px 0}
+  .wb-card-workout{padding:12px}
+}
+@media(max-width:360px){
+  .wb-card-head{grid-template-columns:72px minmax(0,1fr);gap:8px}
+  .wb-card-workout{padding:10px}
+  .wb-pages{grid-template-columns:minmax(0,1fr) 55px minmax(0,1fr);gap:4px}
+  .wb-pages button{font-size:11px;padding:8px 3px}
+  .wb-pages .wb-page-current{font-size:10px}
+}
