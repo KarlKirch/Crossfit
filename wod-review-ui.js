@@ -88,21 +88,75 @@
     }
     return '<span class="wb-photo-placeholder">Originaalpilt puudub</span>';
   }
+  // Võtab WOD-i algtekstist ainult kuvatava struktuuri. Andmebaasis
+  // säilib algne OCR/mustand täpselt sellisena, nagu treener selle salvestas.
+  function formattedSections(raw){
+    const text=String(raw||'').replace(/\r\n?/g,'\n').trim();
+    if(!text)return [];
+    const pattern=/(^|[.!?]\s+|\n+)((?:PARTNER|TEAM)\s+WOD|WARM[\s-]?UP|SOE(?:\s*\(warm[\s-]?up\))?|STRENGTH|SKILL|WOD|CORE|FINISH(?:ER)?|TABATA|MOBILITY|COOL[\s-]?DOWN)\b/gi;
+    const markers=[];
+    let match;
+    while((match=pattern.exec(text))!==null){
+      const pos=match.index+match[1].length;
+      if(pos>0&&text[pos-1]==='.')continue; // ära tõlgenda lühendi osa alapealkirjaks
+      markers.push(pos);
+    }
+    const chunks=[];
+    if(markers.length&&markers[0]>0)chunks.push({heading:'',body:text.slice(0,markers[0]).trim()});
+    if(!markers.length)chunks.push({heading:'',body:text});
+    for(let i=0;i<markers.length;i++){
+      const fragment=text.slice(markers[i],markers[i+1]??text.length).trim();
+      const colon=fragment.indexOf(':');
+      const dot=fragment.search(/\.\s*(?:\n|$)/);
+      let heading='',body=fragment;
+      if(colon>0&&colon<115&&!fragment.slice(0,colon).includes(';')&&!fragment.slice(0,colon).includes('\n')){
+        heading=fragment.slice(0,colon).trim();
+        body=fragment.slice(colon+1).trim();
+      }else if(dot>0&&dot<55){
+        heading=fragment.slice(0,dot).trim();
+        body=fragment.slice(dot+1).trim();
+      }
+      chunks.push({heading,body});
+    }
+    return chunks.filter(x=>x.heading||x.body).map(x=>({
+      heading:x.heading,
+      lines:x.body.split(/\s*;\s*|\n+/).map(line=>line.trim()).filter(Boolean)
+    }));
+  }
+  function structuredText(raw,compact=false){
+    const all=formattedSections(raw);
+    if(!all.length)return '<p class="wb-wod-unavailable">Tekst puudub – ava kava ja kontrolli originaalfotot.</p>';
+    let remaining=compact?10:Infinity,truncated=false;
+    const parts=[];
+    for(const section of all){
+      if(remaining<=0){truncated=true;break}
+      const count=Math.min(remaining,section.lines.length);
+      const lines=section.lines.slice(0,count);
+      if(section.lines.length>count)truncated=true;
+      remaining-=count;
+      const heading=section.heading?'<h4 class="wb-wod-heading">'+esc(section.heading)+'</h4>':'';
+      const body=lines.map(line=>'<div class="wb-wod-line">'+esc(line)+'</div>').join('');
+      parts.push('<div class="wb-wod-section">'+heading+body+'</div>');
+    }
+    return '<div class="wb-structured-wod">'+parts.join('')+
+      (truncated?'<p class="wb-wod-more">Kava jätkub – ava kogu WOD.</p>':'')+'</div>';
+  }
   function card(entry){
     const id=numberId(entry.id);if(id===null)return '';
     const [label,tone]=statusName(entry.status),text=textOf(entry);
-    const snippet=text?esc(text.slice(0,155))+(text.length>155?'…':''):'Tekst puudub – ava ja vaata foto üle.';
     const date=esc(dateOf(entry));
     return '<article class="wb-card">'+
-      '<div class="wb-card-photo">'+image(entry)+'</div>'+
-      '<div class="wb-card-content">'+
-        '<div class="wb-card-flags"><span class="wb-status wb-status-'+tone+'">'+label+'</span>'+
-          (!entry.image_path&&!entry.source_drive_file_id?'<span class="wb-status wb-status-missing">Pilt puudu</span>':'')+'</div>'+
-        '<h3>'+esc(entry.title||'WOD')+'</h3><p class="wb-date">'+date+'</p>'+
-        '<p class="wb-excerpt">'+snippet+'</p>'+
-        '<button type="button" class="wb-card-open" onclick="openWodEntry('+id+')">'+
-          (entry.status==='ready'?'Ava WOD':'Ava ja vaata üle')+' '+svg.arrow+'</button>'+
-      '</div></article>';
+      '<div class="wb-card-head">'+
+        '<div class="wb-card-photo">'+image(entry)+'</div>'+
+        '<div class="wb-card-content">'+
+          '<div class="wb-card-flags"><span class="wb-status wb-status-'+tone+'">'+label+'</span>'+
+            (!entry.image_path&&!entry.source_drive_file_id?'<span class="wb-status wb-status-missing">Pilt puudu</span>':'')+'</div>'+
+          '<h3>'+esc(entry.title||'WOD')+'</h3><p class="wb-date">'+date+'</p>'+
+        '</div></div>'+
+      '<div class="wb-card-workout">'+structuredText(text,true)+'</div>'+
+      '<button type="button" class="wb-card-open" onclick="openWodEntry('+id+')">'+
+        (entry.status==='ready'?'Vaata kogu WOD-i':'Ava kogu kava ja kontrolli')+' '+svg.arrow+'</button>'+
+    '</article>';
   }
   function filters(){
     const n=counts(),selected=settings().filter;
@@ -115,9 +169,9 @@
   function pager(d){
     if(d.totalPages<=1)return '';
     return '<nav class="wb-pages" aria-label="WOD leheküljed">'+
-      '<button type="button" onclick="crossfitWodUI.page(-1)" '+(s.wodUiPage===0?'disabled':'')+'>Eelmine</button>'+
-      '<span>Leht '+(s.wodUiPage+1)+' / '+d.totalPages+'</span>'+
-      '<button type="button" onclick="crossfitWodUI.page(1)" '+(s.wodUiPage>=d.totalPages-1?'disabled':'')+'>Järgmine</button>'+
+      '<button type="button" class="wb-page-prev" onclick="crossfitWodUI.page(-1)" '+(s.wodUiPage===0?'disabled':'')+'>← Eelmine</button>'+
+      '<span class="wb-page-current">Leht '+(s.wodUiPage+1)+' / '+d.totalPages+'</span>'+
+      '<button type="button" class="wb-page-next" onclick="crossfitWodUI.page(1)" '+(s.wodUiPage>=d.totalPages-1?'disabled':'')+'>Järgmine →</button>'+
     '</nav>';
   }
   function listSection(){
@@ -194,7 +248,9 @@
         'Võrdle teksti originaalfotoga, paranda vajadusel ja kinnita alles siis valmis.')+'</span></div>';
     const marker='<div class="training-meta" style="margin-bottom:12px">';
     if(!original.includes(marker))return original;
-    return original.replace(marker,warning+selection+marker);
+    const structured='<section class="wb-detail-preview"><h3>Kava ülevaade</h3>'+
+      structuredText(textOf(entry),false)+'</section>';
+    return original.replace(marker,warning+structured+selection+marker);
   }
   function renderModal(){
     if(!window.isTrainer())return beforeModal();
@@ -256,5 +312,5 @@
   }
 
   window.renderModal=renderModal;
-  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting};
+  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText};
 })();
