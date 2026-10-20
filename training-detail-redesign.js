@@ -114,7 +114,7 @@
         btn('openTemplates()','Treeningumallid','secondary')+'</div>'+
       '<details class="td-danger-zone"><summary>Treeningu tühistamine ja kustutamine</summary>'+
         '<div class="td-actions">'+
-        (!closed?btn('cancelTraining('+id+')','Tühista treening','danger'):'')+
+        (t.status!=='cancelled'?btn('cancelTraining('+id+')','Tühista ja tagasta krediidid','danger'):'')+
         btn('deleteTraining('+id+')',closed?'Eemalda ajaloost':'Kustuta treening','danger')+
         '</div><p>Need toimingud nõuavad kinnitamist.</p></details>',
       'td-actions-section');
