@@ -4,7 +4,7 @@ const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
 const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
-const APP_VERSION='5.6';
+const APP_VERSION='5.6.1';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -52,8 +52,8 @@ function confirmedFor(tid){return regsFor(tid).filter(r=>r.status==='confirmed')
 function waitlistFor(tid){return regsFor(tid).filter(r=>r.status==='waitlist').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)||a.id-b.id)}
 function mineFor(tid){return regsFor(tid).find(r=>r.user_id===state.session?.user?.id&&['confirmed','waitlist'].includes(r.status))}
 function mineAnyFor(tid){return regsFor(tid).find(r=>r.user_id===state.session?.user?.id)}
-function upcomingTrainings(){return state.trainings.filter(t=>t.status==='published'&&new Date(t.starts_at)>now()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at))}
-function pastTrainings(){return state.trainings.filter(t=>new Date(t.starts_at)<=now()||t.status==='cancelled').sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at))}
+function upcomingTrainings(){return state.trainings.filter(t=>!t.archived_at&&t.status==='published'&&new Date(t.starts_at)>now()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at))}
+function pastTrainings(){return state.trainings.filter(t=>!t.archived_at&&(new Date(t.starts_at)<=now()||t.status==='cancelled')).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at))}
 function activeUserPackages(uid=state.session?.user?.id){const n=Date.now();return state.userPackages.filter(p=>p.user_id===uid&&p.status==='active'&&(!p.expires_at||new Date(p.expires_at).getTime()>=n)&&(p.kind==='unlimited'||Number(p.credits_remaining)>0))}
 function legacyCredits(uid=state.session?.user?.id){return Number(state.wallets.find(w=>w.user_id===uid)?.credits||0)}
 function totalCredits(uid=state.session?.user?.id){const p=activeUserPackages(uid);if(p.some(x=>x.kind==='unlimited'))return Infinity;return legacyCredits(uid)+p.reduce((s,x)=>s+Number(x.credits_remaining||0),0)}
@@ -86,7 +86,7 @@ async function loadData(){
     api(`wod_notifications?select=*&user_id=eq.${uid}&order=created_at.desc&limit=80`)
   ];
   const [t,r,p,w,tx,pt,up,n]=await Promise.all(queries);
-  state.trainings=t||[];state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
+  state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
 }
 async function reloadData(message){try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
@@ -244,7 +244,7 @@ function weekday(dateStr){const [y,m,d]=dateStr.split('-').map(Number),x=new Dat
 async function saveTrainingForm(id){const date=document.getElementById('tfDate').value,time=document.getElementById('tfTime').value,title=document.getElementById('tfTitle').value.trim(),duration=+document.getElementById('tfDuration').value,capacity=+document.getElementById('tfCapacity').value,price=Math.round(+document.getElementById('tfPrice').value*100),cancel=+document.getElementById('tfCancel').value,workout=document.getElementById('tfWorkout').value.trim(),note=document.getElementById('tfNote').value.trim();if(!date||!time||!title||capacity<1){toast('Kontrolli treeningu andmeid');return}try{if(id){await api(`wod_trainings?id=eq.${id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,starts_at:tallinnLocalToIso(date,time),duration_minutes:duration,capacity,price_cents:price,cancellation_hours:cancel,workout:workout||null,note:note||null,updated_at:new Date().toISOString()})})}else{const weeks=Math.max(1,Math.min(12,+document.getElementById('tfWeeks')?.value||1)),days=[...document.querySelectorAll('.tfDay:checked')].map(x=>+x.value),baseWd=weekday(date),chosen=days.length?days:[baseWd],rows=[];for(let w=0;w<weeks;w++){for(const wd of chosen){const delta=w*7+(wd-baseWd);if(delta<0&&w===0)continue;const d=addDays(date,delta);rows.push({created_by:state.session.user.id,title,starts_at:tallinnLocalToIso(d,time),duration_minutes:duration,capacity,price_cents:price,cancellation_hours:cancel,workout:workout||null,note:note||null,status:'published'})}}await api('wod_trainings',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)})}state.modal=null;state.modalData=null;await reloadData(id?'Treening uuendatud':'Treening avaldatud')}catch(e){toast(e.message)}}
 function copyTraining(id){const t=state.trainings.find(x=>x.id===id);if(!t)return;const d={...t};delete d.id;const p=localParts(t.starts_at);d.starts_at=tallinnLocalToIso(addDays(p.date,7),p.time);d.duration_minutes=90;d.note='';openTrainingForm(d)}
 function copyLatestTraining(){const list=[...state.trainings].sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));if(!list.length){openTrainingForm();return}copyTraining(list[0].id)}
-async function cancelTraining(id){if(!confirm('Tühistada see treening? Registreerunutele saadetakse teavitus ja paketiga tasutud korrad tagastatakse.'))return;try{await rpc('wod_cancel_training',{p_training_id:id});state.modal=null;await reloadData('Treening tühistatud')}catch(e){toast(e.message)}}
+async function cancelTraining(id){if(!confirm('Tühistada treening? Kõigile selle eest krediiti kasutanud osalejatele tagastatakse krediit, ka siis kui treeningu aeg on juba möödas. Registreerunutele saadetakse teavitus.'))return;try{await rpc('wod_cancel_training',{p_training_id:id});state.modal=null;await reloadData('Treening tühistatud. Kasutatud krediidid tagastati.')}catch(e){toast(e.message)}}
 async function deleteTraining(id){
   if(!isTrainer()){toast('Treeningu eemaldamine on ainult treenerile.');return}
   const numericId=Number(id);
@@ -255,7 +255,7 @@ async function deleteTraining(id){
   const hasHistory=related.length>0;
   const past=new Date(training.starts_at)<=now()||training.status==='cancelled';
   const message=hasHistory
-    ?'Eemaldada treening „'+training.title+'“ ajaloost? Registreeringud ja krediidi- ning maksearvestus säilivad. Kliendid ei näe seda treeningut enam ajaloos. Krediite automaatselt ei tagastata.'
+    ?'Eemaldada treening „'+training.title+'“ ajaloost? Registreeringud ja krediidi- ning maksearvestus säilivad. Kliendid ei näe seda treeningut enam ajaloos. Kui krediiti on kulunud, vali esmalt „Tühista ja tagasta krediidid“.'
     :'Kustutada treening „'+training.title+'“ lõplikult? Registreeringuid pole ja kustutamist ei saa tagasi võtta.';
   if(!confirm(message))return;
   try{
