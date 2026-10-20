@@ -641,3 +641,53 @@ button:disabled{cursor:not-allowed;opacity:.55}
 #tbWaitlist,#tbLowCredits{scroll-margin-top:80px}
 @media(max-width:550px){.tb-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tb-stat{min-height:115px;grid-template-columns:35px 1fr;gap:4px 9px;align-items:center}.tb-stat-icon{grid-row:1/4;align-self:start}.tb-stat-name,.tb-stat strong,.tb-stat small{grid-column:2}.tb-stat strong{font-size:24px}}
 @media(max-width:390px){.tb-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.tb-shortcuts button{min-height:80px}.tb-upcoming-meta{max-width:83px;text-align:right;white-space:normal}.tb-credit-row{gap:7px;padding:9px}.tb-next{padding:17px 15px}}
+
+
+/* 13. samm – treeneri „Haldus“ lihtne, rühmitatud töölaud */
+.ad-admin{display:grid;gap:19px;padding:5px 0 20px}
+.ad-heading{display:grid;gap:6px;padding:0 2px}
+.ad-heading>span{font-size:10px;letter-spacing:.9px;color:var(--accent);font-weight:900}
+.ad-heading h1{font-size:clamp(26px,6.5vw,32px);letter-spacing:-.6px;line-height:1.1;margin:0}
+.ad-heading p{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+.ad-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ad-stat{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 10px;min-width:0;min-height:123px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.ad-stat-icon,.ad-entry-icon{display:grid;place-items:center;flex:none;background:var(--accent-soft);color:var(--accent);border-radius:11px}
+.ad-stat-icon{width:31px;height:31px;margin-bottom:3px}
+.ad-stat-icon svg,.ad-entry-icon svg,.ad-entry-arrow svg,.ad-profile-fallback svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
+.ad-stat-name{font-size:11px;font-weight:800;color:var(--muted);line-height:1.25}
+.ad-stat strong{font-size:25px;letter-spacing:-.5px;line-height:1.15;color:var(--text)}
+.ad-stat small{font-size:10px;line-height:1.35;color:var(--muted)}
+.ad-section{display:grid;gap:10px}
+.ad-section-heading{padding:0 2px}
+.ad-section-heading h2{font-size:17px;font-weight:900;letter-spacing:-.2px;line-height:1.25;margin:0 0 4px}
+.ad-section-heading p{font-size:12px;line-height:1.4;color:var(--muted);margin:0}
+.ad-item-list{overflow:hidden;display:grid;gap:0;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+.ad-entry{display:flex;align-items:center;min-width:0;width:100%;gap:12px;padding:13px 14px;min-height:71px;text-align:left;background:#fff;border:0;border-bottom:1px solid #ECF1E9;color:var(--text)}
+.ad-entry:last-child{border-bottom:0}
+.ad-entry:hover,.ad-entry:focus-visible{background:#F5F8F2}
+.ad-entry-icon{width:41px;height:41px}
+.ad-entry-text{display:grid;gap:4px;flex:1;min-width:0}
+.ad-entry-text strong{font-size:13px;line-height:1.25;font-weight:900}
+.ad-entry-text small{font-size:11px;color:var(--muted);line-height:1.4}
+.ad-entry-arrow{display:grid;place-items:center;color:#72856D;flex:none}
+.ad-entry-arrow svg{width:16px;height:16px}
+.ad-entry-danger .ad-entry-icon{color:var(--red);background:var(--red-soft)}
+.ad-entry-danger .ad-entry-text strong{color:var(--red)}
+.ad-privacy{font-size:11px;line-height:1.5;padding:11px 13px;background:#FFF7E8;color:#7D5A23;border:1px solid #EDDDBB;border-radius:12px;margin:-8px 0 0}
+.ad-profile{display:flex;align-items:center;gap:11px;padding:13px 14px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.ad-profile>.cf-avatar,.ad-profile-fallback{width:43px;height:43px;flex:none}
+.ad-profile-fallback{display:grid;place-items:center;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
+.ad-profile>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.ad-profile strong{font-size:13px;overflow-wrap:anywhere}
+.ad-profile small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.ad-role{display:grid;place-items:center;padding:6px 10px;border-radius:999px;color:#3D5D42;background:#E7F0E3;font-size:10px;font-weight:850}
+@media(max-width:540px){
+.ad-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ad-stat{min-height:100px;display:grid;grid-template-columns:34px 1fr;gap:3px 8px;align-items:start}
+.ad-stat-icon{grid-row:1/4;align-self:start}
+.ad-stat-name,.ad-stat strong,.ad-stat small{grid-column:2}
+.ad-stat strong{font-size:23px}
+.ad-entry{padding:12px 11px;gap:10px}
+.ad-entry-icon{width:37px;height:37px}
+}
+@media(max-width:360px){.ad-stat{padding:10px 8px}.ad-entry-text small{font-size:10px}.ad-role{padding:5px 7px}}
