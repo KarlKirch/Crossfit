@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-label="Rõuge CrossFit RCF logo">
+<defs>
+ <radialGradient id="bg"><stop stop-color="#195b37"/><stop offset=".65" stop-color="#093823"/><stop offset="1" stop-color="#031b12"/></radialGradient>
+ <linearGradient id="border" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C7FA78"/><stop offset=".55" stop-color="#58BD48"/><stop offset="1" stop-color="#B0EE70"/></linearGradient>
+ <linearGradient id="letters" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#D6E9D5"/></linearGradient>
+ <linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#C5F76E"/><stop offset="1" stop-color="#44B53E"/></linearGradient>
+ <clipPath id="land"><path d="M78 168 260 79 442 168v97H78Z"/></clipPath>
+</defs>
+<rect width="520" height="520" rx="80" fill="url(#bg)"/>
+<path d="M260 35 475 143v244L260 500 45 387V143Z" fill="#061e13" stroke="url(#border)" stroke-width="19"/>
+<g clip-path="url(#land)">
+ <rect x="64" y="70" width="400" height="211" fill="#9fdc7a"/>
+ <circle cx="338" cy="151" r="33" fill="#f7ffe0"/>
+ <path d="M65 204q100-94 201-24 95-49 204 6v92H65Z" fill="#43874c"/>
+ <path d="M61 230q110-54 194-18 113-59 214 7v50H61Z" fill="#1c603c"/>
+ <path d="M104 239q129-5 292 0-64 12-81 18-82-6-211-18" fill="#B7F88B"/>
+ <path d="M59 274q80-50 174-18 138-37 239 12v20H59Z" fill="#06321e"/>
+ <g fill="#052b1a"><path d="m108 237 20-77 20 77-12-8v27h-16v-27z"/><path d="m382 248 21-91 21 91-13-8v23h-16v-23z"/><path d="m170 259 17-60 18 60-9-6v20h-16v-20z"/></g>
+</g>
+<g fill="url(#green)">
+ <rect x="31" y="288" width="20" height="94" rx="5"/><rect x="55" y="273" width="21" height="124" rx="5"/><rect x="81" y="261" width="23" height="143" rx="5"/>
+ <rect x="416" y="261" width="23" height="143" rx="5"/><rect x="444" y="273" width="21" height="124" rx="5"/><rect x="469" y="288" width="20" height="94" rx="5"/>
+</g>
+<path d="M104 333h44m224 0h44" stroke="#9FE863" stroke-width="13"/>
+<text x="260" y="353" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="124" font-style="italic" font-weight="1000" letter-spacing="-10" fill="url(#letters)" stroke="#042819" stroke-width="4" paint-order="stroke">RCF</text>
+<text x="260" y="409" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="28" font-weight="900" letter-spacing="5.5" fill="#FFFDF3">RÕUGE CROSSFIT</text>
+<path d="M167 438q93 21 186 0" fill="none" stroke="#94E36B" stroke-width="4"/>
+<g fill="#60C34E"><path d="m242 475 18-48 18 48-13-7v18h-10v-18z"/><path d="m203 467 11-30 12 30-8-4v13h-8v-13z"/><path d="m294 467 12-30 12 30-9-4v13h-7v-13z"/></g>
+</svg>
