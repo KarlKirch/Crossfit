@@ -182,6 +182,32 @@ test('Client never sees past-training removal',()=>{
   context.render();
   assert(!htmlRoot.innerHTML.includes('deleteTraining(12)'));
 });
+test('Archived September trainings are invisible in both roles',()=>{
+  const archived={id:991,title:'ARCHIVED TEST TRAINING',starts_at:past,status:'cancelled',
+    archived_at:new Date().toISOString(),capacity:12,duration_minutes:90};
+  context.state.trainings.push(archived);
+  try{
+    assert(!context.pastTrainings().some(t=>t.id===991));
+    assert(!context.upcomingTrainings().some(t=>t.id===991));
+    for(const role of ['trainer','client']){
+      context.state.profile.role=role;
+      context.state.profile.user_id=role==='trainer'?uid:clientId;
+      context.state.session.user.id=context.state.profile.user_id;
+      context.state.trainingTab='past';context.state.view='trainings';context.state.modal=null;
+      context.render();
+      assert(!htmlRoot.innerHTML.includes('ARCHIVED TEST TRAINING'));
+    }
+  }finally{context.state.trainings=context.state.trainings.filter(t=>t.id!==991);}
+});
+test('Trainer can cancel already-past training to return credits',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.state.modal='training';context.state.modalData=12;context.state.view='trainings';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Tühista ja tagasta krediidid'));
+  assert(htmlRoot.innerHTML.includes('cancelTraining(12)'));
+  assert(read('app.js').includes('Kasutatud krediidid tagastati'));
+});
 test('Training removal uses server-side finance-safe RPC',()=>{
   assert(read('app.js').includes("rpc('wod_remove_training',{p_training_id:numericId})"));
   assert(read('app.js').includes('archived_at=is.null'));
