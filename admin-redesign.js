@@ -81,7 +81,7 @@
       group('Treeningute korraldus','Valmista treeningud ette ning halda kliente.',[
         item(ic.template,'Treeningumallid','Loo, muuda ja kasuta salvestatud treeningupõhju','openTemplates()'),
         item(ic.calendar,'Treeninguajad','Muuda aegu, kohti ja registreeringuid',"go('trainings')"),
-        item(ic.users,'Kliendid ja paketid','Krediidid, paketid ja kliendikaardid',"go('people')")
+        item(ic.users,'Kliendid ja krediidid','Krediidijäägid ja kliendikaardid',"go('people')")
       ])+
       group('Suhtlus','Jõua treenijateni kiiresti.',[
         item(ic.speaker,'Saada teadaanne','Kõigile või valitud treeningu osalejatele','openAnnouncement()'),
