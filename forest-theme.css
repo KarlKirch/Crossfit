@@ -140,7 +140,7 @@ body .sheet-backdrop{background:rgba(0,10,6,.82)}
 body :is(.auth,.auth-box,.auth-email-confirm,.auth-code-details){color:#F3FAEE}
 body .auth{background:radial-gradient(ellipse at 50% 2%,#185B36 0%,#072C1C 43%,#03180F 100%)}
 body .auth-box{background:#0B2C20;border:1px solid #386343;box-shadow:0 24px 60px rgba(0,0,0,.34)}
-body .auth-logo{background:url('./brand-emblem.svg') center/cover no-repeat!important;
+body .auth-logo{background:url('./brand-rcf.webp') center/cover no-repeat!important;
   width:110px;height:110px;margin:0 auto 15px;overflow:hidden;font-size:0!important;border-radius:28px}
 body .auth-box h1{color:#F6FCF4}
 body :is(.auth-method-switch,.auth-email-confirm,.auth-code-details){background:#143A2B;border-color:#325F40}
