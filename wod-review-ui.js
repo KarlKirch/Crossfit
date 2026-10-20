@@ -34,13 +34,52 @@
     return ['Töötlemata','pending'];
   }
   function textOf(entry){return String(entry.workout_text||entry.draft_text||'').trim()}
-  function dateOf(entry){
-    if(entry.source_date){
-      const parts=String(entry.source_date).split('-');
-      if(parts.length===3)return parts.reverse().join('.');
+  // Vanades fotodes kasuta tahvlile märgitud kuupäeva, kui tekst seda selgelt sisaldab.
+  // Uutel fotodel kasuta loomiskuupäeva; teadmata ajaloolist kuupäeva ära asenda impordiajaga.
+  function validDate(value){
+    const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));
+    if(!match)return '';
+    const y=Number(match[1]),m=Number(match[2]),d=Number(match[3]);
+    if(y<2000||y>2100)return '';
+    const dt=new Date(Date.UTC(y,m-1,d,12));
+    return dt.getUTCFullYear()===y&&dt.getUTCMonth()+1===m&&dt.getUTCDate()===d?match[0]:'';
+  }
+  function imageDateFromText(entry){
+    const text=String(entry.workout_text||entry.draft_text||'').slice(0,180);
+    const regex=/\b([0-3]?\d)[.\/]([01]?\d)[.\/](20\d{2})(?:\b|[.])/g;
+    let hit;
+    while((hit=regex.exec(text))!==null){
+      if(hit.index>75)break;
+      const found=validDate(hit[3]+'-'+hit[2].padStart(2,'0')+'-'+hit[1].padStart(2,'0'));
+      if(found)return found;
     }
-    const d=new Date(entry.created_at);
-    return Number.isFinite(d.getTime())?dateFormat.format(d):'Kuupäev puudub';
+    return '';
+  }
+  function effectiveDate(entry){
+    const recorded=validDate(entry.source_date);
+    if(entry.source_drive_file_id){
+      const board=imageDateFromText(entry);
+      if(board)return {date:board,kind:'board',conflict:!!recorded&&recorded!==board,recorded};
+      if(recorded)return {date:recorded,kind:'filename',conflict:false,recorded};
+      return {date:'',kind:'unknown',conflict:false,recorded:''};
+    }
+    if(recorded)return {date:recorded,kind:'new',conflict:false,recorded};
+    const created=new Date(entry.created_at);
+    const createdDate=Number.isFinite(created.getTime())?
+      new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Tallinn',year:'numeric',month:'2-digit',day:'2-digit'}).format(created):'';
+    return {date:validDate(createdDate),kind:'new',conflict:false,recorded:''};
+  }
+  function dateOf(entry){
+    const date=effectiveDate(entry).date;
+    if(!date)return 'Kuupäev teadmata';
+    const [year,month,day]=date.split('-');
+    return day+'.'+month+'.'+year;
+  }
+  function dateCaption(entry){
+    const kind=effectiveDate(entry).kind;
+    return kind==='board'?'Kuupäev WOD-i tekstist':
+      kind==='filename'?'Foto kuupäev failinimest':
+      kind==='new'?'Foto loomise kuupäev':'Kuupäev vajab kontrollimist';
   }
   function counts(){
     const all=Array.isArray(s.wodBank)?s.wodBank:[];
@@ -62,13 +101,17 @@
       return [x.title,x.workout_text,x.draft_text,x.source_date,x.source_filename]
         .some(v=>String(v||'').toLocaleLowerCase('et').includes(q));
     }).slice();
-    const dated=x=>String(x.source_date||x.created_at||'');
-    list.sort((a,b)=>opts.sort==='name'?
-      String(a.title||'').localeCompare(String(b.title||''),'et',{sensitivity:'base'})||
-        dated(b).localeCompare(dated(a)):
-      opts.sort==='oldest'?
-        dated(a).localeCompare(dated(b))||Number(a.id)-Number(b.id):
-        dated(b).localeCompare(dated(a))||Number(b.id)-Number(a.id));
+    const dated=x=>effectiveDate(x).date;
+    list.sort((a,b)=>{
+      if(opts.sort==='name')return String(a.title||'').localeCompare(String(b.title||''),'et',{sensitivity:'base'})||
+        dated(b).localeCompare(dated(a))||Number(b.id)-Number(a.id);
+      const ad=dated(a),bd=dated(b);
+      // Teadmata kuupäevaga vanad fotod on alati nimekirja lõpus.
+      if(!ad)return bd?1:0;
+      if(!bd)return -1;
+      return (opts.sort==='oldest'?ad.localeCompare(bd):bd.localeCompare(ad))||
+        String(b.created_at||'').localeCompare(String(a.created_at||''))||Number(b.id)-Number(a.id);
+    });
     return list;
   }
   function paged(){
@@ -144,14 +187,15 @@
   function card(entry){
     const id=numberId(entry.id);if(id===null)return '';
     const [label,tone]=statusName(entry.status),text=textOf(entry);
-    const date=esc(dateOf(entry));
+    const date=esc(dateOf(entry)),dateInfo=effectiveDate(entry);
     return '<article class="wb-card">'+
       '<div class="wb-card-head">'+
         '<div class="wb-card-photo">'+image(entry)+'</div>'+
         '<div class="wb-card-content">'+
           '<div class="wb-card-flags"><span class="wb-status wb-status-'+tone+'">'+label+'</span>'+
             (!entry.image_path&&!entry.source_drive_file_id?'<span class="wb-status wb-status-missing">Pilt puudu</span>':'')+'</div>'+
-          '<h3>'+esc(entry.title||'WOD')+'</h3><p class="wb-date">'+date+'</p>'+
+          '<h3>'+esc(entry.title||'WOD')+'</h3><p class="wb-date">'+date+' · '+dateCaption(entry)+'</p>'+
+          (dateInfo.conflict?'<span class="wb-date-conflict">Kuupäev erineb failinimest – kontrolli fotot</span>':'')+
         '</div></div>'+
       '<div class="wb-card-workout">'+structuredText(text,true)+'</div>'+
       '<button type="button" class="wb-card-open" onclick="openWodEntry('+id+')">'+
@@ -250,9 +294,15 @@
         'Võrdle teksti originaalfotoga, paranda vajadusel ja kinnita alles siis valmis.')+'</span></div>';
     const marker='<div class="training-meta" style="margin-bottom:12px">';
     if(!original.includes(marker))return original;
+    const info=effectiveDate(entry);
+    const boardHint='<div class="wb-photo-date-note"><strong>Järjestamise kuupäev: '+esc(dateOf(entry))+'</strong>'+
+      '<span>'+dateCaption(entry)+'</span>'+
+      (info.conflict?'<p>WOD-i tekstis on '+esc(dateOf(entry))+
+        ', kuid faili kuupäev on '+esc(info.recorded.split('-').reverse().join('.'))+
+        '. Kontrolli originaalfotot ja vajadusel paranda kuupäevavälja.</p>':'')+'</div>';
     const structured='<section class="wb-detail-preview"><h3>Kava ülevaade</h3>'+
       structuredText(textOf(entry),false)+'</section>';
-    return original.replace(marker,warning+structured+selection+marker);
+    return original.replace(marker,boardHint+warning+structured+selection+marker);
   }
   function renderModal(){
     if(!window.isTrainer())return beforeModal();
@@ -314,5 +364,5 @@
   }
 
   window.renderModal=renderModal;
-  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText};
+  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText};
 })();
