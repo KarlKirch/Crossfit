@@ -21,6 +21,8 @@
   --red-soft:#512B2B;
   --blue:#ACD8F4;
   --blue-soft:#1B3C4B;
+  --surface-light:#FFFFFF;
+  --surface-light-text:#101B13;
   --shadow:0 8px 24px rgba(0,0,0,.16);
 }
 html,body{background:#102D21!important;color:var(--text)!important;color-scheme:dark}
@@ -269,7 +271,7 @@ body .tl-segment button.on{
 body .tl-segment button.on span{background:#78BA5C;color:#102E1E}
 body .tl-day-title{color:#D6F9B0}
 body .tl-training-card{
-  background:#1E4634;color:#F5FAF2;border-color:#5E8668;
+  background:var(--card);color:var(--text);border-color:var(--line);
   box-shadow:0 8px 22px rgba(0,0,0,.13)
 }
 body .tl-card-datebox{background:#2D5D43;border:1px solid #577F61}
@@ -288,7 +290,7 @@ body .tl-participants{border-top-color:#51745A;border-bottom-color:#51745A}
 body .tl-participants-label{color:#EBF5E9}
 body .tl-person{color:#F5FAF2}
 body .tl-person-avatar,body .tl-people-extra{background:#356C4B;color:#E3F9CF}
-body .tl-action-main{background:#B8F177;color:#102E1E}
+body .tl-action-main{background:var(--accent);color:#102E1E}
 body .tl-action-main:hover{background:#C9FB98;color:#102E1E}
 body .tl-action-secondary{
   background:#2D6045;color:#ECFCE2;border:1px solid #578764
@@ -319,7 +321,7 @@ body .td-hero h2{color:#FFF}
 body .td-hero-progress{background:#17452D}
 body .td-hero-progress>span{background:#B8F177}
 body .td-section{
-  background:#1E4634;border:1px solid #5E8668;color:#F5FAF2
+  background:var(--card);border:1px solid var(--line);color:var(--text)
 }
 body .td-section h3{color:#F5FAF2}
 body .td-section p,body .td-section .td-note,
@@ -337,7 +339,7 @@ body .td-avatar-fallback{background:#38734D;color:#F8FFF1}
 body .td-person-credit{color:#C5F58F}
 body .td-person-unpaid{color:#FFD9A3}
 body .td-empty-attendees{color:#D1E2D0}
-body .td-button-main{background:#B8F177;color:#102E1E}
+body .td-button-main{background:var(--accent);color:#102E1E}
 body .td-button-main:hover{background:#CAFAA0;color:#102E1E}
 body .td-button-secondary{background:#305E45;color:#F2FFE5;border:1px solid #5B8D68}
 body .td-button-secondary:hover{background:#3A7450}
@@ -376,8 +378,8 @@ body .tl-history-remove:focus-visible{outline:2px solid #FFC9B8;outline-offset:2
 
 /* Kliendikaardi valged statistikakastid: must tekst valgel taustal. */
 body .cl-detail .cl-detail-stats>div{
-  background:#FFFFFF;
-  color:#101B13;
+  background:var(--surface-light);
+  color:var(--surface-light-text);
   border:1px solid #CEDDCE;
   box-shadow:0 3px 10px rgba(0,0,0,.06);
 }
