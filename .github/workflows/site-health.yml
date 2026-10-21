@@ -1,0 +1,25 @@
+name: RCF avaliku äpi toimivus
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '10 5 * * *'
+  pull_request:
+    paths:
+      - 'scripts/check-public-site.cjs'
+      - '.github/workflows/site-health.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  public-availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Kontrolli avalikku avalehte ja PWA-faile
+        run: node scripts/check-public-site.cjs
