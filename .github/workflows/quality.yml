@@ -39,7 +39,7 @@ jobs:
       - name: Playwright ja Chromium
         run: |
           python -m pip install playwright==1.56.0
-          python -m playwright install --with-deps chromium
+          python -m playwright install --with-deps chromium webkit
       - name: Kohalik PWA veebiserver
         run: |
           python -m http.server 4173 --bind 127.0.0.1 --directory .. >/tmp/rcf-http.log 2>&1 &
