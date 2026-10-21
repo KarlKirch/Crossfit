@@ -75,3 +75,18 @@ test('treeningukaart ja detailaken kasutavad ühiseid kujundusmuutujaid', () => 
   assert.match(theme, /body\s+\.tl-action-main\s*\{[^}]*background:var\(--accent\)/);
   assert.match(theme, /body\s+\.td-button-main\s*\{[^}]*background:var\(--accent\)/);
 });
+
+
+test('PWA vahemälu ja laaditavate failide versioonid on kooskõlas', () => {
+  const html = read('index.html');
+  const sw = read('sw.js');
+  const app = read('app.js');
+  const themeV = html.match(/forest-theme\.css\?v=(\d+)/)?.[1];
+  const appV = html.match(/app\.js\?v=(\d+)/)?.[1];
+  const cacheV = sw.match(/crossfit-app-v(\d+)/)?.[1];
+  assert.ok(themeV && appV && cacheV);
+  assert.ok(sw.includes('forest-theme.css?v=' + themeV));
+  const registrations = [...app.matchAll(/sw\.js\?v=(\d+)/g)].map(match => match[1]);
+  assert.equal(registrations.length, 2);
+  assert.ok(registrations.every(version => version === cacheV));
+});
