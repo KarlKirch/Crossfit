@@ -495,3 +495,7 @@ body .my-account-page :is(.my-profile-edit,.my-booking-row,.my-settings-row,
 body .cl-detail .cl-history-row em.confirmed{color:var(--accent)}
 body .cl-detail .cl-history-row em.waiting{color:var(--amber)}
 body .cl-detail .cl-history-row em.cancelled{color:var(--red)}
+
+/* Brauseritestiga kontrollitud WOD-numbrite ja vormi olekuteksti kontrast. */
+body .wb-counts button strong{color:var(--accent)}
+body .tf-wod .tf-section-top>span{color:var(--muted)}
