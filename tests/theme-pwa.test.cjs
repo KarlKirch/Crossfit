@@ -90,3 +90,21 @@ test('PWA vahemälu ja laaditavate failide versioonid on kooskõlas', () => {
   assert.equal(registrations.length, 2);
   assert.ok(registrations.every(version => version === cacheV));
 });
+
+
+test('WOD, kliendi, konto, teavituste ja treeneri kaardid jagavad ühist raadiust', () => {
+  assert.match(theme, /--ui-card-radius:\s*18px;/);
+  const group = [
+    '.wb-card', '.nc-notice', '.my-account-card', '.tf-section',
+    '.ad-entry', '.tb-section', '.cl-card'
+  ].join(',');
+  assert.ok(theme.includes('body :is(' + group + ')'), 'Ühiste kaartide CSS-rühm puudub');
+  assert.match(theme, /border-radius:var\(--ui-card-radius\)/);
+});
+
+test('puutetundlikud põhinupud ning fookuse visuaal on läbivalt ühtsed', () => {
+  assert.match(theme, /--ui-control-radius:\s*12px;/);
+  assert.match(theme, /--ui-touch-target:\s*44px;/);
+  assert.match(theme, /min-height:var\(--ui-touch-target\)/);
+  assert.match(theme, /outline:2px solid var\(--accent\)/);
+});
