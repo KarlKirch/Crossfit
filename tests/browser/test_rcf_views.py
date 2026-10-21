@@ -212,7 +212,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         page = self.open_app("trainer", 390, 844)
         page.evaluate("window.openWodBank()")
         page.locator(".sheet").wait_for(state="visible")
-        self.assertIn("Privaatne WOD-pank", page.locator(".sheet").inner_text())
+        self.assertIn("PRIVAATNE TREENINGUKOGU", page.locator(".sheet").inner_text())
         self.verify_fit()
         self.snapshot("trainer-wod-bank-mobile")
         page.locator(".sheet-close").click()
