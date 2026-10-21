@@ -104,8 +104,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         )
         self.context.route("**/*", handler)
         self.context.add_init_script(
-            "(session) => localStorage.setItem('wod_session', JSON.stringify(session))",
-            session
+            "localStorage.setItem('wod_session', JSON.stringify(" + json.dumps(session) + "))"
         )
         self.page = self.context.new_page()
         self.page.goto(APP_URL, wait_until="domcontentloaded")
