@@ -171,5 +171,39 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.snapshot("client-notifications-small-mobile")
 
 
+    def assert_contrast(self, surface_selector, text_selector, minimum=4.5):
+        ratio = self.page.evaluate("""({ surface, text }) => {
+          function luminance(color) {
+            const values = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+            if (!values || values.length !== 3) throw new Error('Unsupported color: ' + color);
+            const [r, g, b] = values.map(value => {
+              const c = value / 255;
+              return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+            });
+            return r * .2126 + g * .7152 + b * .0722;
+          }
+          const surfaceColor = getComputedStyle(document.querySelector(surface)).backgroundColor;
+          const textColor = getComputedStyle(document.querySelector(text)).color;
+          const a = luminance(surfaceColor), b = luminance(textColor);
+          return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+        }""", {"surface": surface_selector, "text": text_selector})
+        self.assertGreaterEqual(
+            ratio, minimum,
+            f"Teksti kontrast {ratio:.2f} (nõutav {minimum}): {surface_selector} / {text_selector}"
+        )
+
+    def test_client_account_and_install_banner_text_readability(self):
+        page = self.open_app("client", 390, 844)
+        self.assert_contrast(".install-promo", ".install-promo-copy strong")
+        self.assert_contrast(".install-promo", ".install-promo-copy span")
+        page.locator(".bottom-nav").get_by_role("button", name="Minu").click()
+        page.locator(".my-profile-card").wait_for(state="visible")
+        self.assert_contrast(".my-profile-card", ".my-profile-identity h1")
+        self.assert_contrast(".my-profile-card", ".my-profile-identity p")
+        self.assert_contrast(".my-profile-card", ".my-profile-edit")
+        self.assert_contrast(".my-booking-row", ".my-booking-main > strong")
+        self.snapshot("client-account-contrast-mobile")
+
+
 if __name__ == "__main__":
     unittest.main()
