@@ -392,3 +392,54 @@ body .cl-detail .cl-detail-stats>div>span{
   font-weight:700;
   line-height:1.35;
 }
+
+
+/* RCF ühine kujundussüsteem — ülejäänud ekraanid.
+   Täiendab metsarohelist teemat; ei muuda kasutajate ega krediitide loogikat. */
+:root{
+  --ui-card-radius:18px;
+  --ui-control-radius:12px;
+  --ui-touch-target:44px;
+  --ui-page-gutter:14px;
+  --ui-transition:background-color .15s ease,border-color .15s ease;
+}
+body :is(.wb-body,.nc-page,.my-account,.tf-form,.ad-admin,.tb-dashboard,.cl-page,.tl-page){
+  min-width:0;
+  max-width:100%;
+}
+body :is(.wb-card,.nc-notice,.my-account-card,.tf-section,.ad-entry,.tb-section,.cl-card){
+  border-radius:var(--ui-card-radius);
+  border-color:var(--line);
+  overflow-wrap:anywhere;
+}
+body :is(.wb-card,.nc-notice,.my-account-card,.tf-section,.ad-entry,.tb-section,.cl-card)
+  :is(h2,h3,strong){
+  overflow-wrap:anywhere;
+}
+body :is(.wb-primary,.wb-secondary,.cl-button,.tf-save,.my-primary-action,
+  .tb-shortcuts button,.tl-action,.td-button-main,.td-button-secondary,
+  .nc-filter,.wb-filter,.cl-filter){
+  min-height:var(--ui-touch-target);
+  border-radius:var(--ui-control-radius);
+  transition:var(--ui-transition);
+}
+body :is(.wb-primary,.wb-secondary,.cl-button,.tf-save,.my-primary-action,
+  .tb-shortcuts button,.tl-action,.td-button-main,.td-button-secondary,
+  .nc-filter,.wb-filter,.cl-filter):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+body .cl-detail .cl-detail-stats>div{
+  border-radius:var(--ui-control-radius);
+}
+/* Väikesel telefonil ei tohi üks pikk nimi, treening või WOD kaarti laiendada. */
+@media(max-width:420px){
+  body :is(.cl-card-name,.nc-item-text,.wb-wod-line,.td-wod-body,
+    .my-account-card,.tf-section,.tl-card-heading){
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  body :is(.wb-body,.nc-page,.my-account,.tf-form,.cl-page,.tb-dashboard,.ad-admin){
+    padding-inline:0;
+  }
+}
