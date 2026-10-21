@@ -443,3 +443,55 @@ body .cl-detail .cl-detail-stats>div{
     padding-inline:0;
   }
 }
+
+
+/* Kontrastiparandus: algse heleda kujunduse elemendid kasutavad tumedal
+   metsarohelisel teemal õigeid pindade ja teksti paare. */
+body :is(.install-promo,.install-auth-card){
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--line);
+}
+body :is(.install-promo-copy,.install-auth-copy) strong{color:var(--text)}
+body :is(.install-promo-copy,.install-auth-copy) span{color:var(--muted)}
+body .install-promo-button{
+  background:var(--accent);
+  color:#102E1E;
+  min-height:var(--ui-touch-target);
+}
+body .install-promo-dismiss{color:var(--text)}
+body .my-account-page :is(.my-profile-card,.my-booking-row,.my-collapsible,.my-settings-row,.my-empty){
+  background:var(--card);
+  color:var(--text);
+  border-color:var(--line);
+}
+body .my-account-page :is(.my-profile-card,.my-booking-row,.my-collapsible,.my-empty){
+  border:1px solid var(--line);
+}
+body .my-account-page :is(.my-profile-identity h1,.my-booking-main>strong,
+  .my-collapsible>summary strong,.my-settings-row strong,.my-empty strong,
+  .my-transaction-main strong){color:var(--text)}
+body .my-account-page :is(.my-profile-identity p,.my-booking-main>small,
+  .my-booking-description,.my-collapsible>summary small,.my-settings-row small,
+  .my-empty span,.my-transaction-main small){color:var(--muted)}
+body .my-account-page .my-profile-edit{
+  background:var(--accent-soft);
+  border:1px solid var(--line);
+  color:var(--accent);
+  min-height:var(--ui-touch-target);
+}
+body .my-account-page .my-profile-edit:hover,
+body .my-account-page .my-settings-row:hover,
+body .my-account-page .my-booking-row:active{background:var(--dark2)}
+body .my-account-page .my-count{background:var(--accent-soft);color:var(--accent)}
+body .my-account-page .my-transaction{border-bottom-color:var(--line)}
+body .my-account-page .my-collapsible>summary{color:var(--text)}
+body .my-account-page :is(.my-profile-edit,.my-booking-row,.my-settings-row,
+  .my-collapsible>summary):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+/* Treeneri kliendikaardil registreeringu oleku tekst peab jääma loetavaks. */
+body .cl-detail .cl-history-row em.confirmed{color:var(--accent)}
+body .cl-detail .cl-history-row em.waiting{color:var(--amber)}
+body .cl-detail .cl-history-row em.cancelled{color:var(--red)}
