@@ -213,11 +213,13 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.evaluate("window.openWodBank()")
         page.locator(".sheet").wait_for(state="visible")
         self.assertIn("PRIVAATNE TREENINGUKOGU", page.locator(".sheet").inner_text())
+        self.assert_contrast(".wb-counts button", ".wb-counts button strong")
         self.verify_fit()
         self.snapshot("trainer-wod-bank-mobile")
         page.locator(".sheet-close").click()
         page.evaluate("window.openTrainingForm()")
         page.locator(".tf-form").wait_for(state="visible")
+        self.assert_contrast(".tf-wod", ".tf-section-top > span")
         self.verify_fit()
         self.snapshot("trainer-training-form-mobile")
 
