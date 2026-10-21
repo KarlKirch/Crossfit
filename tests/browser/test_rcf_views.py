@@ -200,7 +200,8 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator(".my-profile-card").wait_for(state="visible")
         self.assert_contrast(".my-profile-card", ".my-profile-identity h1")
         self.assert_contrast(".my-profile-card", ".my-profile-identity p")
-        self.assert_contrast(".my-profile-card", ".my-profile-edit")
+        self.assert_contrast(".my-profile-edit", ".my-profile-edit")
+        self.assert_contrast(".my-booking-row", ".my-booking-description")
         self.assert_contrast(".my-booking-row", ".my-booking-main > strong")
         self.snapshot("client-account-contrast-mobile")
 
