@@ -26,11 +26,13 @@ class RCFBrowserSmoke(unittest.TestCase):
     def setUpClass(cls):
         cls.playwright = sync_playwright().start()
         cls.browser = cls.playwright.chromium.launch(headless=True)
+        cls.webkit = cls.playwright.webkit.launch(headless=True)
         SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def tearDownClass(cls):
         cls.browser.close()
+        cls.webkit.close()
         cls.playwright.stop()
 
     def setUp(self):
@@ -41,7 +43,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         if self.context:
             self.context.close()
 
-    def open_app(self, role="client", width=390, height=844):
+    def open_app(self, role="client", width=390, height=844, browser=None):
         uid = TRAINER if role == "trainer" else CLIENT
         profile = {"user_id": uid, "display_name": "Testtreener" if role == "trainer" else "Testklient",
                    "role": role, "avatar_path": None}
@@ -95,7 +97,7 @@ class RCFBrowserSmoke(unittest.TestCase):
             else:
                 # Browser can't contact real backends or third-party services.
                 route.abort()
-        self.context = self.browser.new_context(
+        self.context = (browser or self.browser).new_context(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
             is_mobile=width < 600,
@@ -172,7 +174,7 @@ class RCFBrowserSmoke(unittest.TestCase):
 
 
     def assert_contrast(self, surface_selector, text_selector, minimum=4.5):
-        ratio = self.page.evaluate("""({ surface, text }) => {
+        ratio = self.page.evaluate(r"""({ surface, text }) => {
           function luminance(color) {
             const values = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
             if (!values || values.length !== 3) throw new Error('Unsupported color: ' + color);
@@ -204,6 +206,30 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assert_contrast(".my-booking-row", ".my-booking-description")
         self.assert_contrast(".my-booking-row", ".my-booking-main > strong")
         self.snapshot("client-account-contrast-mobile")
+
+
+    def test_trainer_wod_bank_and_training_form_on_mobile(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("window.openWodBank()")
+        page.locator(".sheet").wait_for(state="visible")
+        self.assertIn("Privaatne WOD-pank", page.locator(".sheet").inner_text())
+        self.verify_fit()
+        self.snapshot("trainer-wod-bank-mobile")
+        page.locator(".sheet-close").click()
+        page.evaluate("window.openTrainingForm()")
+        page.locator(".tf-form").wait_for(state="visible")
+        self.verify_fit()
+        self.snapshot("trainer-training-form-mobile")
+
+    def test_iphone_webkit_mobile_navigation(self):
+        page = self.open_app("client", 390, 844, browser=self.webkit)
+        self.verify_fit()
+        self.snapshot("iphone-webkit-home")
+        page.locator(".bottom-nav").get_by_role("button", name="Minu").click()
+        page.locator(".my-profile-card").wait_for(state="visible")
+        self.assert_contrast(".my-profile-card", ".my-profile-identity h1")
+        self.verify_fit()
+        self.snapshot("iphone-webkit-account")
 
 
 if __name__ == "__main__":
