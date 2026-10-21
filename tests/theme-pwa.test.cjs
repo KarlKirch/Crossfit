@@ -60,3 +60,18 @@ test('teenusetöötaja on seotud sama rakenduse vahemäluga', () => {
   assert.match(sw, /\/Crossfit\//);
   assert.match(sw, /notificationclick/);
 });
+
+
+test('heledal kliendikaardi statistikapinnal kasutatakse tumedat teksti', () => {
+  assert.equal(token('surface-light').toUpperCase(), '#FFFFFF');
+  assert.ok(contrast(token('surface-light'), token('surface-light-text')) >= 4.5);
+  assert.match(theme, /body\s+\.cl-detail\s+\.cl-detail-stats>div\s*\{[^}]*background:var\(--surface-light\)/);
+  assert.match(theme, /body\s+\.cl-detail\s+\.cl-detail-stats>div\s*\{[^}]*color:var\(--surface-light-text\)/);
+});
+
+test('treeningukaart ja detailaken kasutavad ühiseid kujundusmuutujaid', () => {
+  assert.match(theme, /body\s+\.tl-training-card\s*\{[^}]*background:var\(--card\)/);
+  assert.match(theme, /body\s+\.td-section\s*\{[^}]*background:var\(--card\)/);
+  assert.match(theme, /body\s+\.tl-action-main\s*\{[^}]*background:var\(--accent\)/);
+  assert.match(theme, /body\s+\.td-button-main\s*\{[^}]*background:var\(--accent\)/);
+});
