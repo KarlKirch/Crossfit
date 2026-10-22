@@ -53,3 +53,41 @@ jobs:
           name: rcf-browser-screenshots
           path: test-results/screenshots/
           if-no-files-found: ignore
+
+
+  postgres-integration:
+    name: PostgreSQL krediiditagastus ja RLS (tasuta testandmebaas)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: rcf_synthetic_test
+          POSTGRES_PASSWORD: test-only-github-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rcf_synthetic_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: test-only-github-ci
+      PGDATABASE: rcf_synthetic_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: PostgreSQL klient
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          fi
+      - name: Simuleeritud testandmebaas ja päris SQL-funktsiooni koopia
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/001_cancel_fixture.sql
+      - name: Krediiditagastus, korduskutse ja eraldatud õiguste testid
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/002_cancel_rls_assertions.sql
