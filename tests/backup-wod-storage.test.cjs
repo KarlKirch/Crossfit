@@ -86,3 +86,15 @@ test('varukoopia tervikluse kontroll tuvastab rikutud pildi',async()=>{
     await assert.rejects(verifyWodBackup(dest),/SHA256|suurus/);
   } finally{await fs.rm(dest,{recursive:true,force:true})}
 });
+
+
+test('varundus ei tohi õnnestuda tühja WOD-pangaga vaikimisi',async()=>{
+  const dest=await fs.mkdtemp(path.join(os.tmpdir(),'rcf-empty-backup-'));
+  try{
+    await assert.rejects(backupWodStorage({
+      supabaseUrl:'https://test-project.supabase.co',
+      serviceKey:'test-credential-not-real',
+      destination:dest,fetchImpl:async()=>Response.json([])
+    }),/Ühtegi WOD pildifaili/);
+  }finally{await fs.rm(dest,{recursive:true,force:true})}
+});
