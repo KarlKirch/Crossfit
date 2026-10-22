@@ -234,5 +234,34 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.snapshot("iphone-webkit-account")
 
 
+    def test_offline_installable_shell_loads_from_service_worker(self):
+        # Eraldi Chrome'i kontekst: olemasolevad funktsionaalsed testid
+        # kasutavad blokeeritud service worker'it ja testandmeid.
+        context = self.browser.new_context(
+            viewport={"width": 390, "height": 844},
+            service_workers="allow"
+        )
+        self.context = context
+        context.route("**/*", lambda route: (
+            route.continue_() if urlparse(route.request.url).netloc == urlparse(ORIGIN).netloc
+            else route.abort()
+        ))
+        self.page = context.new_page()
+        self.page.goto(APP_URL, wait_until="domcontentloaded")
+        self.page.wait_for_function(
+            "() => navigator.serviceWorker && navigator.serviceWorker.controller !== null",
+            timeout=20000
+        )
+        self.page.wait_for_function(
+            "() => caches.keys().then(keys => keys.some(key => key.startsWith('crossfit-app-v')))",
+            timeout=20000
+        )
+        context.set_offline(True)
+        self.page.reload(wait_until="domcontentloaded", timeout=10000)
+        self.assertEqual(self.page.title(), "Rõuge CrossFit")
+        self.assertTrue(self.page.locator("#appRoot").is_visible())
+        self.snapshot("chromium-offline-app-shell")
+
+
 if __name__ == "__main__":
     unittest.main()
