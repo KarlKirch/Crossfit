@@ -5,7 +5,7 @@ const fs=require('node:fs/promises');
 const os=require('node:os');
 const path=require('node:path');
 const crypto=require('node:crypto');
-const {backupWodStorage}=require('../scripts/backup-wod-storage.cjs');
+const {backupWodStorage,verifyWodBackup}=require('../scripts/backup-wod-storage.cjs');
 
 test('WOD fotode varundus kopeerib alamkaustad, kontrollib SHA256 ja salvestab manifesti', async()=>{
   const dest=await fs.mkdtemp(path.join(os.tmpdir(),'rcf-backup-test-'));
@@ -66,4 +66,23 @@ test('WOD varundus nõuab serveripoolset võtit',async()=>{
     destination:path.join(os.tmpdir(),'rcf-test-no-key'),
     fetchImpl:async()=>Response.json([])
   }),/SUPABASE_SERVICE_ROLE_KEY/);
+});
+
+
+test('varukoopia tervikluse kontroll tuvastab rikutud pildi',async()=>{
+  const dest=await fs.mkdtemp(path.join(os.tmpdir(),'rcf-verify-test-'));
+  try{
+    const sample='TEST-PHOTO';
+    await fs.mkdir(path.join(dest,'wod-bank'));
+    await fs.writeFile(path.join(dest,'wod-bank','photo.webp'),sample);
+    const manifest={bucket:'wod-bank',objects:[{
+      path:'photo.webp',size_bytes:Buffer.byteLength(sample),
+      sha256:crypto.createHash('sha256').update(sample).digest('hex')
+    }]};
+    await fs.writeFile(path.join(dest,'wod-bank-manifest.json'),JSON.stringify(manifest));
+    const result=await verifyWodBackup(dest);
+    assert.equal(result.verified,1);
+    await fs.writeFile(path.join(dest,'wod-bank','photo.webp'),'DAMAGED');
+    await assert.rejects(verifyWodBackup(dest),/SHA256|suurus/);
+  } finally{await fs.rm(dest,{recursive:true,force:true})}
 });
