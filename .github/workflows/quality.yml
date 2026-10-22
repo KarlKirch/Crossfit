@@ -1,0 +1,93 @@
+name: RCF kvaliteedikontroll
+
+on:
+  push:
+    branches:
+      - main
+      - chore/rcf-quality-tests-20261021
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  regression-tests:
+    name: JavaScript ja treeningute reeglite testid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScripti süntaks
+        run: find . -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Automaattestid (pärisandmeid ei muudeta)
+        run: node --test tests/*.test.cjs
+
+  browser-smoke:
+    name: Chromium + WebKit - telefon ja arvuti
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Playwright, Chromium ja WebKit
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium webkit
+      - name: Kohalik PWA veebiserver
+        run: |
+          python -m http.server 4173 --bind 127.0.0.1 --directory .. >/tmp/rcf-http.log 2>&1 &
+          curl --retry 10 --retry-delay 1 --retry-connrefused --fail http://127.0.0.1:4173/Crossfit/index.html >/dev/null
+      - name: Playwrighti mobiili- ja arvutitestid (simuleeritud andmed)
+        run: python -m unittest discover -s tests/browser -p 'test_*.py' -v
+      - name: Ekraanipildid ülevaatuseks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rcf-browser-screenshots
+          path: test-results/screenshots/
+          if-no-files-found: ignore
+
+
+  postgres-integration:
+    name: PostgreSQL krediiditagastus ja RLS (tasuta testandmebaas)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: rcf_synthetic_test
+          POSTGRES_PASSWORD: test-only-github-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rcf_synthetic_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: test-only-github-ci
+      PGDATABASE: rcf_synthetic_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: PostgreSQL klient
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          fi
+      - name: Simuleeritud testandmebaas ja päris SQL-funktsiooni koopia
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/001_cancel_fixture.sql
+      - name: Krediiditagastus, korduskutse ja eraldatud õiguste testid
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/002_cancel_rls_assertions.sql

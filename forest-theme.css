@@ -21,6 +21,8 @@
   --red-soft:#512B2B;
   --blue:#ACD8F4;
   --blue-soft:#1B3C4B;
+  --surface-light:#FFFFFF;
+  --surface-light-text:#101B13;
   --shadow:0 8px 24px rgba(0,0,0,.16);
 }
 html,body{background:#102D21!important;color:var(--text)!important;color-scheme:dark}
@@ -269,7 +271,7 @@ body .tl-segment button.on{
 body .tl-segment button.on span{background:#78BA5C;color:#102E1E}
 body .tl-day-title{color:#D6F9B0}
 body .tl-training-card{
-  background:#1E4634;color:#F5FAF2;border-color:#5E8668;
+  background:var(--card);color:var(--text);border-color:var(--line);
   box-shadow:0 8px 22px rgba(0,0,0,.13)
 }
 body .tl-card-datebox{background:#2D5D43;border:1px solid #577F61}
@@ -288,7 +290,7 @@ body .tl-participants{border-top-color:#51745A;border-bottom-color:#51745A}
 body .tl-participants-label{color:#EBF5E9}
 body .tl-person{color:#F5FAF2}
 body .tl-person-avatar,body .tl-people-extra{background:#356C4B;color:#E3F9CF}
-body .tl-action-main{background:#B8F177;color:#102E1E}
+body .tl-action-main{background:var(--accent);color:#102E1E}
 body .tl-action-main:hover{background:#C9FB98;color:#102E1E}
 body .tl-action-secondary{
   background:#2D6045;color:#ECFCE2;border:1px solid #578764
@@ -319,7 +321,7 @@ body .td-hero h2{color:#FFF}
 body .td-hero-progress{background:#17452D}
 body .td-hero-progress>span{background:#B8F177}
 body .td-section{
-  background:#1E4634;border:1px solid #5E8668;color:#F5FAF2
+  background:var(--card);border:1px solid var(--line);color:var(--text)
 }
 body .td-section h3{color:#F5FAF2}
 body .td-section p,body .td-section .td-note,
@@ -337,7 +339,7 @@ body .td-avatar-fallback{background:#38734D;color:#F8FFF1}
 body .td-person-credit{color:#C5F58F}
 body .td-person-unpaid{color:#FFD9A3}
 body .td-empty-attendees{color:#D1E2D0}
-body .td-button-main{background:#B8F177;color:#102E1E}
+body .td-button-main{background:var(--accent);color:#102E1E}
 body .td-button-main:hover{background:#CAFAA0;color:#102E1E}
 body .td-button-secondary{background:#305E45;color:#F2FFE5;border:1px solid #5B8D68}
 body .td-button-secondary:hover{background:#3A7450}
@@ -376,8 +378,8 @@ body .tl-history-remove:focus-visible{outline:2px solid #FFC9B8;outline-offset:2
 
 /* Kliendikaardi valged statistikakastid: must tekst valgel taustal. */
 body .cl-detail .cl-detail-stats>div{
-  background:#FFFFFF;
-  color:#101B13;
+  background:var(--surface-light);
+  color:var(--surface-light-text);
   border:1px solid #CEDDCE;
   box-shadow:0 3px 10px rgba(0,0,0,.06);
 }
@@ -390,3 +392,110 @@ body .cl-detail .cl-detail-stats>div>span{
   font-weight:700;
   line-height:1.35;
 }
+
+
+/* RCF ühine kujundussüsteem — ülejäänud ekraanid.
+   Täiendab metsarohelist teemat; ei muuda kasutajate ega krediitide loogikat. */
+:root{
+  --ui-card-radius:18px;
+  --ui-control-radius:12px;
+  --ui-touch-target:44px;
+  --ui-page-gutter:14px;
+  --ui-transition:background-color .15s ease,border-color .15s ease;
+}
+body :is(.wb-body,.nc-page,.my-account,.tf-form,.ad-admin,.tb-dashboard,.cl-page,.tl-page){
+  min-width:0;
+  max-width:100%;
+}
+body :is(.wb-card,.nc-notice,.my-account-card,.tf-section,.ad-entry,.tb-section,.cl-card){
+  border-radius:var(--ui-card-radius);
+  border-color:var(--line);
+  overflow-wrap:anywhere;
+}
+body :is(.wb-card,.nc-notice,.my-account-card,.tf-section,.ad-entry,.tb-section,.cl-card)
+  :is(h2,h3,strong){
+  overflow-wrap:anywhere;
+}
+body :is(.wb-primary,.wb-secondary,.cl-button,.tf-save,.my-primary-action,
+  .tb-shortcuts button,.tl-action,.td-button-main,.td-button-secondary,
+  .nc-filter,.wb-filter,.cl-filter){
+  min-height:var(--ui-touch-target);
+  border-radius:var(--ui-control-radius);
+  transition:var(--ui-transition);
+}
+body :is(.wb-primary,.wb-secondary,.cl-button,.tf-save,.my-primary-action,
+  .tb-shortcuts button,.tl-action,.td-button-main,.td-button-secondary,
+  .nc-filter,.wb-filter,.cl-filter):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+body .cl-detail .cl-detail-stats>div{
+  border-radius:var(--ui-control-radius);
+}
+/* Väikesel telefonil ei tohi üks pikk nimi, treening või WOD kaarti laiendada. */
+@media(max-width:420px){
+  body :is(.cl-card-name,.nc-item-text,.wb-wod-line,.td-wod-body,
+    .my-account-card,.tf-section,.tl-card-heading){
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  body :is(.wb-body,.nc-page,.my-account,.tf-form,.cl-page,.tb-dashboard,.ad-admin){
+    padding-inline:0;
+  }
+}
+
+
+/* Kontrastiparandus: algse heleda kujunduse elemendid kasutavad tumedal
+   metsarohelisel teemal õigeid pindade ja teksti paare. */
+body :is(.install-promo,.install-auth-card){
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--line);
+}
+body :is(.install-promo-copy,.install-auth-copy) strong{color:var(--text)}
+body :is(.install-promo-copy,.install-auth-copy) span{color:var(--muted)}
+body .install-promo-button{
+  background:var(--accent);
+  color:#102E1E;
+  min-height:var(--ui-touch-target);
+}
+body .install-promo-dismiss{color:var(--text)}
+body .my-account-page :is(.my-profile-card,.my-booking-row,.my-collapsible,.my-settings-row,.my-empty){
+  background:var(--card);
+  color:var(--text);
+  border-color:var(--line);
+}
+body .my-account-page :is(.my-profile-card,.my-booking-row,.my-collapsible,.my-empty){
+  border:1px solid var(--line);
+}
+body .my-account-page :is(.my-profile-identity h1,.my-booking-main>strong,
+  .my-collapsible>summary strong,.my-settings-row strong,.my-empty strong,
+  .my-transaction-main strong){color:var(--text)}
+body .my-account-page :is(.my-profile-identity p,.my-booking-main>small,
+  .my-booking-description,.my-collapsible>summary small,.my-settings-row small,
+  .my-empty span,.my-transaction-main small){color:var(--muted)}
+body .my-account-page .my-profile-edit{
+  background:var(--accent-soft);
+  border:1px solid var(--line);
+  color:var(--accent);
+  min-height:var(--ui-touch-target);
+}
+body .my-account-page .my-profile-edit:hover,
+body .my-account-page .my-settings-row:hover,
+body .my-account-page .my-booking-row:active{background:var(--dark2)}
+body .my-account-page .my-count{background:var(--accent-soft);color:var(--accent)}
+body .my-account-page .my-transaction{border-bottom-color:var(--line)}
+body .my-account-page .my-collapsible>summary{color:var(--text)}
+body .my-account-page :is(.my-profile-edit,.my-booking-row,.my-settings-row,
+  .my-collapsible>summary):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+/* Treeneri kliendikaardil registreeringu oleku tekst peab jääma loetavaks. */
+body .cl-detail .cl-history-row em.confirmed{color:var(--accent)}
+body .cl-detail .cl-history-row em.waiting{color:var(--amber)}
+body .cl-detail .cl-history-row em.cancelled{color:var(--red)}
+
+/* Brauseritestiga kontrollitud WOD-numbrite ja vormi olekuteksti kontrast. */
+body .wb-counts button strong{color:var(--accent)}
+body .tf-wod .tf-section-top>span{color:var(--muted)}
