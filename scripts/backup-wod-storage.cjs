@@ -67,6 +67,7 @@ async function backupWodStorage({
     }
   }
 
+  if(objects.length===0)throw new Error('Ühtegi WOD pildifaili ei leitud; kontrolli Storage ligipääsu');
   await fs.mkdir(target,{recursive:true,mode:0o700});
   for(const objectPath of objects.sort()){
     const url=base+'/storage/v1/object/authenticated/'+BUCKET+'/'+objectPath.split('/').map(encodeURIComponent).join('/');
