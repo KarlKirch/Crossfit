@@ -4,20 +4,27 @@ See dokument kirjeldab **ohutut tööjärjekorda**. Rõuge CrossFit kasutab Supa
 projekti koos teise rakendusega; andmebaasi täielik eksport hõlmab mõlemat.
 Ühtegi allolevat tootmisandmete muudatust ei käivitata automaatselt.
 
-## 1. Muudatuste avaldamise järjekord
+## 1. Muudatuste avaldamise järjekord (tasuta lahendus)
 
-1. Kontrolli GitHub Actionsi teste \`RCF kvaliteedikontroll\` ja \`CrossFit smoke checks\`.
-2. Loo **eraldi Supabase'i testprojekt** ainult sünteetiliste kasutajate ja andmetega. Vali
-   projekti/branch'i kulud enne loomist teadlikult; see võib olla tasuline.
-3. Impordi testprojekti minimaalne WOD skeem (rollid, registreeringud, krediidid,
-   WOD fotode õigused); ära kopeeri päris kliendiandmeid.
-4. Kontrolli päris Postgresi RLS-rolle ning \`wod_*\` RPC-funktsioone:
-   klient ei saa muuta teise kasutaja raha, rolle, registreeringuid ega treeninguid;
-   treener saab tühistada treeningu ja krediit tagastub täpselt ühe korra.
-5. Kontrolli varukoopiate olemasolu ja eraldi WOD originaalfotode taastatavus.
-6. Tee PR-i visuaalne ülevaatus, seejärel avalda ainult kontrollitud muudatused.
-7. Pärast avaldamist kontrolli värske versiooni avanemist, PWA uuendamist,
-   registreerimist, tühistamist ja push-teavitust mõnel päris telefonil.
+1. Testi Node.js regressioonitestidega ning GitHub Actionsi Chromiumi ja WebKiti
+   testidega. Need ei saada päris Supabase'i andmeid.
+2. **Tasuta eraldatud PostgreSQL** töötab GitHub Actionsi ajutises Docker-konteineris.
+   Failides `tests/sql/001_cancel_fixture.sql` ja `002_cancel_rls_assertions.sql`
+   kontrollitakse serveri krediiditagastuse funktsiooni ja RLS-poliitikate koopiat.
+   Testandmed on sünteetilised; tootmiskontot või tasulist Supabase'i testprojekti ei looda.
+3. Kontrolli eraldi lugemispäringuga tegeliku Supabase'i RLS-i ja andmete terviklust.
+   Ära tee päris klientidega testregistreeringuid ega testkrediiditehinguid.
+4. Kontrolli GitHubi `RCF kvaliteedikontroll`, `CrossFit smoke checks` ja
+   `RCF avaliku äpi toimivus` töövooge enne ja pärast väljalaset.
+5. Hoia olemasolevate kliendiandmete varukoopia ja WOD-pildid eraldi.
+6. Väljalaske järel kontrolli avaliku rakenduse versiooni, PWA vahemälu ning
+   sisselogimist, teavitusi ja treeningutele registreerimist päris telefonidel.
+
+**22.10.2026:** `public.wod_cancel_training(bigint)` funktsiooni teavituse SELECT
+kasutas sama `r` tähist PL/pgSQL `record` muutujana ja SQL-tabeli aliasena.
+Parandati tabeli alias nimeks `participant`, jättes krediidi tagastamise ja
+tehinguloogika muutmata. Paranduse test tehti enne tootmisandmebaasi muudatust.
+Selle funktsiooni SQL-koopia on versioonihalduses `tests/sql/001_cancel_fixture.sql`.
 
 ## 2. Andmebaasi turvalisus
 
@@ -33,7 +40,7 @@ projekti koos teise rakendusega; andmebaasi täielik eksport hõlmab mõlemat.
 - Piiravaid turvapoliitikaid ei tohi pimesi lisada enne testkeskkonda;
   isegi näiliselt rangem poliitika võib katkestada sisselogimise.
 
-## 3. Krediitide kontrollitavad stsenaariumid testkeskkonnas
+## 3. Krediitide kontrollitavad stsenaariumid (tasuta CI ja füüsilise testi eristus)
 
 1. Kliendi krediit 2 → treeningu kinnitatud koht → krediit 1.
 2. Õigeaegne kliendipoolne tühistamine → krediit taastub 2.
