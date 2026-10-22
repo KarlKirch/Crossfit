@@ -43,7 +43,7 @@
     const trainer=window.isTrainer();
     const uid=s.session.user.id;
     const queries=[
-      window.api(`wod_trainings?select=*&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
+      window.api(`wod_trainings?select=*&archived_at=is.null&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
       window.api('wod_registrations?select=*&order=created_at.asc'),
       window.api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
       window.api(trainer?'wod_wallets?select=user_id,credits':`wod_wallets?select=user_id,credits&user_id=eq.${uid}`),
