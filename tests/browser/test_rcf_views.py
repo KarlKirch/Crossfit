@@ -38,10 +38,13 @@ class RCFBrowserSmoke(unittest.TestCase):
     def setUp(self):
         self.context = None
         self.page = None
+        self.page_errors = []
 
     def tearDown(self):
         if self.context:
             self.context.close()
+        self.assertEqual(self.page_errors, [],
+                         'Brauseris ilmnesid käsitlemata JavaScripti vead')
 
     def open_app(self, role="client", width=390, height=844, browser=None):
         uid = TRAINER if role == "trainer" else CLIENT
@@ -109,6 +112,7 @@ class RCFBrowserSmoke(unittest.TestCase):
             "localStorage.setItem('wod_session', JSON.stringify(" + json.dumps(session) + "))"
         )
         self.page = self.context.new_page()
+        self.page.on('pageerror', lambda e: self.page_errors.append(str(e)))
         self.page.goto(APP_URL, wait_until="domcontentloaded")
         self.page.locator(".app-shell").wait_for(state="visible", timeout=20000)
         self.page.locator(".bottom-nav").wait_for(state="visible")
@@ -247,6 +251,7 @@ class RCFBrowserSmoke(unittest.TestCase):
             else route.abort()
         ))
         self.page = context.new_page()
+        self.page.on('pageerror', lambda e: self.page_errors.append(str(e)))
         self.page.goto(APP_URL, wait_until="domcontentloaded")
         self.page.wait_for_function(
             "() => navigator.serviceWorker && navigator.serviceWorker.controller !== null",
