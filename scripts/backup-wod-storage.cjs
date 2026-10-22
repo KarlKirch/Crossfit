@@ -88,7 +88,27 @@ async function backupWodStorage({
   return {count:manifest.objects.length,failed:0,destination:target};
 }
 
-module.exports={backupWodStorage};
+
+async function verifyWodBackup(destination){
+  if(!destination)throw new Error('Varukoopia sihtkoht puudub');
+  const root=path.resolve(destination);
+  const manifest=JSON.parse(await fs.readFile(path.join(root,BUCKET+'-manifest.json'),'utf8'));
+  if(manifest.bucket!==BUCKET||!Array.isArray(manifest.objects))throw new Error('WOD varukoopia manifest on vigane');
+  const paths=new Set();
+  for(const entry of manifest.objects){
+    const segments=String(entry.path||'').split('/');
+    segments.forEach(safeName);
+    if(paths.has(entry.path))throw new Error('Varukoopias on topeltfail '+entry.path);
+    paths.add(entry.path);
+    const data=await fs.readFile(path.join(root,BUCKET,...segments));
+    if(data.length!==entry.size_bytes)throw new Error('WOD faili suurus ei vasta manifestile: '+entry.path);
+    const checksum=crypto.createHash('sha256').update(data).digest('hex');
+    if(checksum!==entry.sha256)throw new Error('WOD faili SHA256 kontroll nurjus: '+entry.path);
+  }
+  return {verified:paths.size};
+}
+
+module.exports={backupWodStorage,verifyWodBackup};
 if(require.main===module){
   backupWodStorage().then(result=>{
     console.log('WOD piltide varundus lõpetatud: '+result.count+' faili. Kontrolli manifesti SHA256 väärtusi.');
