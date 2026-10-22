@@ -68,14 +68,14 @@ BEGIN
 
   INSERT INTO public.wod_notifications
     (user_id,training_id,kind,title,body,url,tag,dedupe_key,due_at)
-  SELECT r.user_id,p_training_id,'training_cancelled','Treening tühistatud',
+  SELECT participant.user_id,p_training_id,'training_cancelled','Treening tühistatud',
          t.title||' '||local_time||' on tühistatud.',
          'https://karlkirch.github.io/Crossfit/',
          'crossfit-cancel-'||p_training_id,
-         'cancel:'||p_training_id||':'||r.user_id,now()
-  FROM public.wod_registrations r
-  WHERE r.training_id=p_training_id
-    AND (r.status IN ('confirmed','waitlist') OR r.credit_charged)
+         'cancel:'||p_training_id||':'||participant.user_id,now()
+  FROM public.wod_registrations participant
+  WHERE participant.training_id=p_training_id
+    AND (participant.status IN ('confirmed','waitlist') OR participant.credit_charged)
   ON CONFLICT(dedupe_key) DO NOTHING;
 
   DELETE FROM public.wod_notifications
