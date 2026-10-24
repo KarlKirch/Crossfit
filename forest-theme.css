@@ -499,3 +499,55 @@ body .cl-detail .cl-history-row em.cancelled{color:var(--red)}
 /* Brauseritestiga kontrollitud WOD-numbrite ja vormi olekuteksti kontrast. */
 body .wb-counts button strong{color:var(--accent)}
 body .tf-wod .tf-section-top>span{color:var(--muted)}
+
+
+/* Krediidi lisamise dialoog: heledal kiirvaliku nupul kadusid rohelised numbrid.
+   Kõik sisendid, kiirvalikud ja eelvaade kasutavad nüüd ühtset tumedat tausta
+   ning heledat teksti. Mõjutab ainult treeneri krediidi lisamise vormi. */
+body .cx-credit-sheet .cx-credit-form>label{
+  color:#EDF9E8;
+}
+body .cx-credit-sheet .cx-credit-form>label span{
+  color:#D0E3CF;
+}
+body .cx-credit-sheet .cx-credit-form>input{
+  background:#224A37!important;
+  color:#F5FAF2!important;
+  border-color:#7AA68A!important;
+  color-scheme:dark;
+}
+body .cx-credit-sheet .cx-credit-form>input::placeholder{
+  color:#C0D6C4!important;
+}
+body .cx-credit-sheet .cx-credit-presets button{
+  min-height:44px;
+  background:#2B6146;
+  border:1px solid #79A786;
+  color:#F5FAF2;
+  font-size:15px;
+  font-weight:900;
+}
+body .cx-credit-sheet .cx-credit-presets button:hover,
+body .cx-credit-sheet .cx-credit-presets button:active{
+  background:#3B8058;
+  color:#FFFFFF;
+}
+body .cx-credit-sheet .cx-credit-presets button:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+body .cx-credit-sheet .cx-credit-preview{
+  background:#224D38;
+  color:#F5FAF2;
+  border:1px solid #70987A;
+}
+body .cx-credit-sheet .cx-credit-preview>span,
+body .cx-credit-sheet .cx-credit-preview>small{
+  color:#D4EAD7;
+}
+body .cx-credit-sheet .cx-credit-preview>strong{
+  color:#CFFA9D;
+}
+body .cx-credit-sheet .cx-credit-preview>.cx-credit-error{
+  color:#FFB8B2;
+}
