@@ -268,5 +268,26 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.snapshot("chromium-offline-app-shell")
 
 
+    def test_trainer_add_credits_numbers_readable_on_mobile(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("(uid) => window.openAddCredits(uid)", CLIENT)
+        page.locator(".cx-credit-sheet .cx-credit-form").wait_for(state="visible")
+
+        # Heledat rohelist teksti ei tohi näidata heledatel kiirvaliku nuppudel.
+        self.assert_contrast(".cx-credit-presets button", ".cx-credit-presets button")
+        self.assert_contrast(".cx-credit-preview", "#creditBeforeAfter")
+        self.assert_contrast(".cx-credit-preview", ".cx-credit-preview > span")
+        self.assert_contrast("#creditQty", "#creditQty")
+        self.assert_contrast("#creditCash", "#creditCash")
+        self.assert_contrast("#creditNote", "#creditNote")
+        self.verify_fit()
+        self.snapshot("trainer-add-credits-contrast-mobile")
+
+        # Kiirvalik muudab kogust ja eelvaadet, kuid ei kutsu salvestamise RPC-d.
+        page.locator(".cx-credit-presets button").filter(has_text="+10").click()
+        self.assertEqual(page.locator("#creditQty").input_value(), "10")
+        self.assertIn("13 krediiti", page.locator("#creditBeforeAfter").inner_text())
+
+
 if __name__ == "__main__":
     unittest.main()
