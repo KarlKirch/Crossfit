@@ -1,0 +1,333 @@
+/* RÕUGE CROSSFIT 5.7.0 — grafiit + laim (variant 1)
+ * Lisatakse PÄRAST vana metsarohelist teemat. Kujundus on ühesugune
+ * telefoni, arvuti, Android PWA ja iOS WebKit vaates.
+ * Ei muuda andmeid, õigusi ega JavaScripti toimimist.
+ */
+:root {
+  --bg:#14191E;
+  --card:#293137;
+  --text:#F4F6F7;
+  --muted:#C2CDD3;
+  --line:#505D66;
+  --dark:#14191E;
+  --dark2:#323D45;
+  --accent:#B9EA6F;
+  --accent-hover:#D0F59B;
+  --accent-soft:#303E34;
+  --sage:#92AA86;
+  --green:#B9EA6F;
+  --green-soft:#29372C;
+  --amber:#F4CD8B;
+  --amber-soft:#483B28;
+  --red:#FFC0BE;
+  --red-soft:#503236;
+  --blue:#ACD8F4;
+  --blue-soft:#293C4B;
+  --surface-light:#293137;
+  --surface-light-text:#F4F6F7;
+  --ui-surface:#222A30;
+  --ui-surface-raised:#343F47;
+  --ui-border:#505D66;
+  --ui-action-text:#14191E;
+  --shadow:0 10px 25px rgba(0,0,0,.24);
+  color-scheme:dark;
+}
+html,body{
+  background:#14191E!important;
+  color:var(--text)!important;
+  color-scheme:dark;
+}
+body .app-shell{background:#14191E!important;color:var(--text)!important}
+body .main,body :is(.home-dashboard,.tb-dashboard,.ad-admin,.cl-page,.wb-body,.tf-form,
+  .nc-page,.my-account,.tl-page){color:var(--text)}
+body .topbar{
+  background:rgba(20,25,30,.96)!important;
+  color:var(--text);
+  border-color:#505D66;
+  box-shadow:0 4px 20px #0005;
+}
+body .brand-mark{border-color:#505D66}
+body .brand,body :is(h1,h2,h3,.page-title,.card-title){color:var(--text)}
+body .brand-sub,body :is(.page-sub,.card-sub,.section small){color:var(--muted)}
+body .bottom-nav{
+  background:rgba(20,25,30,.98)!important;
+  border-color:#505D66;
+  box-shadow:0 -6px 20px #0007;
+}
+body .nav-btn{color:#C3CED3}
+body .nav-btn.on{background:#333D42;color:#B9EA6F}
+body .nav-btn:hover{background:#303941}
+body :is(.top-icon-action,.top-action){
+  background:#293137;
+  border-color:#586570;
+  color:#F4F6F7
+}
+body :is(.top-icon-action,.top-action):hover{background:#3A454D}
+body :is(.nav-badge,.top-notification-badge){border-color:#14191E}
+body .fab{background:var(--accent);color:var(--ui-action-text);box-shadow:0 10px 28px #0007}
+
+/* Neutraalsed kaardid. Vana CSS-i rohelised taustad ei tohi siit läbi paista. */
+body :is(.card,.training-card,.metric,.package-card,.client-card,.menu-item,
+  .account-settings,.quick,.empty,.tb-stat,.tb-section,.tb-upcoming-row,.tb-wait-row,
+  .tb-credit-row,.ad-stat,.ad-item-list,.ad-entry,.ad-profile,.cl-metric,.cl-card,
+  .cl-detail-hero,.cl-detail-section,.cl-search-row,.wb-upload,.wb-counts button,
+  .wb-card,.wb-sort select,.wb-search-input,.tf-section,.tf-wod,.tf-recurrence,
+  .tf-more,.nc-push-card,.nc-notice,.my-account-hero,.my-account-card,.my-credit-card,
+  .my-booking-card,.my-transaction,.home-stat-card,.home-upcoming-row,
+  .tl-training-card,.td-section,.td-wod,.my-profile-card,.my-booking-row,
+  .my-collapsible,.my-settings-row,.my-empty,.rcf-metric-card,.rcf-feature-card){
+  background:#293137;
+  border-color:#505D66;
+  color:#F4F6F7;
+  box-shadow:var(--shadow);
+}
+body :is(.empty,.home-empty-small,.tb-empty,.wb-empty,.cl-empty,.nc-empty,.tl-empty,
+  .rcf-mini-empty,.tb-next-empty){
+  background:#222A30;
+  border-color:#55616A;
+  color:#C2CDD3;
+}
+body :is(.training-time,.package-meta,.menu-desc,.card-sub,.my-muted,.cl-card-name>span,
+  .wb-date,.nc-time,.nc-description,.ad-stat small,.ad-section-heading p,
+  .ad-entry-text small,.tb-upcoming-main small,.tb-credit-person small,
+  .cl-data-note,.nc-footnote,.cl-card-name>span,
+  .tl-card-info,.tl-capacity-label,.tl-participants-none,.tl-trainer-tool small,
+  .tf-help,.tf-wod-empty,.tf-repeat-toggle small,.tf-preview,.wb-use-panel p,
+  .wb-use-panel label,.cl-detail-section p,.my-booking-description,
+  .my-profile-identity p,.wb-sort label,.wb-count,.wb-upload-message){
+  color:#C2CDD3;
+}
+body :is(.metric b,.metric span,.package-name,.package-balance,.training-title,
+  .menu-label,.wb-card h3,.cl-card-name strong,.nc-item-text strong,
+  .ad-entry-text strong,.my-transaction strong,.cl-metric strong,
+  .cl-detail-hero h2,.wb-photo-date-note strong,.tl-card-heading h3,
+  .td-section h3,.td-attendee-name strong,.my-profile-identity h1){
+  color:#F4F6F7;
+}
+body :is(.hero,.home-hero,.home-featured-session,.tb-next,.tf-intro,.wb-intro,
+  .td-hero,.cx-add-hero,.detail-hero){
+  background:linear-gradient(135deg,#343F47 0%,#222A30 95%);
+  border-color:#5B6770;
+  color:#F4F6F7
+}
+/* Kunstilist brändilogot ei muudeta. Rohelise taustapildi asemel grafiidipind. */
+body .rcf-brand-hero{
+  background:linear-gradient(150deg,#364249 0%,#222A30 65%,#171D22 100%);
+  border-color:#525F68
+}
+body .rcf-brand-hero:after{background:linear-gradient(0deg,#181E23DF,transparent)}
+body .rcf-shortcuts{background:#222A30;border-color:#505D66}
+body .rcf-shortcut{background:#293137;border-color:#505D66;color:#F4F6F7}
+body .rcf-feature-card{background:linear-gradient(145deg,#303A42,#20272D);border-color:#505D66}
+body .rcf-later-list>button{background:#293137;border-color:#505D66}
+body .rcf-mini-empty{background:#222A30;border-color:#505D66}
+body :is(.rcf-greeting span,.rcf-greeting p,.rcf-feature-card p){color:#D9E2E6}
+body :is(.rcf-shortcut svg,.rcf-metric-icon,.rcf-later-date){color:#B9EA6F}
+body .rcf-later-date{background:#343E45}
+
+/* Heledat laimirohelist kasutame üksnes selgelt tehtavate tegevuste ja valiku puhul. */
+body :is(.btn-primary,.page-action,.tf-save,.tf-wod-pick,.wb-primary,
+  .cl-button-main,.tb-credit-add,.wb-empty button,.my-primary-action,
+  .tl-action-main,.td-button-main,.tb-next-action,.install-promo-button){
+  background:#B9EA6F;
+  border-color:#B9EA6F;
+  color:#14191E;
+}
+body :is(.btn-primary,.page-action,.tf-save,.wb-primary,.cl-button-main,
+  .tl-action-main,.td-button-main,.tb-next-action):hover{
+  background:#D0F59B;color:#14191E
+}
+body :is(.btn-soft,.btn-outline,.btn-green,.btn-dark,.tf-cancel,.wb-secondary,
+  .cl-button-outline,.tb-inline-link,.tl-action-secondary,.td-button-secondary,
+  .tl-action-link,.cl-button,.my-profile-edit){
+  background:#323D45;
+  border-color:#606C75;
+  color:#F4F6F7;
+}
+body :is(.btn-soft,.btn-outline,.btn-green,.btn-dark,.tf-cancel,.wb-secondary,
+  .cl-button-outline,.tl-action-secondary,.td-button-secondary):hover{
+  background:#44515B;color:#F4F6F7
+}
+body :is(.btn-link,.page-action-link,.wb-card-open,.rcf-section-head button,
+  .home-section-header button,.wb-wod-heading,.wb-counts button strong,
+  .tl-day-title,.tl-header-credit strong,.td-wod h3,.td-person-credit,
+  .td-deadline,.my-transaction-kind){color:#B9EA6F}
+body .pill{background:#3B454C;color:#F4F6F7}
+body .pill.green{background:#314433;color:#C8F497}
+body .pill.amber{background:#4D402A;color:#F9D595}
+body .pill.red{background:#543537;color:#FFC0BE}
+body .pill.blue{background:#2B4251;color:#C6E7FA}
+body .pill.dark{background:#222A30;color:#F4F6F7}
+body :is(.progress,.tb-next-bar,.tl-capacity-track,.td-hero-progress){background:#49535A}
+body :is(.progress span,.tb-next-bar span,.tl-capacity-track span,.td-hero-progress>span){background:#B9EA6F}
+body .segment,body .tl-segment{background:#222A30;border-color:#505D66}
+body :is(.segment button,.tl-segment button){color:#D6DEE2}
+body :is(.segment button.on,.tl-segment button.on){background:#B9EA6F;color:#14191E}
+body :is(.segment button.on span,.tl-segment button.on span){background:#849D62;color:#101719}
+body .tl-segment button span{background:#374149;color:#F4F6F7}
+body .tl-header-credit,body .tl-card-datebox{background:#323D45;border-color:#55616A;color:#F4F6F7}
+body .tl-person-avatar,body .tl-people-extra{background:#444F56;color:#F4F6F7}
+body .tl-trainer-tool button{background:#323D45;border-color:#596773;color:#B9EA6F}
+body .tl-trainer-tool button:hover{background:#45515B}
+body .tl-card-datebox strong,body .tl-card-day{color:#F4F6F7}
+body :is(.tl-pill.tl-free,.tl-pill.tl-booked){background:#314433;color:#CBF49D;border-color:#556D4C}
+body .tl-pill.tl-neutral{background:#3B454C;color:#F4F6F7;border-color:#68747C}
+body .tl-participants{border-color:#505D66}
+body .td-wod,body .td-notes,body .wb-card-workout,body .wb-detail-preview{
+  background:#222A30;border-color:#5B6770
+}
+body :is(.td-section p,.td-section .td-note,.td-section .td-policy,
+  .td-booking-status p,.td-booking-status .td-position){
+  color:#D8E0E4!important
+}
+body .td-booking-status{background:#323D45;border-color:#657078;color:#F4F6F7}
+body .td-booking-status strong{color:#F4F6F7}
+body .td-attendee{border-color:#505D66}
+body :is(.tl-empty-icon,.td-avatar-fallback,.tb-stat-icon,.tb-wait-icon,.tb-upcoming-icon,
+  .ad-stat-icon,.ad-entry-icon,.cl-history-icon,.nc-push-icon,.nc-item-icon,
+  .wb-photo-placeholder,.cl-avatar-fallback,.tb-initial-avatar){
+  background:#38444A;color:#B9EA6F
+}
+
+/* WOD, kliendid, treeneri vaade, filter-ribad, teavitused */
+body :is(.home-credit-alert,.my-credit-wait-note,.wb-review-note,.wb-photo-date-note,
+  .nc-unread,.nc-notice.nc-unread,.cl-detail-hero,
+  .cl-card-archived,.cl-detail-section,.wb-use-panel,.tf-wod-tools,
+  .tf-repeat-options,.ad-item-list,.wb-card-photo,.cl-search,.wb-search-panel){
+  background:#323D45;border-color:#5B6770;color:#F4F6F7
+}
+body :is(.home-action-grid button,.tb-shortcuts button,.cl-filter,.cl-credit-row,
+  .nc-filter,.wb-filter,.wb-pages button,.wb-counts button,
+  .ad-entry,.wb-use-panel,.tf-repeat-toggle,.tf-wod-tools,
+  .cl-search-row,.wb-search-input){
+  background:#343F47;border-color:#596773;color:#F4F6F7
+}
+body :is(.tb-shortcuts button,.ad-entry,.cl-filter,.nc-filter,.wb-filter,
+  .wb-pages button):hover{background:#45515B}
+body :is(.cl-filter.selected,.nc-filter.selected,.wb-filter.on){
+  background:#B9EA6F;color:#14191E;border-color:#B9EA6F
+}
+body :is(.cl-filter.selected span,.nc-filter.selected span,.wb-filter.on span){
+  background:#849D62;color:#14191E
+}
+body :is(.cl-filter span,.nc-filter span,.wb-filter span){
+  background:#45515B;color:#F4F6F7
+}
+body .wb-wod-section+.wb-wod-section{border-color:#505D66}
+body .tf-preview{background:#343F47;color:#DDE5E8}
+body .wb-use-disabled,body .ad-privacy,body .wb-date-conflict{
+  background:#493C2A;border-color:#84724E;color:#F9DAA6
+}
+body :is(.cl-credit,.cl-credit-good){background:#334333;color:#C8F497}
+body :is(.cl-credit-zero,.cl-credit-low){background:#4D402A;color:#F9D595}
+body .my-account-page :is(.my-profile-card,.my-booking-row,.my-collapsible,
+  .my-settings-row,.my-empty){background:#293137;color:#F4F6F7;border-color:#505D66}
+body .my-account-page .my-profile-edit{background:#343F47;color:#F4F6F7;border-color:#657079}
+body .my-account-page .my-profile-edit:hover{background:#44515B}
+body .my-account-page .my-count{background:#344132;color:#C8F497}
+body .my-account-page .my-transaction{border-color:#505D66}
+body .cl-detail .cl-detail-stats>div{
+  background:#293137;color:#F4F6F7;border:1px solid #657079;box-shadow:none
+}
+body .cl-detail .cl-detail-stats>div>strong{color:#F4F6F7}
+body .cl-detail .cl-detail-stats>div>span{color:#D4DDE1}
+body :is(.cx-client-credit,.cx-client-explainer){
+  background:#293137;border:1px solid #505D66;color:#F4F6F7
+}
+body :is(.cx-client-credit strong,.cx-client-explainer strong){color:#F4F6F7}
+body :is(.cx-client-credit small,.cx-client-explainer p){color:#C2CDD3}
+body .cx-client-credit.low,body .cx-client-credit.zero{background:#453A2C;color:#F4D9AE}
+
+/* Vormid ja modaalsed aknad: üks neutraalne sisendstiil kõikjal. */
+body :is(input,textarea,select){color-scheme:dark}
+body :is(input,textarea,select):not([type=checkbox]):not([type=radio]):not([type=hidden]){
+  background:#222A30!important;
+  color:#F4F6F7!important;
+  border:1px solid #67737C!important;
+  box-shadow:none
+}
+body :is(input,textarea)::placeholder{color:#BCC8CF!important;opacity:1}
+body :is(label,.field label,.tf-form .field>label,.tf-wod>label,
+  .cl-search label,.wb-search-panel>label,.tf-wod-tools>label,
+  .cx-credit-form>label){color:#F4F6F7}
+body :is(.tf-weekday>span,.tf-repeat-toggle,.tf-wod-tools,.wb-search-input,
+  .cl-search-row,.wb-search-panel){background:#343F47;color:#F4F6F7}
+body .tf-weekday input:checked+span{background:#B9EA6F;color:#14191E}
+body :is(.sheet,.modal,.modal-dialog,.sheet-body,.cx-credit-sheet){
+  background:#222A30!important;color:#F4F6F7!important
+}
+body .sheet-head{background:#293137!important;color:#F4F6F7;border-color:#505D66}
+body :is(.sheet-title,.sheet-close){color:#F4F6F7}
+body .sheet-close{background:#3B464F}
+body .sheet-backdrop{background:rgba(0,0,0,.82)}
+body :is(.install-promo,.install-auth-card,.auth-box,.auth-email-confirm,.auth-code-details){
+  background:#293137;border-color:#505D66;color:#F4F6F7
+}
+body .auth{background:radial-gradient(ellipse at 48% 0%,#343F47,#14191E 72%)}
+body .auth-box{box-shadow:0 24px 60px #0008}
+body .auth-box h1,body .auth-intro{color:#F4F6F7}
+body :is(.auth-method-switch,.auth-email-confirm,.auth-code-details){
+  background:#323D45;border-color:#606C75
+}
+body .auth-method-switch button{color:#D4DDE1}
+body .auth-method-switch button.on{background:#B9EA6F;color:#14191E}
+body .toast,body .update-banner{
+  background:#293137;color:#F4F6F7;border-color:#6F7C85
+}
+body :is(button,a,input,select,textarea):focus-visible{
+  outline:2px solid #B9EA6F;outline-offset:2px
+}
+
+/* Krediidivorm: eristatavad numbrid ja sisendid */
+body .cx-credit-sheet .cx-credit-form>label{color:#F4F6F7}
+body .cx-credit-sheet .cx-credit-form>label span{color:#C2CDD3}
+body .cx-credit-sheet .cx-credit-form>input{
+  background:#222A30!important;color:#F4F6F7!important;border-color:#67737C!important
+}
+body .cx-credit-sheet .cx-credit-form>input::placeholder{color:#BCC8CF!important}
+body .cx-credit-sheet .cx-credit-presets button{
+  background:#343F47;border:1px solid #71808A;color:#F4F6F7;
+  min-height:44px;font-size:15px
+}
+body .cx-credit-sheet .cx-credit-presets button:hover{
+  background:#B9EA6F;color:#14191E
+}
+body .cx-credit-sheet .cx-credit-preview{
+  background:#293137;color:#F4F6F7;border-color:#64717A
+}
+body .cx-credit-sheet .cx-credit-preview>span,
+body .cx-credit-sheet .cx-credit-preview>small{color:#D6DFE3}
+body .cx-credit-sheet .cx-credit-preview>strong{color:#B9EA6F}
+body .cx-credit-sheet .cx-credit-preview>.cx-credit-error{color:#FFC0BE}
+
+/* E–P kalender ja kuupäeva valik */
+body .tf-calendar-trigger{
+  background:#222A30;color:#F4F6F7;border-color:#67737C
+}
+body .tf-calendar-trigger>span{color:#B9EA6F}
+body .tf-calendar-panel{
+  background:#222A30;color:#F4F6F7;border-color:#606C75;
+  box-shadow:0 12px 28px #0008
+}
+body .tf-calendar-head>strong{color:#F4F6F7}
+body .tf-calendar-head button{
+  background:#343F47;color:#F4F6F7;border-color:#606C75
+}
+body .tf-calendar-weekdays span{color:#C2CDD3}
+body .tf-calendar-grid button{background:#293137;color:#F4F6F7}
+body .tf-calendar-grid button:hover{background:#44515B;color:#F4F6F7}
+body .tf-calendar-grid button.selected{background:#B9EA6F;color:#14191E}
+body .tf-wod .tf-help{color:#C2CDD3}
+
+/* CSS-kiht ei sõltu viewporti mõõdust; mobiilis parandatakse ainult paigutust. */
+@media(max-width:760px){
+  html,body{background:#14191E!important;color:#F4F6F7!important}
+  body .app-shell{background:#14191E!important}
+  body .topbar{background:rgba(20,25,30,.96)!important}
+  body .bottom-nav{background:rgba(20,25,30,.98)!important}
+  body :is(.card,.training-card,.client-card,.tl-training-card,.tf-section,
+    .tf-wod,.my-account-card,.my-booking-card,.wb-card,.nc-notice,.home-stat-card){
+    background:#293137;color:#F4F6F7;border-color:#505D66
+  }
+  body :is(.sheet,.sheet-body){background:#222A30!important;color:#F4F6F7!important}
+}
