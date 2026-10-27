@@ -562,8 +562,7 @@ body .cx-credit-sheet .cx-credit-preview>.cx-credit-error{
   body .topbar{background:rgba(18,52,38,.95)!important;color:#F5FAF2!important}
   body .bottom-nav{background:rgba(20,56,40,.97)!important;color:#F5FAF2!important}
   body :is(.card,.training-card,.client-card,.tl-training-card,.tf-section,.tf-wod,
-    .my-account-card,.my-booking-card,.wb-card,.nc-notice,.home-stat-card,
-    .rcf-shortcuts,.rcf-mini-empty){
+    .my-account-card,.my-booking-card,.wb-card,.nc-notice,.home-stat-card){
     background-color:#1E4634;color:#F5FAF2;border-color:#5D866B
   }
   body :is(.sheet,.sheet-body){background:#1D4633!important;color:#F4F9F0!important}
