@@ -290,32 +290,25 @@ class RCFBrowserSmoke(unittest.TestCase):
 
 
     def test_mobile_and_desktop_use_same_dark_theme(self):
-        mobile = self.open_app("trainer", 390, 844)
-        def colors(page):
-            return page.evaluate("""() => {
+        page = self.open_app("trainer", 390, 844)
+        def colors(p):
+            return p.evaluate("""() => {
                 const get = s => getComputedStyle(document.querySelector(s)).backgroundColor;
                 return {shell:get('.app-shell'), card:get('.rcf-shortcuts'),
                         nav:get('.bottom-nav'),
-                        css:document.querySelector('link[href*="forest-theme.css"]').href};
+                        css:document.querySelector('link[href*="forest-theme.css"]').getAttribute('href')};
             }""")
-        mobile_colors = colors(mobile)
-        # Teine sõltumatu brauseriaken: võrdleme kuvatavaid värve, mitte ainult CSS teksti.
-        desktop = self.browser.new_context(viewport={"width": 1280, "height": 800},
-                                           service_workers="block")
-        try:
-            desktop.route("**/*", lambda route: (
-                route.continue_() if urlparse(route.request.url).netloc == urlparse(ORIGIN).netloc
-                else route.abort()))
-            desktop_page = desktop.new_page()
-            desktop_page.goto(APP_URL, wait_until="domcontentloaded")
-            desktop_colors = colors(desktop_page)
-            self.assertEqual(mobile_colors["shell"], desktop_colors["shell"])
-            self.assertEqual(mobile_colors["card"], desktop_colors["card"])
-            self.assertEqual(mobile_colors["nav"], desktop_colors["nav"])
-            self.assertEqual(mobile_colors["css"], desktop_colors["css"])
-            self.assertEqual(mobile_colors["shell"], "rgb(18, 52, 38)")
-        finally:
-            desktop.close()
+        mobile = colors(page)
+        self.snapshot("trainer-dark-theme-mobile")
+        self.context.close()
+        self.context = None
+        desktop_page = self.open_app("trainer", 1280, 800)
+        desktop = colors(desktop_page)
+        self.assertEqual(mobile["shell"], desktop["shell"])
+        self.assertEqual(mobile["card"], desktop["card"])
+        self.assertEqual(mobile["nav"], desktop["nav"])
+        self.assertEqual(mobile["css"], desktop["css"])
+        self.assertEqual(mobile["shell"], "rgb(18, 52, 38)")
 
     def test_training_calendar_starts_on_monday_and_selects_date(self):
         page = self.open_app("trainer", 390, 844)
@@ -326,8 +319,6 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator("#tfDateTrigger").click()
         labels = page.locator(".tf-calendar-weekdays span").all_inner_texts()
         self.assertEqual(labels, ["E", "T", "K", "N", "R", "L", "P"])
-        self.assertEqual(page.locator(".tf-calendar-grid button").count(),
-                         page.locator(".tf-calendar-grid button").count())
         self.assertEqual(page.locator(".tf-calendar-grid").evaluate(
             "e => getComputedStyle(e).gridTemplateColumns.split(' ').length"), 7)
         before = page.locator("#tfDate").input_value()
