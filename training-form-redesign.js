@@ -87,7 +87,7 @@
   }
   function details(data){
     const price=Number(data.price_cents??500)/100;
-    const cancel=Number(data.cancellation_hours??4);
+    const cancel=Number(data.cancellation_hours??2);
     return '<details class="tf-more"><summary>Lisaseaded <span>Hind, tühistamise aeg ja märkus</span></summary>'+
       '<div class="tf-more-fields"><div class="tf-two">'+
         field('tfPrice','Hind (€)',String(price),'type="number" min="0" max="10000" step="0.01" inputmode="decimal"')+

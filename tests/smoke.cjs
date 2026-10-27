@@ -222,5 +222,19 @@ test('Client cannot see trainer-only actions',()=>{
   assert(!htmlRoot.innerHTML.includes('tb-dashboard'));
   assert(!htmlRoot.innerHTML.includes('ad-admin'));
 });
+test('Tasuta tühistamine on uuel treeningul vaikimisi 2 tundi',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  const form=context.trainingForm({});
+  assert.match(form,/id="tfCancel"[^>]*value="2"/);
+  assert.match(context.cancellationRule({cancellation_hours:2}),/2 h enne treeningut/);
+  const start='2026-11-12T19:00:00.000Z';
+  const deadline=context.cancellationDeadline({starts_at:start,cancellation_hours:2});
+  assert.equal(deadline.toISOString(),'2026-11-12T17:00:00.000Z');
+  assert(read('credit-system.js').includes('d.cancellation_hours??2'));
+  assert(read('pro-features.js').includes('t.cancellation_hours??2'));
+  context.copyTraining(12);
+  assert.equal(context.state.modalData.cancellation_hours,2,'Vana treeningu kopeerimine peab kasutama uut 2h piiri');
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
