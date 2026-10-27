@@ -48,7 +48,8 @@ test('Manifest and both PWA icons exist',()=>{
   assert.equal(manifest.start_url,'/Crossfit/');
   assert.equal(manifest.scope,'/Crossfit/');
   assert.equal(manifest.name,'Rõuge CrossFit');
-  assert.equal(manifest.theme_color,'#123426');
+  assert.equal(manifest.theme_color,'#14191E');
+   assert.equal(manifest.background_color,'#14191E');
   assert(fs.existsSync(path.join(root,'brand-rcf.webp')),'Missing RCF logo');
   for(const icon of manifest.icons){
     assert(fs.existsSync(path.join(root,icon.src.replace(/^\/Crossfit\//,''))),'Missing '+icon.src);
