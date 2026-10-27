@@ -254,7 +254,7 @@
       <div class="field"><label>Malli nimi</label><input id="tplName" maxlength="60" value="${window.esc(t.name||'')}" placeholder="Näiteks CrossFit E"></div>
       <div class="field"><label>Treeningu nimetus</label><input id="tplTitle" maxlength="80" value="${window.esc(t.title||'CrossFit')}"></div>
       <div class="form-grid"><div class="field"><label>Kestus (min)</label><input id="tplDuration" type="number" min="15" max="240" step="5" value="${t.duration_minutes||60}"></div><div class="field"><label>Kohti</label><input id="tplCapacity" type="number" min="1" max="100" value="${t.capacity||12}"></div></div>
-      <div class="field"><label>Tasuta tühistamine (h enne)</label><input id="tplCancel" type="number" min="0" max="72" value="${t.cancellation_hours??4}"></div>
+      <div class="field"><label>Tasuta tühistamine (h enne)</label><input id="tplCancel" type="number" min="0" max="72" value="${t.cancellation_hours??2}"></div>
       <div class="field"><label>Päeva treening / WOD</label><textarea id="tplWorkout">${window.esc(t.workout||'')}</textarea></div>
       <div class="field"><label>Treeneri märkus</label><textarea id="tplNote">${window.esc(t.note||'')}</textarea></div>
       <div class="field"><label><input id="tplActive" type="checkbox" ${t.active!==false?'checked':''}> Mall on aktiivne</label></div>
