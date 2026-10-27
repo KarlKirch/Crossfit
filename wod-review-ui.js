@@ -295,21 +295,24 @@
       original=original.replace(existing,'<input id="wodDate" type="date" value="'+detected.date+'">');
     }
     const canUse=entry.status==='ready'&&String(entry.workout_text||'').trim();
-    const existing=(s.trainings||[]).filter(t=>t.status==='published'&&Date.parse(t.starts_at)>Date.now())
+    const existing=(s.trainings||[]).filter(t=>t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now())
       .sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)).slice(0,50);
-    const selection=canUse?'<div class="wb-use-panel"><h3>Lisa WOD olemasolevale treeningule</h3>'+
-        '<p>Vali treening. Selle muutmisvorm avaneb eeltäidetud WOD-iga ja saad muudatuse enne salvestamist üle kontrollida.</p>'+
+    const selection=canUse?'<div class="wb-use-panel"><h3>Määra WOD päeva treeningule</h3>'+
+        '<p>Vali kuupäeva ja kellaaja järgi õige treening. Kinnitamisel salvestub see WOD kohe valitud treeningule.</p>'+
         (existing.length?
-          '<label for="wbExisting">Treening</label><select id="wbExisting">'+existing.map(t=>{
+          '<label for="wbExisting">Treeningu kuupäev ja kellaaeg</label><select id="wbExisting">'+existing.map(t=>{
             const id=numberId(t.id);if(id===null)return '';
-            const date=dateOf({created_at:t.starts_at});
-            return '<option value="'+id+'">'+esc(date+' · '+(t.title||'CrossFit'))+'</option>';
+            const when=new Intl.DateTimeFormat('et-EE',{
+              timeZone:'Europe/Tallinn',weekday:'short',day:'numeric',month:'short',year:'numeric',
+              hour:'2-digit',minute:'2-digit'
+            }).format(new Date(t.starts_at));
+            return '<option value="'+id+'">'+esc(when+' · '+(t.title||'CrossFit'))+'</option>';
           }).join('')+'</select>'+
-          '<button type="button" class="wb-primary" onclick="crossfitWodUI.useExisting()">Ava treening muutmiseks '+svg.arrow+'</button>':
-          '<p>Ühtegi tulevast treeningut veel pole. Loo uus treening nupuga „Kasuta treeningus”.</p>')+
+          '<button type="button" class="wb-primary" onclick="crossfitWodUI.useExisting()">Kinnita WOD valitud treeningule '+svg.arrow+'</button>':
+          '<p>Tulevasi avaldatud treeninguid veel pole. Loo esmalt treening või kasuta WOD-i uue treeningu vormis.</p>')+
         '</div>':
       '<div class="wb-use-panel wb-use-disabled"><h3>WOD-i kasutamine</h3>'+
-        '<p>Kinnita esmalt WOD-i tekst nupuga „Kinnita valmis”. Alles siis saad selle lisada olemasolevale treeningule.</p></div>';
+        '<p>Kinnita esmalt WOD-i tekst nupuga „Kinnita valmis”. Seejärel saad määrata selle valitud treeningule.</p></div>';
     const warning='<div class="wb-review-note">'+svg.check+
       '<span>'+(entry.status==='ready'?'Valmis WOD – teksti saab treeningus kasutada.':
         'Võrdle teksti originaalfotoga, paranda vajadusel ja kinnita alles siis valmis.')+'</span></div>';
@@ -359,14 +362,15 @@
   function reset(){
     s.wodUiSearch='';s.wodUiFilter='all';s.wodUiSort='newest';s.wodUiPage=0;window.render();
   }
-  function useExisting(){
-    if(!window.isTrainer()||s.modal!=='wodDetail')return false;
+  let assigningWod=false;
+  async function useExisting(){
+    if(assigningWod||!window.isTrainer()||s.modal!=='wodDetail')return false;
     const entry=(s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
     if(entry?.status!=='ready'||!String(entry.workout_text||'').trim()){
       window.toast('WOD tuleb enne kasutamist kinnitada valmis.');
       return false;
     }
-    // Kui tekst on avatud redaktoris muudetud, nõua enne kinnitatud versiooni uuendamist.
+    // Ära kirjuta salvestamata WOD-teksti kogemata treeningusse.
     const editor=document.getElementById('wodText');
     if(editor&&String(editor.value||'').trim()!==String(entry.workout_text).trim()){
       window.toast('Salvesta kõigepealt WOD-i muudatused.');
@@ -374,14 +378,31 @@
     }
     const selected=numberId(document.getElementById('wbExisting')?.value);
     const training=(s.trainings||[]).find(t=>Number(t.id)===selected&&
-      t.status==='published'&&Date.parse(t.starts_at)>Date.now());
+      t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now());
     if(!training){window.toast('Vali tulevane treening.');return false}
-    if(String(training.workout||'').trim()){
-      if(!window.confirm('Valitud treeningul on juba WOD. Kas soovid avada muutmisvormi ja asendada selle uue WOD-iga?'))return false;
+    const workout=String(entry.workout_text).trim();
+    if(String(training.workout||'').trim()&&String(training.workout).trim()!==workout){
+      if(!window.confirm('Valitud treeningul on juba WOD. Kas soovid selle asendada valitud WOD-panga treeninguga?'))return false;
     }
-    // Ainult avab treeningu muutmisvormi – muutus salvestub alles treeneri kinnitusel.
-    window.openTrainingForm({...training,workout:String(entry.workout_text).trim()});
-    return true;
+    assigningWod=true;
+    const button=document.querySelector('.wb-use-panel .wb-primary');
+    if(button){button.disabled=true;button.textContent='Salvestan WOD-i…';}
+    try{
+      await window.api('wod_trainings?id=eq.'+selected,{
+        method:'PATCH',headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({workout,updated_at:new Date().toISOString()})
+      });
+      s.modal=null;s.modalData=null;
+      await window.reloadData('WOD lisatud valitud treeningule');
+      window.openTraining(selected);
+      return true;
+    }catch(error){
+      window.toast(error?.message||'WOD-i määramine ebaõnnestus');
+      return false;
+    }finally{
+      assigningWod=false;
+      if(button?.isConnected){button.disabled=false;button.textContent='Kinnita WOD valitud treeningule';}
+    }
   }
 
   window.renderModal=renderModal;

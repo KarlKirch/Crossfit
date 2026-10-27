@@ -96,20 +96,11 @@
         '<textarea id="tfNote" placeholder="Mida peaks osaleja teadma?">'+esc(data.note||'')+'</textarea></div></div></details>';
   }
   function workout(data){
-    const ready=validWods();
-    return '<section class="tf-wod"><div class="tf-section-top"><h3>Treeningu sisu / WOD</h3>'+
-      '<span>'+ready.length+' kinnitatud WOD-i</span></div>'+
-      (ready.length?
-        '<div class="tf-wod-tools">'+
-          '<label for="tfWodSearch">Leia WOD-pangast</label>'+
-          '<input id="tfWodSearch" type="search" placeholder="Otsi nime või harjutuse järgi…" oninput="crossfitTrainingForm.filterWods(this.value)">'+
-          '<select id="tfWodSelect" aria-label="Vali kinnitatud WOD">'+
-          '<option value="">Vali WOD…</option>'+
-          ready.slice(0,80).map(w=>'<option value="'+idOf(w.id)+'">'+esc(String(w.title||'WOD').slice(0,85))+'</option>').join('')+
-          '</select><button type="button" class="tf-wod-pick" onclick="crossfitTrainingForm.useWod()">Kasuta valitud WOD-i</button>'+
-        '</div>':
-        '<p class="tf-wod-empty">WOD-pangas pole veel kinnitatud treeninguid. Kirjuta WOD käsitsi või kinnita see WOD-pangas.</p>')+
-      '<label for="tfWorkout">WOD-tekst</label>'+
+    // WOD valitakse pangas ja kinnitatakse otse soovitud päeva treeningule.
+    // Vormis on ainult kinnitatud WOD-tekst või treeneri käsitsi kirjutatud tekst.
+    return '<section class="tf-wod"><div class="tf-section-top"><h3>Treeningu sisu / WOD</h3></div>'+
+      '<p class="tf-help">WOD-pangast kinnitatud kava ilmub valitud treeningule automaatselt. Siin saad soovi korral teksti ka käsitsi muuta.</p>'+
+      '<label for="tfWorkout">Päeva WOD-tekst</label>'+
       '<textarea id="tfWorkout" placeholder="Näiteks: 5 rounds&#10;10 burpees&#10;15 squats">'+esc(data.workout||'')+'</textarea></section>';
   }
   function repeat(data){
@@ -130,6 +121,84 @@
       '<p id="tfRepeatPreview" class="tf-preview" aria-live="polite">Luuakse 1 treening.</p>'+
       '</section>';
   }
+
+  // Rakendusesisene kuupäevavalik. Natiivne date picker sõltub telefoni OS-ist
+  // ning võib alustada nädalat pühapäevast ka et-EE lehel.
+  let calendarMonth=null;
+  const calendarMonths=new Intl.DateTimeFormat('et-EE',{month:'long',year:'numeric',timeZone:'UTC'});
+  const pad=n=>String(n).padStart(2,'0');
+  function calendarDate(date){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(date)))return null;
+    const d=new Date(date+'T12:00:00Z');
+    return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===date?d:null;
+  }
+  function calendarField(date){
+    const safe=calendarDate(date)?date:dateString(new Date());
+    const label=safe.split('-').reverse().join('.');
+    calendarMonth=safe.slice(0,7);
+    return '<div class="field tf-calendar">'+
+      '<label for="tfDateTrigger">Kuupäev</label>'+
+      '<input id="tfDate" type="hidden" value="'+esc(safe)+'">'+
+      '<button type="button" class="tf-calendar-trigger" id="tfDateTrigger" aria-controls="tfCalendarPanel" aria-expanded="false" aria-haspopup="dialog" onclick="crossfitTrainingForm.toggleCalendar()">'+
+       esc(label)+' <span aria-hidden="true">▦</span></button>'+
+      '<div id="tfCalendarPanel" class="tf-calendar-panel" role="dialog" aria-label="Vali treeningu kuupäev" hidden></div>'+
+      '</div>';
+  }
+  function renderCalendar(){
+    const panel=byId('tfCalendarPanel');if(!panel)return;
+    const value=string('tfDate');
+    const month=calendarMonth&&/^\d{4}-\d{2}$/.test(calendarMonth)?calendarMonth:value.slice(0,7);
+    const first=calendarDate(month+'-01');if(!first)return;
+    const year=first.getUTCFullYear(),monthIdx=first.getUTCMonth();
+    const firstDow=(first.getUTCDay()+6)%7; // E = 0, P = 6
+    const days=new Date(Date.UTC(year,monthIdx+1,0)).getUTCDate();
+    const blank=Array.from({length:firstDow},()=>'<span class="tf-calendar-blank" aria-hidden="true"></span>').join('');
+    const cells=Array.from({length:days},(_,i)=>{
+      const iso=year+'-'+pad(monthIdx+1)+'-'+pad(i+1);
+      const selected=iso===value;
+      return '<button type="button" data-date="'+iso+'" aria-label="'+(i+1)+'. '+(monthIdx+1)+'. '+year+
+        '" aria-pressed="'+selected+'" class="'+(selected?'selected':'')+
+        '" onclick="crossfitTrainingForm.selectDate(\''+iso+'\')">'+(i+1)+'</button>';
+    }).join('');
+    // Kuu vahetamisel hoia päise nupud alles; muidu kaob vajutatud nupp
+    // hiire/puute sündmuse kestel DOM-ist ja võib tekitada topeltklikke.
+    if(!panel.querySelector('.tf-calendar-head')){
+      panel.innerHTML='<div class="tf-calendar-head"><button type="button" class="tf-calendar-prev" aria-label="Eelmine kuu" onclick="crossfitTrainingForm.moveMonth(-1)">‹</button>'+
+        '<strong></strong>'+
+        '<button type="button" class="tf-calendar-next" aria-label="Järgmine kuu" onclick="crossfitTrainingForm.moveMonth(1)">›</button></div>'+
+        '<div class="tf-calendar-weekdays">'+DAY.map(([day])=>'<span>'+day+'</span>').join('')+'</div>'+
+        '<div class="tf-calendar-grid"></div>';
+    }
+    panel.querySelector('.tf-calendar-head strong').textContent=calendarMonths.format(first);
+    panel.querySelector('.tf-calendar-grid').innerHTML=blank+cells;
+  }
+  function toggleCalendar(){
+    const panel=byId('tfCalendarPanel'),trigger=byId('tfDateTrigger');
+    if(!panel||!trigger)return;
+    panel.hidden=!panel.hidden;
+    trigger.setAttribute('aria-expanded',String(!panel.hidden));
+    if(!panel.hidden){calendarMonth=string('tfDate').slice(0,7);renderCalendar();}
+  }
+  function moveMonth(delta){
+    if(!Number.isInteger(delta)||Math.abs(delta)!==1)return;
+    const first=calendarDate((calendarMonth||string('tfDate').slice(0,7))+'-01');if(!first)return;
+    first.setUTCMonth(first.getUTCMonth()+delta);
+    calendarMonth=first.getUTCFullYear()+'-'+pad(first.getUTCMonth()+1);
+    renderCalendar();
+  }
+  function selectDate(value){
+    if(!calendarDate(value))return false;
+    const hidden=byId('tfDate'),trigger=byId('tfDateTrigger'),panel=byId('tfCalendarPanel');
+    if(!hidden||!trigger||!panel)return false;
+    hidden.value=value;
+    trigger.firstChild.textContent=value.split('-').reverse().join('.')+' ';
+    calendarMonth=value.slice(0,7);
+    panel.hidden=true;
+    trigger.setAttribute('aria-expanded','false');
+    preview();
+    return true;
+  }
+
   function form(data={}){
     if(!window.isTrainer())return originalForm(data);
     const p=formDates(data),editing=isEditing(data);
@@ -140,7 +209,7 @@
       '<p>Vali aeg, kohtade arv ja WOD. '+(editing?'Muudatused salvestatakse olemasolevale treeningule.':'Soovi korral loo korduvad ajad korraga.')+'</p></div>'+
       '<section class="tf-section"><h3>Millal toimub?</h3>'+
       '<div class="tf-two">'+
-        field('tfDate','Kuupäev',p.date,'type="date" required onchange="crossfitTrainingForm.preview()"')+
+        calendarField(p.date)+
         '<div class="field"><label for="tfTime">Algusaeg (Eesti aeg)</label>'+
         '<select id="tfTime" onchange="crossfitTrainingForm.preview()">'+window.timeOptions(p.time)+'</select></div>'+
       '</div>'+field('tfTitle','Treeningu nimetus',data.title||'CrossFit','maxlength="120" required')+
@@ -153,29 +222,6 @@
         (editing?'Salvesta muudatused':'Avalda treening')+'</button>'+
       '<button type="button" class="tf-cancel" onclick="closeModal()">Katkesta</button></div>'+
       '</div>';
-  }
-  function filterWods(value){
-    const select=byId('tfWodSelect');if(!select)return;
-    const q=String(value||'').trim().toLocaleLowerCase('et');
-    const ready=validWods().filter(w=>
-      [w.title,w.workout_text,w.source_date].some(x=>String(x||'').toLocaleLowerCase('et').includes(q))
-    ).slice(0,80);
-    // DOM API väldib kasutaja WOD-teksti lisamist HTML-ina.
-    select.replaceChildren(new Option(q?'Leitud WOD-id: '+ready.length:'Vali WOD…',''));
-    ready.forEach(w=>select.add(new Option(String(w.title||'WOD'),String(idOf(w.id)))));
-  }
-  function useWod(){
-    const id=idOf(string('tfWodSelect'));
-    const w=validWods().find(x=>idOf(x.id)===id);
-    const textarea=byId('tfWorkout');
-    if(!w||!textarea){window.toast('Vali kinnitatud WOD.');return false}
-    const next=String(w.workout_text).trim();
-    if(textarea.value.trim()&&textarea.value.trim()!==next){
-      if(!window.confirm('WOD-väljal on juba tekst. Kas asendada see valitud WOD-iga?'))return false;
-    }
-    textarea.value=next;textarea.focus();
-    window.toast('WOD lisatud vormile. Avaldamiseks vajuta Salvesta.');
-    return true;
   }
   function validateForm(id){
     const date=string('tfDate'),time=string('tfTime'),title=string('tfTitle').trim(),
@@ -247,5 +293,5 @@
   window.trainingForm=form;
   window.saveTrainingForm=save;
   window.crossfitTrainingForm={form,save,preview,repeatChanged:showRecurrence,recurringDates,
-    validateForm,filterWods,useWod,formPlan};
+    validateForm,formPlan,toggleCalendar,moveMonth,selectDate};
 })();
