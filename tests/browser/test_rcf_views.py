@@ -116,6 +116,9 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.page.goto(APP_URL, wait_until="domcontentloaded")
         self.page.locator(".app-shell").wait_for(state="visible", timeout=20000)
         self.page.locator(".bottom-nav").wait_for(state="visible")
+        # WOD moodul värskendab treeneri andmeid 160 ms pärast alglaadimist.
+        # Ootame selle ära, et Playwright ei klõpsaks vahepeal eemaldatud DOM-nuppe.
+        self.page.wait_for_timeout(350)
         return self.page
 
     def verify_fit(self):
