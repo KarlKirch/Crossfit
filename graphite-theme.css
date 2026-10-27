@@ -331,3 +331,38 @@ body .tf-wod .tf-help{color:#C2CDD3}
   }
   body :is(.sheet,.sheet-body){background:#222A30!important;color:#F4F6F7!important}
 }
+
+
+/* Avalehe erijuhud: eemaldame ülejäänud suurelt rohelised gradientpinnad. */
+body .rcf-shortcut.is-featured,
+body .rcf-shortcut.is-featured:hover{
+  background:linear-gradient(130deg,#39464D,#2B343B);
+  border-color:#69777F;color:#F4F6F7
+}
+body .rcf-shortcut:hover{background:#38444D;color:#F4F6F7}
+body .rcf-shortcut-icon{color:#B9EA6F}
+body .rcf-feature-card{
+  background:linear-gradient(140deg,#38454D 0%,#222A30 78%);
+  border-color:#56636C
+}
+body .rcf-feature-card:before{
+  background:radial-gradient(ellipse at 90% 12%,#B9EA6F18,transparent 45%)
+}
+body .rcf-wod-card{
+  background:linear-gradient(130deg,#303A42,#222A30 85%);
+  border-color:#57646D
+}
+body .rcf-wod-link{background:#343F47;border-color:#65727A;color:#F4F6F7}
+body .rcf-green-cta,body .rcf-green-cta:hover{
+  background:#B9EA6F;border-color:#B9EA6F;color:#14191E
+}
+body .rcf-green-cta:hover{background:#D0F59B}
+body :is(.rcf-card-eyebrow,.rcf-section-head button){color:#B9EA6F}
+body :is(.rcf-feature-date,.rcf-feature-metrics,.rcf-wod-content,
+  .rcf-wod-date,.rcf-wod-empty p,.rcf-metric-copy>span,
+  .rcf-metric-copy small,.rcf-later-list small){color:#C2CDD3}
+body .rcf-metric-card{background:#293137;border-color:#505D66}
+body .rcf-metric-card>svg{color:#B9EA6F}
+body .rcf-metric-copy strong{color:#F4F6F7}
+body .rcf-metric-icon{color:#B9EA6F;background:#38444A}
+body .rcf-admin-quick .rcf-shortcut{background:#293137;border-color:#505D66}
