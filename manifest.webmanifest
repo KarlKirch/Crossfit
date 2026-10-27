@@ -6,8 +6,8 @@
   "start_url": "/Crossfit/",
   "scope": "/Crossfit/",
   "display": "standalone",
-  "background_color": "#123426",
-  "theme_color": "#123426",
+  "background_color": "#14191E",
+  "theme_color": "#14191E",
   "prefer_related_applications": false,
   "categories": [
     "fitness",

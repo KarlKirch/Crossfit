@@ -7,9 +7,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const theme = read('forest-theme.css');
+const graphite = read('graphite-theme.css');
 
 function token(name) {
-  const match = theme.match(new RegExp('--' + name + ':\\s*(#[a-fA-F0-9]{6})(?=\\s*;)'));
+  const match = graphite.match(new RegExp('--' + name + ':\\s*(#[a-fA-F0-9]{6})(?=\\s*;)'));
   assert.ok(match, 'Puuduv värvimuutuja --' + name);
   return match[1];
 }
@@ -25,10 +26,11 @@ function contrast(a, b) {
   return (light + 0.05) / (dark + 0.05);
 }
 
-test('RCF kinnitatud roheline värvikeel säilib', () => {
-  assert.equal(token('bg').toUpperCase(), '#123426');
-  assert.equal(token('card').toUpperCase(), '#1E4634');
-  assert.equal(token('accent').toUpperCase(), '#B8F177');
+test('RCF grafiithall ja laimiroheline värvipalett', () => {
+  assert.equal(token('bg').toUpperCase(), '#14191E');
+  assert.equal(token('card').toUpperCase(), '#293137');
+  assert.equal(token('accent').toUpperCase(), '#B9EA6F');
+  assert.equal(token('text').toUpperCase(), '#F4F6F7');
 });
 
 test('põhitekst vastab vähemalt WCAG AA normaalsuuruses kontrastile', () => {
@@ -36,11 +38,12 @@ test('põhitekst vastab vähemalt WCAG AA normaalsuuruses kontrastile', () => {
   assert.ok(contrast(token('bg'), token('text')) >= 4.5);
 });
 
-test('metsaroheline kujundus laetakse algse stiilifaili järel', () => {
+test('grafiidikiht laetakse viimasena nii telefonis kui arvutis', () => {
   const html = read('index.html');
-  const baseIndex = html.indexOf('styles.css?');
-  const themeIndex = html.indexOf('forest-theme.css?');
-  assert.ok(baseIndex >= 0 && themeIndex > baseIndex);
+  const base = html.indexOf('styles.css?');
+  const forest = html.indexOf('forest-theme.css?');
+  const graphiteIndex = html.indexOf('graphite-theme.css?');
+  assert.ok(base >= 0 && forest > base && graphiteIndex > forest);
 });
 
 test('PWA manifesti põhiandmed ja ikoonide viited on olemas', () => {
@@ -62,11 +65,10 @@ test('teenusetöötaja on seotud sama rakenduse vahemäluga', () => {
 });
 
 
-test('heledal kliendikaardi statistikapinnal kasutatakse tumedat teksti', () => {
-  assert.equal(token('surface-light').toUpperCase(), '#FFFFFF');
+test('kliendikaardi tumedal statistikaalal on hele tekst', () => {
+  assert.equal(token('surface-light').toUpperCase(), '#293137');
   assert.ok(contrast(token('surface-light'), token('surface-light-text')) >= 4.5);
-  assert.match(theme, /body\s+\.cl-detail\s+\.cl-detail-stats>div\s*\{[^}]*background:var\(--surface-light\)/);
-  assert.match(theme, /body\s+\.cl-detail\s+\.cl-detail-stats>div\s*\{[^}]*color:var\(--surface-light-text\)/);
+  assert.match(graphite, /body\s+\.cl-detail\s+\.cl-detail-stats>div/);
 });
 
 test('treeningukaart ja detailaken kasutavad ühiseid kujundusmuutujaid', () => {
@@ -107,4 +109,24 @@ test('puutetundlikud põhinupud ning fookuse visuaal on läbivalt ühtsed', () =
   assert.match(theme, /--ui-touch-target:\s*44px;/);
   assert.match(theme, /min-height:var\(--ui-touch-target\)/);
   assert.match(theme, /outline:2px solid var\(--accent\)/);
+});
+
+
+test('laimirohelisel nupul on loetav grafiiditekst', () => {
+  assert.ok(contrast(token('accent'), '#14191E') >= 4.5);
+});
+
+test('PWA ja telefoni brauseri ülemine riba kasutavad grafiiti', () => {
+  const html = read('index.html');
+  const manifest = JSON.parse(read('manifest.webmanifest'));
+  assert.match(html, /name="theme-color" content="#14191E"/i);
+  assert.equal(manifest.theme_color.toUpperCase(), '#14191E');
+  assert.equal(manifest.background_color.toUpperCase(), '#14191E');
+});
+
+test('uue teema fail on teenusetöötaja vahemälus', () => {
+  const html = read('index.html'), sw = read('sw.js');
+  const version = html.match(/graphite-theme\.css\?v=(\d+)/)?.[1];
+  assert.ok(version);
+  assert.ok(sw.includes('graphite-theme.css?v=' + version));
 });

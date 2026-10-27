@@ -116,6 +116,9 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.page.goto(APP_URL, wait_until="domcontentloaded")
         self.page.locator(".app-shell").wait_for(state="visible", timeout=20000)
         self.page.locator(".bottom-nav").wait_for(state="visible")
+        # WOD moodul värskendab treeneri andmeid 160 ms pärast alglaadimist.
+        # Ootame selle ära, et Playwright ei klõpsaks vahepeal eemaldatud DOM-nuppe.
+        self.page.wait_for_timeout(350)
         return self.page
 
     def verify_fit(self):
@@ -164,8 +167,8 @@ class RCFBrowserSmoke(unittest.TestCase):
             bg: getComputedStyle(e).backgroundColor,
             text: getComputedStyle(e).color
         })""")
-        self.assertEqual(colors["bg"], "rgb(255, 255, 255)")
-        self.assertEqual(colors["text"], "rgb(16, 27, 19)")
+        self.assertEqual(colors["bg"], "rgb(41, 49, 55)")
+        self.assertEqual(colors["text"], "rgb(244, 246, 247)")
         self.snapshot("trainer-client-card-desktop")
 
     def test_small_phone_and_notifications(self):
@@ -308,7 +311,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(mobile["card"], desktop["card"])
         self.assertEqual(mobile["nav"], desktop["nav"])
         self.assertEqual(mobile["css"], desktop["css"])
-        self.assertEqual(mobile["shell"], "rgb(18, 52, 38)")
+        self.assertEqual(mobile["shell"], "rgb(20, 25, 30)")
 
     def test_training_calendar_starts_on_monday_and_selects_date(self):
         page = self.open_app("trainer", 390, 844)
@@ -355,6 +358,46 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(page.locator("#tfWodSelect").count(), 0)
         self.assertEqual(page.locator(".tf-wod-pick").count(), 0)
         self.assertEqual(page.locator("#tfWorkout").count(), 1)
+
+
+    def test_graphite_palette_for_training_clients_wod_and_calendar(self):
+        page = self.open_app("trainer", 390, 844)
+        def color(selector):
+            return page.locator(selector).first.evaluate(
+                "e => ({bg:getComputedStyle(e).backgroundColor, fg:getComputedStyle(e).color})")
+        self.assertEqual(color(".app-shell")["bg"], "rgb(20, 25, 30)")
+        self.assertEqual(color(".topbar")["bg"], "rgba(20, 25, 30, 0.96)")
+        self.assertEqual(color(".bottom-nav")["bg"], "rgba(20, 25, 30, 0.98)")
+        self.assertEqual(color(".rcf-shortcuts")["bg"], "rgb(34, 42, 48)")
+        page.locator(".bottom-nav").get_by_role("button", name="Treeningud").click()
+        page.locator(".tl-training-card").first.wait_for()
+        self.assertEqual(color(".tl-training-card")["bg"], "rgb(41, 49, 55)")
+        self.assert_contrast(".tl-training-card", ".tl-card-heading h3")
+        page.locator(".bottom-nav").get_by_role("button", name="Kliendid").click()
+        page.locator(".cl-card").first.wait_for()
+        self.assertEqual(color(".cl-card")["bg"], "rgb(41, 49, 55)")
+        page.evaluate("window.openWodBank()")
+        page.locator(".wb-card, .wb-empty").first.wait_for()
+        self.assertEqual(color(".sheet")["bg"], "rgb(34, 42, 48)")
+        page.locator(".sheet-close").click()
+        page.evaluate("window.openTrainingForm()")
+        page.locator(".tf-wod").wait_for()
+        self.assertEqual(color(".tf-wod")["bg"], "rgb(41, 49, 55)")
+        self.assert_contrast(".tf-wod", ".tf-wod .tf-help")
+        page.locator("#tfDateTrigger").click()
+        self.assertEqual(color(".tf-calendar-panel")["bg"], "rgb(34, 42, 48)")
+        self.snapshot("trainer-graphite-training-calendar-mobile")
+
+    def test_graphite_credit_form_and_webkit_match(self):
+        page = self.open_app("trainer", 390, 844, browser=self.webkit)
+        page.evaluate("(uid) => window.openAddCredits(uid)", CLIENT)
+        page.locator(".cx-credit-sheet .cx-credit-form").wait_for()
+        self.assert_contrast("#creditQty", "#creditQty")
+        self.assert_contrast(".cx-credit-presets button", ".cx-credit-presets button")
+        self.assert_contrast(".cx-credit-preview", "#creditBeforeAfter")
+        self.assertEqual(page.locator(".cx-credit-sheet").evaluate(
+            "e => getComputedStyle(e).backgroundColor"), "rgb(34, 42, 48)")
+        self.snapshot("trainer-graphite-credit-webkit")
 
 
 if __name__ == "__main__":
