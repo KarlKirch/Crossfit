@@ -342,11 +342,11 @@ class RCFBrowserSmoke(unittest.TestCase):
         page = self.open_app("trainer", 390, 844)
         page.evaluate("""() => {
             window.state.wodBank = [{
-                id:77, title:'WOD', status:'ready', workout_text:'4 ROUNDS\n10 BURPEES\n12 SQUATS',
+                id:77, title:'WOD', status:'ready', workout_text:'4 ROUNDS, 10 BURPEES, 12 SQUATS',
                 draft_text:'', image_path:'test/photo.webp', source_date:'2026-09-15'
             }];
             window.openWodEntry(77);
-        }""".replace("4 ROUNDS\n10 BURPEES\n12 SQUATS","4 ROUNDS\\n10 BURPEES\\n12 SQUATS"))
+        }""")
         page.locator("#wbExisting").wait_for(state="visible")
         page.locator("#wbExisting").select_option("201")
         with page.expect_request(lambda req: "/rest/v1/wod_trainings" in req.url
@@ -354,7 +354,7 @@ class RCFBrowserSmoke(unittest.TestCase):
             page.locator(".wb-use-panel .wb-primary").click()
         call = request.value
         self.assertIn("id=eq.201", call.url)
-        self.assertEqual(call.post_data_json["workout"], "4 ROUNDS\n10 BURPEES\n12 SQUATS")
+        self.assertEqual(call.post_data_json["workout"], "4 ROUNDS, 10 BURPEES, 12 SQUATS")
         self.assertFalse(page.locator(".tf-form").is_visible(),
                          "Valitud WOD ei tohi avada teist vormi või uut WOD valikut")
 
