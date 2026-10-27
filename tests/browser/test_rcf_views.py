@@ -289,5 +289,83 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("13 krediiti", page.locator("#creditBeforeAfter").inner_text())
 
 
+    def test_mobile_and_desktop_use_same_dark_theme(self):
+        mobile = self.open_app("trainer", 390, 844)
+        def colors(page):
+            return page.evaluate("""() => {
+                const get = s => getComputedStyle(document.querySelector(s)).backgroundColor;
+                return {shell:get('.app-shell'), card:get('.rcf-shortcuts'),
+                        nav:get('.bottom-nav'),
+                        css:document.querySelector('link[href*="forest-theme.css"]').href};
+            }""")
+        mobile_colors = colors(mobile)
+        # Teine sõltumatu brauseriaken: võrdleme kuvatavaid värve, mitte ainult CSS teksti.
+        desktop = self.browser.new_context(viewport={"width": 1280, "height": 800},
+                                           service_workers="block")
+        try:
+            desktop.route("**/*", lambda route: (
+                route.continue_() if urlparse(route.request.url).netloc == urlparse(ORIGIN).netloc
+                else route.abort()))
+            desktop_page = desktop.new_page()
+            desktop_page.goto(APP_URL, wait_until="domcontentloaded")
+            desktop_colors = colors(desktop_page)
+            self.assertEqual(mobile_colors["shell"], desktop_colors["shell"])
+            self.assertEqual(mobile_colors["card"], desktop_colors["card"])
+            self.assertEqual(mobile_colors["nav"], desktop_colors["nav"])
+            self.assertEqual(mobile_colors["css"], desktop_colors["css"])
+            self.assertEqual(mobile_colors["shell"], "rgb(18, 52, 38)")
+        finally:
+            desktop.close()
+
+    def test_training_calendar_starts_on_monday_and_selects_date(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("() => window.openTrainingForm()")
+        page.locator(".tf-calendar").wait_for(state="visible")
+        self.assertEqual(page.locator("#tfDate").get_attribute("type"), "hidden",
+                         "Native date picker follows device locale and can start on Sunday")
+        page.locator("#tfDateTrigger").click()
+        labels = page.locator(".tf-calendar-weekdays span").all_inner_texts()
+        self.assertEqual(labels, ["E", "T", "K", "N", "R", "L", "P"])
+        self.assertEqual(page.locator(".tf-calendar-grid button").count(),
+                         page.locator(".tf-calendar-grid button").count())
+        self.assertEqual(page.locator(".tf-calendar-grid").evaluate(
+            "e => getComputedStyle(e).gridTemplateColumns.split(' ').length"), 7)
+        before = page.locator("#tfDate").input_value()
+        page.locator(".tf-calendar-next").click()
+        page.locator(".tf-calendar-grid button[data-date]").first.click()
+        after = page.locator("#tfDate").input_value()
+        self.assertRegex(after, r"^20\d{2}-\d{2}-\d{2}$")
+        self.assertNotEqual(after, before)
+        self.assertIn(after[8:], page.locator("#tfDateTrigger").inner_text())
+
+    def test_wod_bank_confirm_assigns_directly_without_second_form(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("""() => {
+            window.state.wodBank = [{
+                id:77, title:'WOD', status:'ready', workout_text:'4 ROUNDS\n10 BURPEES\n12 SQUATS',
+                draft_text:'', image_path:'test/photo.webp', source_date:'2026-09-15'
+            }];
+            window.openWodEntry(77);
+        }""".replace("4 ROUNDS\n10 BURPEES\n12 SQUATS","4 ROUNDS\\n10 BURPEES\\n12 SQUATS"))
+        page.locator("#wbExisting").wait_for(state="visible")
+        page.locator("#wbExisting").select_option("201")
+        with page.expect_request(lambda req: "/rest/v1/wod_trainings" in req.url
+                                 and req.method == "PATCH", timeout=10000) as request:
+            page.locator(".wb-use-panel .wb-primary").click()
+        call = request.value
+        self.assertIn("id=eq.201", call.url)
+        self.assertEqual(call.post_data_json["workout"], "4 ROUNDS\n10 BURPEES\n12 SQUATS")
+        self.assertFalse(page.locator(".tf-form").is_visible(),
+                         "Valitud WOD ei tohi avada teist vormi või uut WOD valikut")
+
+    def test_training_form_has_no_indistinguishable_wod_dropdown(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("() => window.openTrainingForm()")
+        page.locator(".tf-form").wait_for(state="visible")
+        self.assertEqual(page.locator("#tfWodSelect").count(), 0)
+        self.assertEqual(page.locator(".tf-wod-pick").count(), 0)
+        self.assertEqual(page.locator("#tfWorkout").count(), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
