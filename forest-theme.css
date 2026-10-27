@@ -551,3 +551,58 @@ body .cx-credit-sheet .cx-credit-preview>strong{
 body .cx-credit-sheet .cx-credit-preview>.cx-credit-error{
   color:#FFB8B2;
 }
+
+
+/* 5.6.9 — sama metsaroheline kujundus ka telefoni installitud PWA-s.
+   Brauseri väikse ekraani korral ei tohi vanade heledate mobiilireeglite
+   tõttu rakendus, kaardid või navigeerimine heledaks muutuda. */
+@media (max-width:760px){
+  html,body{background:#102D21!important;color:#F5FAF2!important;color-scheme:dark}
+  body .app-shell{background:#123426!important;color:#F5FAF2!important}
+  body .topbar{background:rgba(18,52,38,.95)!important;color:#F5FAF2!important}
+  body .bottom-nav{background:rgba(20,56,40,.97)!important;color:#F5FAF2!important}
+  body :is(.card,.training-card,.client-card,.tl-training-card,.tf-section,.tf-wod,
+    .my-account-card,.my-booking-card,.wb-card,.nc-notice,.home-stat-card,
+    .rcf-shortcuts,.rcf-mini-empty){
+    background-color:#1E4634;color:#F5FAF2;border-color:#5D866B
+  }
+  body :is(.sheet,.sheet-body){background:#1D4633!important;color:#F4F9F0!important}
+}
+
+/* Treeningu kuupäevavalik: nädal alati E–P, sõltumata telefoni regioonist. */
+body .tf-calendar{position:relative;min-width:0}
+body .tf-calendar-trigger{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;min-height:46px;padding:11px 13px;border:1px solid #779D80;
+  border-radius:13px;background:#224A37;color:#F5FAF2;text-align:left;
+  font:inherit;font-weight:750
+}
+body .tf-calendar-trigger>span{color:#B8F177;font-size:22px;line-height:1}
+body .tf-calendar-panel{
+  position:relative;z-index:3;display:grid;gap:9px;margin-top:8px;padding:14px;
+  background:#183B2A;border:1px solid #6A966F;border-radius:15px;color:#F5FAF2;
+  box-shadow:0 12px 28px #00180e66
+}
+body .tf-calendar-panel[hidden]{display:none!important}
+body .tf-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+body .tf-calendar-head>strong{font-size:15px;text-transform:capitalize;color:#F5FAF2}
+body .tf-calendar-head button{
+  display:grid;place-items:center;min-width:42px;min-height:42px;border-radius:11px;
+  border:1px solid #5D866B;background:#285E43;color:#F5FAF2;font-size:26px
+}
+body .tf-calendar-weekdays,body .tf-calendar-grid{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center
+}
+body .tf-calendar-weekdays span{font-size:11px;font-weight:900;color:#CFFA9D;padding:7px 0}
+body .tf-calendar-grid button{
+  display:grid;place-items:center;min-width:0;min-height:40px;padding:0;border:1px solid transparent;
+  border-radius:9px;background:#24533B;color:#F5FAF2;font-size:13px;font-weight:700
+}
+body .tf-calendar-grid button:hover,body .tf-calendar-grid button:focus-visible{
+  background:#367C52;outline:2px solid #B8F177;outline-offset:1px
+}
+body .tf-calendar-grid button.selected{
+  background:#B8F177;color:#123426;font-weight:950
+}
+body .tf-calendar-blank{min-height:40px}
+body .tf-wod .tf-help{margin:7px 0 12px;line-height:1.5;color:#D4EAD7}
