@@ -400,5 +400,15 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.snapshot("trainer-graphite-credit-webkit")
 
 
+    def test_two_hour_free_cancellation_default_and_policy(self):
+        page = self.open_app("trainer", 390, 844)
+        page.evaluate("() => window.openTrainingForm()")
+        page.locator("#tfCancel").wait_for(state="attached")
+        self.assertEqual(page.locator("#tfCancel").input_value(), "2")
+        self.assertEqual(page.evaluate("""() => window.cancellationDeadline({
+            starts_at:'2026-11-12T19:00:00.000Z',cancellation_hours:2
+        }).toISOString()"""), "2026-11-12T17:00:00.000Z")
+
+
 if __name__ == "__main__":
     unittest.main()
