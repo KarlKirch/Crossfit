@@ -160,11 +160,17 @@
         '" aria-pressed="'+selected+'" class="'+(selected?'selected':'')+
         '" onclick="crossfitTrainingForm.selectDate(\''+iso+'\')">'+(i+1)+'</button>';
     }).join('');
-    panel.innerHTML='<div class="tf-calendar-head"><button type="button" class="tf-calendar-prev" aria-label="Eelmine kuu" onclick="crossfitTrainingForm.moveMonth(-1)">‹</button>'+
-      '<strong>'+esc(calendarMonths.format(first))+'</strong>'+
-      '<button type="button" class="tf-calendar-next" aria-label="Järgmine kuu" onclick="crossfitTrainingForm.moveMonth(1)">›</button></div>'+
-      '<div class="tf-calendar-weekdays">'+DAY.map(([day])=>'<span>'+day+'</span>').join('')+'</div>'+
-      '<div class="tf-calendar-grid">'+blank+cells+'</div>';
+    // Kuu vahetamisel hoia päise nupud alles; muidu kaob vajutatud nupp
+    // hiire/puute sündmuse kestel DOM-ist ja võib tekitada topeltklikke.
+    if(!panel.querySelector('.tf-calendar-head')){
+      panel.innerHTML='<div class="tf-calendar-head"><button type="button" class="tf-calendar-prev" aria-label="Eelmine kuu" onclick="crossfitTrainingForm.moveMonth(-1)">‹</button>'+
+        '<strong></strong>'+
+        '<button type="button" class="tf-calendar-next" aria-label="Järgmine kuu" onclick="crossfitTrainingForm.moveMonth(1)">›</button></div>'+
+        '<div class="tf-calendar-weekdays">'+DAY.map(([day])=>'<span>'+day+'</span>').join('')+'</div>'+
+        '<div class="tf-calendar-grid"></div>';
+    }
+    panel.querySelector('.tf-calendar-head strong').textContent=calendarMonths.format(first);
+    panel.querySelector('.tf-calendar-grid').innerHTML=blank+cells;
   }
   function toggleCalendar(){
     const panel=byId('tfCalendarPanel'),trigger=byId('tfDateTrigger');
