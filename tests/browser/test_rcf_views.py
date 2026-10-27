@@ -46,7 +46,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(self.page_errors, [],
                          'Brauseris ilmnesid käsitlemata JavaScripti vead')
 
-    def open_app(self, role="client", width=390, height=844, browser=None):
+    def open_app(self, role="client", width=390, height=844, browser=None, wods=None):
         uid = TRAINER if role == "trainer" else CLIENT
         profile = {"user_id": uid, "display_name": "Testtreener" if role == "trainer" else "Testklient",
                    "role": role, "avatar_path": None}
@@ -88,7 +88,7 @@ class RCFBrowserSmoke(unittest.TestCase):
                     elif name == "wod_wallets":
                         payload = [{"user_id": CLIENT, "credits": 3}]
                     elif name == "wod_bank_entries":
-                        payload = []
+                        payload = wods if wods is not None else []
                     else:
                         payload = []
                 else:
@@ -223,7 +223,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator(".sheet-close").click()
         page.evaluate("window.openTrainingForm()")
         page.locator(".tf-form").wait_for(state="visible")
-        self.assert_contrast(".tf-wod", ".tf-section-top > span")
+        self.assert_contrast(".tf-wod", ".tf-wod .tf-help")
         self.verify_fit()
         self.snapshot("trainer-training-form-mobile")
 
@@ -330,15 +330,14 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn(after[8:], page.locator("#tfDateTrigger").inner_text())
 
     def test_wod_bank_confirm_assigns_directly_without_second_form(self):
-        page = self.open_app("trainer", 390, 844)
-        page.evaluate("""() => {
-            window.state.wodBank = [{
-                id:77, title:'WOD', status:'ready', workout_text:'4 ROUNDS, 10 BURPEES, 12 SQUATS',
-                draft_text:'', image_path:'test/photo.webp', source_date:'2026-09-15'
-            }];
-            window.openWodEntry(77);
-        }""")
-        page.locator("#wbExisting").wait_for(state="visible")
+        wod = [{
+            "id":77, "title":"WOD", "status":"ready",
+            "workout_text":"4 ROUNDS, 10 BURPEES, 12 SQUATS",
+            "draft_text":"", "image_path":"test/photo.webp", "source_date":"2026-09-15"
+        }]
+        page = self.open_app("trainer", 390, 844, wods=wod)
+        page.evaluate("() => window.openWodEntry(77)")
+        page.locator("#wbExisting").wait_for(state="visible", timeout=10000)
         page.locator("#wbExisting").select_option("201")
         with page.expect_request(lambda req: "/rest/v1/wod_trainings" in req.url
                                  and req.method == "PATCH", timeout=10000) as request:
