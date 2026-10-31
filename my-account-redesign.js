@@ -174,7 +174,8 @@
       '<span><strong>Konto ja seaded</strong><small>Teavitused, jagamine ja rakenduse haldus</small></span>'+icons.chevron+'</summary>'+
       '<div class="my-details-inner">'+
       menuRow(icons.edit,'Muuda profiili','Nimi ja profiilipilt','openProfileEdit()')+
-      menuRow(icons.bell,'Teavitused','Teavituste ajalugu ja lubamine',"go('notifications')")+
+      menuRow(icons.bell,'Teavitused','Vaata treeningute teateid',"go('notifications')")+
+      (window.crossfitNotifications?.pushSettings?.()||'')+
       menuRow(icons.share,'Kutsu sõber','Jaga CrossFiti linki','openShare()')+
       install+
       menuRow(icons.info,'Rakenduse info','Versioon ja kasutustingimused','openInfo()')+
