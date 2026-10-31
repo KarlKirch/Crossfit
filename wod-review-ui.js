@@ -284,50 +284,54 @@
       '</div></div></div>';
   }
   function renderDetail(){
-    let original=beforeModal();
     const entry=(s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
-    if(!entry||!window.isTrainer())return original;
-    // Vana WOD-i kuupäevaväljale paku fototekstist tuvastatud kuupäev.
-    // Treener saab selle enne kinnitamist üle kontrollida ja muuta.
-    const detected=effectiveDate(entry);
-    if(detected.kind==='board'&&detected.date!==validDate(entry.source_date)){
-      const existing='<input id="wodDate" type="date" value="'+esc(entry.source_date||'')+'">';
-      original=original.replace(existing,'<input id="wodDate" type="date" value="'+detected.date+'">');
-    }
-    const canUse=entry.status==='ready'&&String(entry.workout_text||'').trim();
+    if(!entry||!window.isTrainer())return beforeModal();
+    const id=numberId(entry.id),info=effectiveDate(entry);
+    if(!id)return beforeModal();
+    const text=textOf(entry);
+    const recorded=validDate(entry.source_date)||info.date;
+    const orig=entry.image_path?
+      '<img class="wb-photo wb-detail-photo" data-wod-path="'+esc(entry.image_path)+
+      '" alt="WOD-i originaalfoto" loading="lazy" onclick="openWodImage(\''+esc(entry.image_path)+'\')">':
+      (entry.source_drive_file_id?image(entry):'<span class="wb-photo-placeholder">Originaalfotot pole</span>');
     const existing=(s.trainings||[]).filter(t=>t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now())
       .sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)).slice(0,50);
-    const selection=canUse?'<div class="wb-use-panel"><h3>Määra WOD päeva treeningule</h3>'+
-        '<p>Vali kuupäeva ja kellaaja järgi õige treening. Kinnitamisel salvestub see WOD kohe valitud treeningule.</p>'+
-        (existing.length?
-          '<label for="wbExisting">Treeningu kuupäev ja kellaaeg</label><select id="wbExisting">'+existing.map(t=>{
-            const id=numberId(t.id);if(id===null)return '';
-            const when=new Intl.DateTimeFormat('et-EE',{
-              timeZone:'Europe/Tallinn',weekday:'short',day:'numeric',month:'short',year:'numeric',
-              hour:'2-digit',minute:'2-digit'
-            }).format(new Date(t.starts_at));
-            return '<option value="'+id+'">'+esc(when+' · '+(t.title||'CrossFit'))+'</option>';
-          }).join('')+'</select>'+
-          '<button type="button" class="wb-primary" onclick="crossfitWodUI.useExisting()">Kinnita WOD valitud treeningule '+svg.arrow+'</button>':
-          '<p>Tulevasi avaldatud treeninguid veel pole. Loo esmalt treening või kasuta WOD-i uue treeningu vormis.</p>')+
-        '</div>':
-      '<div class="wb-use-panel wb-use-disabled"><h3>WOD-i kasutamine</h3>'+
-        '<p>Kinnita esmalt WOD-i tekst nupuga „Kinnita valmis”. Seejärel saad määrata selle valitud treeningule.</p></div>';
-    const warning='<div class="wb-review-note">'+svg.check+
-      '<span>'+(entry.status==='ready'?'Valmis WOD – teksti saab treeningus kasutada.':
-        'Võrdle teksti originaalfotoga, paranda vajadusel ja kinnita alles siis valmis.')+'</span></div>';
-    const marker='<div class="training-meta" style="margin-bottom:12px">';
-    if(!original.includes(marker))return original;
-    const info=effectiveDate(entry);
-    const boardHint='<div class="wb-photo-date-note"><strong>Järjestamise kuupäev: '+esc(dateOf(entry))+'</strong>'+
-      '<span>'+dateCaption(entry)+'</span>'+
-      (info.conflict?'<p>WOD-i tekstis on '+esc(dateOf(entry))+
-        ', kuid faili kuupäev on '+esc(info.recorded.split('-').reverse().join('.'))+
-        '. Kontrolli originaalfotot ja vajadusel paranda kuupäevavälja.</p>':'')+'</div>';
-    const structured='<section class="wb-detail-preview"><h3>Kava ülevaade</h3>'+
-      structuredText(textOf(entry),false)+'</section>';
-    return original.replace(marker,boardHint+warning+structured+selection+marker);
+    const choose=existing.length?'<section class="wb-use-panel"><h3>Kasuta seda WOD-i treeningus</h3>'+
+      '<label for="wbExisting">Vali treening (kuupäev ja kellaaeg)</label>'+
+      '<select id="wbExisting">'+existing.map(t=>{
+        const tid=numberId(t.id);if(tid===null)return '';
+        const when=new Intl.DateTimeFormat('et-EE',{timeZone:'Europe/Tallinn',
+          weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+          .format(new Date(t.starts_at));
+        return '<option value="'+tid+'">'+esc(when+' · '+(t.title||'CrossFit'))+'</option>';
+      }).join('')+'</select>'+
+      '<button type="button" class="wb-primary" onclick="crossfitWodUI.useExisting()">Salvesta ja kasuta valitud treeningus '+svg.arrow+'</button>'+
+      '</section>':'<p class="wb-empty-usage">Tulevasi treeninguid veel pole. Saad selle WOD-iga uue treeningu luua.</p>';
+    const form='<div class="wb-one-editor">'+
+      '<div class="wb-original"><strong>Originaalfoto</strong>'+orig+'</div>'+
+      '<div class="wb-edit-fields"><div class="field"><label for="wodDate">Kuupäev</label>'+
+      '<input id="wodDate" type="date" value="'+esc(recorded)+'"></div>'+
+      '<div class="field"><label for="wodTitle">Pealkiri (valikuline)</label>'+
+      '<input id="wodTitle" maxlength="120" value="'+esc(window.wodEditableTitle?.(entry.title)||'')+'"></div></div>'+
+      '<div class="field"><label for="wodText">WOD-i kava</label>'+
+      '<textarea id="wodText" placeholder="Kirjuta või paranda kava siin..." spellcheck="false">'+esc(text)+'</textarea>'+
+      '<p class="wb-editor-hint">Vajadusel võrdle teksti originaalfotoga. Kõiki vanu kavasid pole fotolt käsitsi kontrollitud.</p>'+
+      '</div>'+
+      '<div class="wb-simple-actions">'+
+        '<button type="button" class="wb-secondary" onclick="crossfitWodUI.saveText()">Salvesta WOD</button>'+
+        '<button type="button" class="wb-secondary" onclick="copyWodText('+id+')">Kopeeri tekst</button>'+
+      '</div>'+choose+
+      '<div class="wb-new-session"><button type="button" class="wb-secondary" onclick="crossfitWodUI.useNew()">Loo selle WOD-iga uus treening</button></div>'+
+      '<details class="wb-advanced-actions"><summary>Muud toimingud</summary>'+
+        '<button type="button" class="btn btn-danger" onclick="deleteWodEntry('+id+')">Eemalda WOD</button>'+
+      '</details></div>';
+    return '<div class="sheet-backdrop" onclick="backdropClose(event)">'+
+      '<div class="sheet wb-sheet" role="dialog" aria-modal="true" aria-labelledby="wbDetailTitle" onclick="event.stopPropagation()">'+
+      '<div class="sheet-head"><div id="wbDetailTitle" class="sheet-title">WOD-i muutmine</div>'+
+      '<button type="button" class="sheet-close" aria-label="Sulge" onclick="closeModal()">×</button></div>'+
+      '<div class="sheet-body wb-detail-body">'+form+'</div></div></div>';
   }
+
   function renderModal(){
     if(!window.isTrainer())return beforeModal();
     if(s.modal==='wodBank')return renderBank();
