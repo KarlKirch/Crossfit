@@ -237,7 +237,8 @@ test('Tasuta tühistamine on uuel treeningul vaikimisi 2 tundi',()=>{
   const deadline=context.cancellationDeadline({starts_at:start,cancellation_hours:2});
   assert.equal(deadline.toISOString(),'2026-11-12T17:00:00.000Z');
   assert(read('credit-system.js').includes('d.cancellation_hours??2'));
-  assert(read('pro-features.js').includes('t.cancellation_hours??2'));
+  assert(!read('pro-features.js').includes('openTemplates()'));
+  assert(!read('training-list-redesign.js').includes('openTemplates()'));
   context.copyTraining(12);
   assert.equal(context.state.modalData.cancellation_hours,2,'Vana treeningu kopeerimine peab kasutama uut 2h piiri');
 });
