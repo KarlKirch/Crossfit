@@ -373,7 +373,7 @@ test('Sularahabroneering ja vestlus on kliendile ning treenerile saadaval',()=>{
   assert(cash.includes("rpc('wod_register_cash'"));
   assert(msg.includes("rpc('wod_send_private_message'"));
   assert(msg.includes('wod_private_messages?select='));
-  assert(msg.includes("role='dialog'"));
+  assert(msg.includes('role="dialog"'));
   assert(detail.includes('crossfitCash.register('));
   assert(detail.includes('setPayment('));
   assert(read('notification-center.js').includes("item.kind==='private_message'"));
@@ -384,12 +384,15 @@ test('Kliendi registreerimise vaates pakutakse sularaha ka null krediidiga',()=>
   context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
   context.state.session.user.id=clientId;
   context.state.wallets=[{user_id:clientId,credits:0}];
+  const oldRegs=context.state.registrations;
+  context.state.registrations=oldRegs.filter(r=>r.user_id!==clientId);
   context.state.modal='training';context.state.modalData=11;
   context.render();
   assert(htmlRoot.innerHTML.includes('Maksan kohapeal'));
   assert(htmlRoot.innerHTML.includes('crossfitCash.register(11)'));
   assert(!htmlRoot.innerHTML.includes('registerTraining(11)'));
   assert(htmlRoot.innerHTML.includes('crossfitMessages.open()'));
+  context.state.registrations=oldRegs;
 });
 test('Treeneril on privaatsõnumite postkast, kliendil sõnuminupp',()=>{
   context.state.modal=null;
