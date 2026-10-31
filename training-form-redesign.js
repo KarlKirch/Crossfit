@@ -86,11 +86,11 @@
     return '<div class="field"><label for="'+id+'">'+label+'</label><input id="'+id+'" value="'+esc(value)+'" '+attrs+'></div>';
   }
   function details(data){
-    const price=Number(data.price_cents??500)/100;
+    const price=Number(data.price_cents??800)/100;
     const cancel=Number(data.cancellation_hours??2);
     return '<details class="tf-more"><summary>Lisaseaded <span>Hind, tühistamise aeg ja märkus</span></summary>'+
       '<div class="tf-more-fields"><div class="tf-two">'+
-        field('tfPrice','Hind (€)',String(price),'type="number" min="0" max="10000" step="0.01" inputmode="decimal"')+
+        field('tfPrice','Hind (€)',String(price),'type="number" min="0" max="10000" step="1" inputmode="numeric"')+
         field('tfCancel','Tasuta tühistamine (tundi enne)',String(cancel),'type="number" min="0" max="72" step="1"')+
       '</div><div class="field"><label for="tfNote">Treeneri märkus</label>'+
         '<textarea id="tfNote" placeholder="Mida peaks osaleja teadma?">'+esc(data.note||'')+'</textarea></div></div></details>';
@@ -99,7 +99,7 @@
     // WOD valitakse pangas ja kinnitatakse otse soovitud päeva treeningule.
     // Vormis on ainult kinnitatud WOD-tekst või treeneri käsitsi kirjutatud tekst.
     return '<section class="tf-wod"><div class="tf-section-top"><h3>Treeningu sisu / WOD</h3></div>'+
-      '<p class="tf-help">WOD-pangast kinnitatud kava ilmub valitud treeningule automaatselt. Siin saad soovi korral teksti ka käsitsi muuta.</p>'+
+      '<p class="tf-help">Kirjuta oma treening või lisa WOD-pangast valitud kava.</p>'+
       '<label for="tfWorkout">Päeva WOD-tekst</label>'+
       '<textarea id="tfWorkout" placeholder="Näiteks: 5 rounds&#10;10 burpees&#10;15 squats">'+esc(data.workout||'')+'</textarea></section>';
   }

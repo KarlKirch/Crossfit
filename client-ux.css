@@ -78,3 +78,39 @@ body .rcf-preview-entry button:focus-visible{outline:3px solid #B9EA6F;outline-o
   body .rcf-preview-scenario{padding:6px 7px;font-size:10px}
   body .rcf-preview-label span{font-size:9px}
 }
+
+
+/* Ühe WOD-teksti töövoog – originaalfoto, tekst ja üks selge kasutamisnupp. */
+body .wb-detail-body{padding:14px;min-width:0}
+body .wb-one-editor{display:grid;gap:16px;min-width:0;color:#F4F6F7}
+body .wb-original{display:grid;gap:8px;min-width:0}
+body .wb-original>strong{color:#DDE5E8;font-size:13px}
+body .wb-detail-photo{
+  display:block;width:100%;max-height:360px;object-fit:contain;
+  border:1px solid #53616A;border-radius:13px;background:#293137;cursor:zoom-in
+}
+body .wb-edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+body .wb-edit-fields>.field{min-width:0}
+body .wb-one-editor #wodText{
+  box-sizing:border-box;display:block;width:100%;min-height:260px;
+  resize:vertical;font-size:15px;line-height:1.55;padding:12px;
+  background:#222A30!important;color:#F4F6F7!important;border:1px solid #67737C!important
+}
+body .wb-editor-hint{margin:8px 0 0;color:#C2CDD3;font-size:12px;line-height:1.4}
+body .wb-simple-actions{display:flex;flex-wrap:wrap;gap:8px}
+body .wb-simple-actions button{flex:1;min-height:44px}
+body .wb-simple-actions button:first-child{background:#B9EA6F;color:#14191E;border-color:#B9EA6F}
+body .wb-use-panel{display:grid;gap:10px;background:#293137;border:1px solid #596773;border-radius:14px;padding:14px}
+body .wb-use-panel>h3{margin:0;font-size:17px}
+body .wb-use-panel>label{font-size:13px;color:#D5DFE3}
+body .wb-use-panel select{width:100%}
+body .wb-use-panel .wb-primary{min-height:48px;background:#B9EA6F;color:#14191E}
+body .wb-new-session>.wb-secondary{width:100%;min-height:44px}
+body .wb-empty-usage{color:#D5DFE3;font-size:13px}
+body .wb-advanced-actions{border-top:1px solid #505D66;padding-top:8px}
+body .wb-advanced-actions summary{font-size:12px;color:#D0D9DD;cursor:pointer}
+body .wb-advanced-actions>.btn{margin-top:10px}
+@media(max-width:440px){
+  body .wb-edit-fields{grid-template-columns:1fr}
+  body .wb-detail-photo{max-height:290px}
+}

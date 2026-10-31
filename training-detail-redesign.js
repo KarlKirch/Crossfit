@@ -110,9 +110,7 @@
     return block('Treeneri tegevused',
       '<div class="td-actions">'+
         btn('openTrainingForm('+id+')','Muuda treeningut')+
-        btn('copyTraining('+id+')','Kopeeri treening','secondary')+
-        btn('saveTrainingAsTemplate('+id+')','Salvesta mallina','secondary')+
-        btn('openTemplates()','Treeningumallid','secondary')+'</div>'+
+        btn('copyTraining('+id+')','Kopeeri treening','secondary')+'</div>'+
       '<details class="td-danger-zone"><summary>Treeningu tühistamine ja kustutamine</summary>'+
         '<div class="td-actions">'+
         (t.status!=='cancelled'?btn('cancelTraining('+id+')','Tühista ja tagasta krediidid','danger'):'')+

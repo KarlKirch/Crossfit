@@ -36,10 +36,8 @@
     }).length;
   }
   function metrics(){
-    const templates=Array.isArray(s.trainingTemplates)?s.trainingTemplates.length:0;
     const announcements=Array.isArray(s.announcements)?s.announcements.length:0;
     return [
-      {name:'Treeningumalle',value:templates,detail:'salvestatud',icon:ic.template},
       {name:'Teadaandeid',value:announcements,detail:'viimaseid salvestatud',icon:ic.speaker},
       {name:'Treeninguid',value:completedTrainings90(),detail:'viimase 90 päeva jooksul',icon:ic.calendar},
       {name:'Kliente',value:activeClients(),detail:'aktiivses nimekirjas',icon:ic.users}
@@ -76,10 +74,9 @@
       item(ic.phone,'Paigalda rakendus','Lisa CrossFit telefoni või arvuti avakuvale','installApp()');
     return '<div class="ad-admin">'+
       '<header class="ad-heading"><span>JUHTIMINE JA SEADISTUS</span>'+
-        '<h1>Haldus</h1><p>Treeningumallid, teavitused ja aruanded ühes kohas.</p></header>'+
+        '<h1>Haldus</h1><p>Treeningud, teavitused ja aruanded ühes kohas.</p></header>'+
       '<div class="ad-stats" aria-label="Haldusnäitajad">'+summary.map(statCard).join('')+'</div>'+
       group('Treeningute korraldus','Valmista treeningud ette ning halda kliente.',[
-        item(ic.template,'Treeningumallid','Loo, muuda ja kasuta salvestatud treeningupõhju','openTemplates()'),
         item(ic.calendar,'Treeninguajad','Muuda aegu, kohti ja registreeringuid',"go('trainings')"),
         item(ic.users,'Kliendid ja krediidid','Krediidijäägid ja kliendikaardid',"go('people')")
       ])+

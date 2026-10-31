@@ -104,7 +104,7 @@
     const future=window.upcomingTrainings(),completed=window.pastTrainings();
     const list=past?completed:future;
     const tools=trainer?
-      '<div class="tl-header-actions"><button type="button" class="btn btn-soft btn-sm" onclick="openTemplates()">Mallid</button>'+
+      '<div class="tl-header-actions">'+
       '<button type="button" class="page-action" onclick="openTrainingForm()">'+svg.plus+' Lisa</button></div>':
       '<button type="button" class="tl-header-credit" onclick="go('+"'people'"+')">Krediiti <strong>'+
       esc(credit()===Infinity?'∞':String(Math.max(0,credit())))+'</strong></button>';
