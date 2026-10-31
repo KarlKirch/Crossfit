@@ -44,11 +44,26 @@
     s.userPackages=[];
     s.creditTransactions=key==='empty'?[]:[{id:900001,user_id:DEMO,delta:3,reason:'Näidis: lisatud treeningkrediit',
       created_at:new Date().toISOString(),amount_cents:null}];
-    s.registrations=(key==='booked'||key==='waitlist')&&id?[{
+    // Ootenimekirja näidises peab treening tõesti täis olema.
+    const waitCap=key==='waitlist'?Math.max(1,Math.min(12,Number(training.capacity)||10)):0;
+    if(waitCap&&id)s.trainings=s.trainings.map(t=>Number(t.id)===id?{...t,capacity:waitCap}:t);
+    const pretendPeople=Array.from({length:waitCap},(_,i)=>({
+      id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),
+      name:'Näidisosaleja '+(i+1)
+    }));
+    s.profiles=[s.profile,...pretendPeople.map(p=>({
+      user_id:p.id,display_name:p.name,role:'client',avatar_path:null
+    }))];
+    const filled=pretendPeople.map((p,i)=>({
+      id:900100+i,user_id:p.id,training_id:id,status:'confirmed',
+      credit_charged:true,payment_status:'credit',created_at:new Date().toISOString()
+    }));
+    const own=(key==='booked'||key==='waitlist')&&id?[{
       id:900002,user_id:DEMO,training_id:id,
       status:key==='waitlist'?'waitlist':'confirmed',
       credit_charged:key==='booked',payment_status:'credit',created_at:new Date().toISOString()
     }]:[];
+    s.registrations=filled.concat(own);
     s.notifications=(key==='booked'||key==='waitlist')&&id?[{
       id:900003,user_id:DEMO,training_id:id,kind:key==='waitlist'?'waitlist_joined':'registration_confirmed',
       title:key==='waitlist'?'Oled ootenimekirjas':'Registreering kinnitatud',
