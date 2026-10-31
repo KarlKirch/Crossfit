@@ -367,37 +367,80 @@
     s.wodUiSearch='';s.wodUiFilter='all';s.wodUiSort='newest';s.wodUiPage=0;window.render();
   }
   let assigningWod=false;
+  let savingWod=false;
+  function currentEntry(){
+    return (s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
+  }
+  function editorData(entry){
+    const workout=String(document.getElementById('wodText')?.value||'').trim();
+    if(!workout)throw new Error('Kirjuta WOD-i kava enne salvestamist.');
+    const title=String(document.getElementById('wodTitle')?.value||'').trim()||'WOD';
+    const source_date=validDate(document.getElementById('wodDate')?.value)||null;
+    return {workout_text:workout,title,source_date,status:'ready'};
+  }
+  async function persistEntry(entry){
+    const data=editorData(entry);
+    const changed=entry.status!=='ready'||String(entry.workout_text||'').trim()!==data.workout_text||
+      String(entry.title||'WOD')!==data.title||validDate(entry.source_date)!==(data.source_date||'');
+    if(changed){
+      await window.api('wod_bank_entries?id=eq.'+numberId(entry.id),{
+        method:'PATCH',headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({...data,updated_at:new Date().toISOString()})
+      });
+      Object.assign(entry,data);
+    }
+    return data.workout_text;
+  }
+  async function saveText(){
+    if(savingWod||!window.isTrainer()||s.modal!=='wodDetail')return false;
+    const entry=currentEntry();if(!entry)return false;
+    savingWod=true;
+    try{
+      await persistEntry(entry);
+      await window.reloadData('WOD salvestatud ja kasutusvalmis');
+      s.modal='wodDetail';s.modalData=entry.id;window.render();
+      return true;
+    }catch(error){window.toast(error.message||'WOD-i salvestamine ebaõnnestus');return false}
+    finally{savingWod=false}
+  }
+  async function useNew(){
+    if(savingWod||!window.isTrainer()||s.modal!=='wodDetail')return false;
+    const entry=currentEntry();if(!entry)return false;
+    savingWod=true;
+    try{
+      const workout=await persistEntry(entry);
+      window.openTrainingForm({
+        title:'CrossFit',workout,duration_minutes:90,price_cents:800,
+        cancellation_hours:2,note:''
+      });
+      return true;
+    }catch(error){window.toast(error.message||'WOD-i kasutamine ebaõnnestus');return false}
+    finally{savingWod=false}
+  }
   async function useExisting(){
     if(assigningWod||!window.isTrainer()||s.modal!=='wodDetail')return false;
-    const entry=(s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
-    if(entry?.status!=='ready'||!String(entry.workout_text||'').trim()){
-      window.toast('WOD tuleb enne kasutamist kinnitada valmis.');
-      return false;
-    }
-    // Ära kirjuta salvestamata WOD-teksti kogemata treeningusse.
-    const editor=document.getElementById('wodText');
-    if(editor&&String(editor.value||'').trim()!==String(entry.workout_text).trim()){
-      window.toast('Salvesta kõigepealt WOD-i muudatused.');
-      return false;
-    }
+    const entry=currentEntry();if(!entry)return false;
     const selected=numberId(document.getElementById('wbExisting')?.value);
     const training=(s.trainings||[]).find(t=>Number(t.id)===selected&&
       t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now());
     if(!training){window.toast('Vali tulevane treening.');return false}
-    const workout=String(entry.workout_text).trim();
+    let workout;
+    try{workout=editorData(entry).workout_text}
+    catch(error){window.toast(error.message);return false}
     if(String(training.workout||'').trim()&&String(training.workout).trim()!==workout){
-      if(!window.confirm('Valitud treeningul on juba WOD. Kas soovid selle asendada valitud WOD-panga treeninguga?'))return false;
+      if(!window.confirm('Valitud treeningul on juba WOD. Kas soovid selle asendada?'))return false;
     }
     assigningWod=true;
     const button=document.querySelector('.wb-use-panel .wb-primary');
-    if(button){button.disabled=true;button.textContent='Salvestan WOD-i…';}
+    if(button){button.disabled=true;button.textContent='Salvestan WOD-i…'}
     try{
+      await persistEntry(entry);
       await window.api('wod_trainings?id=eq.'+selected,{
         method:'PATCH',headers:{Prefer:'return=minimal'},
         body:JSON.stringify({workout,updated_at:new Date().toISOString()})
       });
       s.modal=null;s.modalData=null;
-      await window.reloadData('WOD lisatud valitud treeningule');
+      await window.reloadData('WOD salvestatud ja lisatud treeningule');
       window.openTraining(selected);
       return true;
     }catch(error){
@@ -405,10 +448,10 @@
       return false;
     }finally{
       assigningWod=false;
-      if(button?.isConnected){button.disabled=false;button.textContent='Kinnita WOD valitud treeningule';}
+      if(button?.isConnected){button.disabled=false;button.textContent='Salvesta ja kasuta valitud treeningus'}
     }
   }
 
   window.renderModal=renderModal;
-  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText,displayWodTitle};
+  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,useNew,saveText,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText,displayWodTitle};
 })();
