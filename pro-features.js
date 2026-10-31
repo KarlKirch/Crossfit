@@ -269,7 +269,7 @@
         window.api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
         window.api('wod_wallets?select=user_id,credits'),
         window.api('wod_credit_transactions?select=*&order=created_at.asc'),
-        window.api('wod_trainings?select=*&order=starts_at.asc'),
+        window.api('wod_trainings?select=id,title,starts_at,duration_minutes,capacity,status,archived_at&order=starts_at.asc'),
         window.api('wod_registrations?select=*&order=created_at.asc'),
         window.api('wod_removed_clients?select=user_id,removed_at,reason'),
         window.api('wod_announcements?select=*&order=created_at.asc')

@@ -58,7 +58,7 @@ class RCFBrowserSmoke(unittest.TestCase):
             "id": 201, "title": "Testtreening", "starts_at": upcoming,
             "status": "published", "archived_at": None, "capacity": 10,
             "duration_minutes": 60, "cancellation_hours": 6,
-            "created_by": TRAINER, "workout_text": "Soojendus 10 min"
+            "created_by": TRAINER, "workout": "SALAJANE WOD 10 burpees"
         }]
         registrations = [{"id": 1, "training_id": 201, "user_id": CLIENT,
                           "status": "confirmed", "credit_charged": True,
@@ -83,6 +83,8 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = [profile] if "user_id" in query else profiles
                     elif name == "wod_trainings":
                         payload = trainings
+                    elif name == "wod_list_trainings_secure":
+                        payload = [dict(t, workout=t.get("workout") if role == "trainer" else None) for t in trainings]
                     elif name == "wod_registrations":
                         payload = registrations
                     elif name == "wod_wallets":
@@ -341,6 +343,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         page = self.open_app("trainer", 390, 844, wods=wod)
         page.evaluate("() => window.openWodEntry(77)")
         page.locator("#wbExisting").wait_for(state="visible", timeout=10000)
+        page.on("dialog", lambda dialog: dialog.accept())
         page.locator("#wbExisting").select_option("201")
         with page.expect_request(lambda req: "/rest/v1/wod_trainings" in req.url
                                  and req.method == "PATCH", timeout=10000) as request:
@@ -518,6 +521,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         writes=[]
         page.on("request",lambda req: writes.append((req.url,req.post_data_json))
                 if req.method=="PATCH" and "/rest/v1/" in req.url else None)
+        page.on("dialog", lambda dialog: dialog.accept())
         page.locator("#wbExisting").select_option("201")
         page.locator(".wb-use-panel .wb-primary").click()
         page.locator(".td-sheet").wait_for()
@@ -541,6 +545,40 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(page.get_by_role("button",name="Mallid").count(),0)
         page.locator(".bottom-nav").get_by_role("button",name="Haldus").click()
         self.assertNotIn("Treeningumallid",page.locator(".main").inner_text())
+
+
+    def test_wod_is_private_in_all_client_views_but_visible_to_trainer(self):
+        for role in ("client", "trainer"):
+            page = self.open_app(role, 390, 844)
+            main = page.locator(".main").inner_text()
+            self.assertNotIn("Treeningu WOD", main)
+            self.assertNotIn("SALAJANE WOD", main)
+            self.assertEqual(page.locator(".rcf-wod-card").count(), 0)
+            page.evaluate("window.openTraining(201)")
+            page.locator(".td-content").wait_for()
+            detail = page.locator(".td-content").inner_text()
+            if role == "client":
+                self.assertNotIn("SALAJANE WOD", detail)
+                self.assertEqual(page.locator(".td-wod").count(), 0)
+                self.assertIsNone(page.evaluate("() => window.state.trainings[0].workout"))
+            else:
+                self.assertIn("SALAJANE WOD", detail)
+                self.assertEqual(page.locator(".td-wod").count(), 1)
+            page.context.close()
+            self.context = None
+
+    def test_client_loads_redacted_training_over_secure_rpc(self):
+        page = self.open_app("client", 390, 844)
+        self.assertTrue(page.evaluate("""() => performance.getEntriesByType('resource')
+          .some(e => e.name.includes('/rpc/wod_list_trainings_secure'))"""))
+        self.assertFalse(page.evaluate("""() => performance.getEntriesByType('resource')
+          .some(e => e.name.includes('wod_trainings?select='))"""))
+        self.assertIn("Testtreening", page.locator(".rcf-feature-card").inner_text())
+        page.locator(".bottom-nav").get_by_role("button", name="Treeningud").click()
+        page.locator(".tl-training-card").first.wait_for()
+        self.assertNotIn("SALAJANE WOD", page.locator(".tl-training-card").inner_text())
+        page.locator(".tl-training-card").first.locator("button").first.click()
+        self.assertIn("Testtreening", page.locator(".td-content").inner_text())
 
 
 if __name__ == "__main__":

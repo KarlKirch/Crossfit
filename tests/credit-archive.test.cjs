@@ -21,12 +21,16 @@ function load({trainer}) {
     isTrainer:()=>trainer,
     now:()=>new Date('2026-10-22T08:00:00Z'),
     renderModal(){return ''},
+    rpc:async(name,args)=>{
+      requests.push('rpc/'+name);
+      assert.equal(name,'wod_list_trainings_secure');
+      assert.ok(args.p_since);
+      // Turvaline RPC jätab arhiveeritud ajad välja ja varjab kliendi WOD-i.
+      return [active];
+    },
     api:async query=>{
       requests.push(query);
-      if (query.startsWith('wod_trainings?')) {
-        // Simuleerib PostgREST-i tegelikku archive-filter käitumist.
-        return query.includes('archived_at=is.null') ? [active] : [archived, active];
-      }
+      assert.ok(!query.startsWith('wod_trainings?'),'Treeningu päring peab kasutama turvalist RPC-d');
       return [];
     }
   };
@@ -40,8 +44,8 @@ for (const trainer of [true,false]) {
   test((trainer?'Treener':'Klient')+' ei laadi arhiveeritud treeninguid krediidimooduli kaudu',async()=>{
     const h=load({trainer});
     await h.ctx.loadData();
-    assert.match(h.requests[0],/archived_at=is\.null/,
-      'Päring peab filtreerima ajalukku eemaldatud treeningud');
+    assert.equal(h.requests[0],'rpc/wod_list_trainings_secure',
+      'Treeningud peavad tulema serveripoolselt filtreeritud RPC kaudu');
     assert.deepEqual(Array.from(h.state.trainings.map(x=>x.id)),[h.active.id],
       'Arhiveeritud proovitrenn ei tohi ilmuda avalehele ega ajaloovaatesse');
   });

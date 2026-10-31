@@ -216,7 +216,7 @@ test('Trainer can cancel already-past training to return credits',()=>{
 });
 test('Training removal uses server-side finance-safe RPC',()=>{
   assert(read('app.js').includes("rpc('wod_remove_training',{p_training_id:numericId})"));
-  assert(read('app.js').includes('archived_at=is.null'));
+  assert(read('app.js').includes("rpc('wod_list_trainings_secure'"));
   assert(!read('app.js').includes("await api(\`wod_trainings?id=eq.\${id}\`,{method:'DELETE'"));
   assert(read('forest-theme.css').includes('body .tl-history-remove'));
 });
@@ -317,6 +317,36 @@ test('WOD detail sisaldab ühte muudetavat teksti ja ühe sammu määramist',()=
   assert(!html.includes('Salvesta mustand'));
   assert(!html.includes('Loo tekstimustand uuesti'));
   assert(html.includes('wbExisting')||html.includes('Loo uus treening'));
+});
+
+test('WOD ei ilmu ei kliendi ega treeneri avalehele',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.state.modal=null;context.state.view='home';context.render();
+  assert(!htmlRoot.innerHTML.includes('Treeningu WOD'));
+  assert(!htmlRoot.innerHTML.includes('20 burpees'));
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;context.render();
+  assert(!htmlRoot.innerHTML.includes('Treeningu WOD'));
+  assert(!htmlRoot.innerHTML.includes('20 burpees'));
+});
+test('Treeningu sisu on ainult treeneri detailvaates',()=>{
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;context.state.modal='training';context.state.modalData=11;
+  context.render();
+  assert(!htmlRoot.innerHTML.includes('20 burpees'));
+  assert(!htmlRoot.innerHTML.includes('Päeva treening / WOD'));
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;context.render();
+  assert(htmlRoot.innerHTML.includes('20 burpees'));
+});
+test('Treeningud loetakse turvalise RPC kaudu, mitte otse tabelist',()=>{
+  const app=read('app.js');
+  assert(app.includes("rpc('wod_list_trainings_secure'"));
+  assert(!app.includes('wod_trainings?select=*'));
+  assert(read('credit-system.js').includes("rpc('wod_list_trainings_secure'"));
+  assert(!read('credit-system.js').includes('wod_trainings?select=*'));
+  assert(!read('pro-features.js').includes('wod_trainings?select=*'));
 });
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
