@@ -216,7 +216,7 @@ test('Trainer can cancel already-past training to return credits',()=>{
 });
 test('Training removal uses server-side finance-safe RPC',()=>{
   assert(read('app.js').includes("rpc('wod_remove_training',{p_training_id:numericId})"));
-  assert(read('app.js').includes('archived_at=is.null'));
+  assert(read('app.js').includes("rpc('wod_list_trainings_secure'"));
   assert(!read('app.js').includes("await api(\`wod_trainings?id=eq.\${id}\`,{method:'DELETE'"));
   assert(read('forest-theme.css').includes('body .tl-history-remove'));
 });
