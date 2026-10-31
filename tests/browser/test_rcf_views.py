@@ -489,8 +489,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(page.evaluate("() => window.state.registrations.length"), 0)
         self.assertIn("kirjutuskaitstud", page.locator("#toast").inner_text().lower())
         page.evaluate("() => window.rcfClientPreview.setScenario('waitlist')")
-        self.assertIn("Ootenimekirjas", page.locator(".rcf-feature-card").inner_text()
-                      + page.locator(".rcf-home").inner_text())
+        self.assertIn("Sinu ootenimekiri", page.locator(".rcf-home").inner_text())
         page.evaluate("() => window.rcfClientPreview.exit()")
         after = page.evaluate("""() => ({
             user: window.state.session.user.id,
