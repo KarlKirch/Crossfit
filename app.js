@@ -76,7 +76,7 @@ async function loadData(){
   const trainer=isTrainer();
   const uid=state.session.user.id;
   const queries=[
-    api(`wod_trainings?select=*&archived_at=is.null&starts_at=gte.${encodeURIComponent(since)}&order=starts_at.asc`),
+    rpc('wod_list_trainings_secure',{p_since:since}),
     api('wod_registrations?select=*&order=created_at.asc'),
     api('wod_profiles?select=user_id,display_name,role,avatar_path&order=display_name.asc'),
     api(trainer?'wod_wallets?select=user_id,credits':`wod_wallets?select=user_id,credits&user_id=eq.${uid}`),
@@ -228,7 +228,7 @@ function trainingDetail(t){const c=confirmedFor(t.id),w=waitlistFor(t.id),mine=m
     if(mine) action=`<div class="detail-block"><h3>Sinu registreering</h3><div class="training-meta">${mine.status==='waitlist'?`<span class="pill amber">Ootenimekiri #${waitPosition(t.id)}</span>`:'<span class="pill green">Registreeritud</span>'}${paymentPill(mine.payment_status)}</div><div class="training-actions"><button class="btn btn-soft" onclick="openCalendar(${t.id})">Lisa kalendrisse</button><button class="btn btn-danger" onclick="cancelRegistration(${t.id})">Tühista registreering</button></div>${mine.status==='confirmed'&&late?'<div class="card-sub" style="margin-top:8px;color:#9b3d43">Tasuta tühistamise aeg on möödas. Tühistada saab, kuid treeningkorda või tasu ei tagastata.</div>':''}</div>`;
     else {const hasPackage=totalCredits()>0||activeUserPackages().some(p=>p.kind==='unlimited'),full=c.length>=t.capacity;action=`<div class="detail-block"><h3>${full?'Treening on täis':'Registreeru'}</h3><div class="card-sub">${full?'Saad liituda ootenimekirjaga. Koha vabanemisel liigud automaatselt trenni.':'Vali, kuidas soovid treeningu eest arvestada.'}</div><div class="training-actions">${hasPackage?`<button class="btn btn-primary" onclick="registerTraining(${t.id},true)">${full?'Ootenimekirja paketiga':'Kasuta paketti'}</button>`:''}<button class="btn btn-soft" onclick="registerTraining(${t.id},false)">${full?'Liitu ootenimekirjaga':'Registreeru · tasun eraldi'}</button></div></div>`}
   }
-  const workout=t.workout?`<div class="detail-block"><h3>Päeva treening / WOD</h3><div class="detail-text">${esc(t.workout)}</div></div>`:'';
+  const workout=isTrainer()&&t.workout?`<div class="detail-block"><h3>Päeva treening / WOD</h3><div class="detail-text">${esc(t.workout)}</div></div>`:'';
   const note=t.note?`<div class="detail-block"><h3>Treeneri märkus</h3><div class="detail-text">${esc(t.note)}</div></div>`:'';
   const people=isTrainer()||!past?`<div class="detail-block"><h3>Registreerunud (${c.length}/${t.capacity})</h3><div class="person-list">${c.map(r=>personRow(r,t)).join('')||'<div class="card-sub">Keegi pole veel registreerunud.</div>'}</div>${w.length?`<h3 style="margin-top:14px">Ootenimekiri (${w.length})</h3><div class="person-list">${w.map((r,i)=>personRow(r,t,i+1)).join('')}</div>`:''}</div>`:'';
   return `<div class="detail-hero"><div class="detail-date">${esc(fullDateTime(t.starts_at))}</div><h2>${esc(t.title)}</h2><div class="detail-stats"><div class="detail-stat"><b>${c.length}/${t.capacity}</b><span>Kohti</span></div><div class="detail-stat"><b>${t.duration_minutes}</b><span>Minutit</span></div><div class="detail-stat"><b>${money(t.price_cents)}</b><span>Hind</span></div></div></div><div class="detail-block"><h3>Tühistamise reegel</h3><div class="detail-text">${esc(cancellationRule(t))}</div><div class="card-sub">Tasuta tühistamise tähtaeg: ${esc(fullDateTime(deadline.toISOString()))}</div></div>${workout}${note}${people}${action}`
