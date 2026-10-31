@@ -461,9 +461,12 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.get_by_role("button", name="Kuidas krediiti saada?").click()
         self.assertIn("treener", page.locator(".rcf-credit-help-sheet").inner_text().lower())
         page.locator(".sheet-close").click()
+        self.assertEqual(page.locator(".my-account-page .nc-push-settings").count(), 1,
+                         "Telefoni märguannete seaded peavad olema Minu vaates")
         page.locator(".top-actions").get_by_role("button", name="Teavitused").click()
         page.locator(".nc-page").wait_for()
-        self.assertTrue(page.locator(".nc-push-settings").count() > 0)
+        self.assertEqual(page.locator(".nc-push-settings").count(), 0,
+                         "Teavituste loend peab avanema ilma seadete plokita")
 
 
     def test_preview_registration_is_blocked_before_any_network_write(self):
