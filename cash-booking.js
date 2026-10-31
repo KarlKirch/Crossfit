@@ -30,7 +30,8 @@
       const result=await window.rpc('wod_register_cash',{p_training_id:tid});
       await window.reloadData(result?.[0]?.registration_status==='waitlist'?
         'Oled ootenimekirjas. Tasud, kui saad koha.':'Koht kinnitatud. Tasud kohapeal treenerile.');
-      s.modal='training';s.modalData=tid;window.render();
+      // Ära ava treeningu vaadet uuesti, kui klient jõudis vahepeal vestlusse.
+      if(s.modal==='training'&&Number(s.modalData)===tid)window.render();
       return true;
     }catch(error){
       window.toast(error?.message||'Sularahabroneering ebaõnnestus.');
