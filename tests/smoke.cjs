@@ -365,5 +365,43 @@ test('WOD fotol on nii pangas kui detailis kiire eelvaate nupp',()=>{
   assert(html.includes('crossfitWodUI.openImagePreview'));
   assert(!html.includes('openWodImage('));
 });
+
+test('Sularahabroneering ja vestlus on kliendile ning treenerile saadaval',()=>{
+  const cash=read('cash-booking.js');
+  const msg=read('message-center.js');
+  const detail=read('training-detail-redesign.js');
+  assert(cash.includes("rpc('wod_register_cash'"));
+  assert(msg.includes("rpc('wod_send_private_message'"));
+  assert(msg.includes('wod_private_messages?select='));
+  assert(msg.includes("role='dialog'"));
+  assert(detail.includes('crossfitCash.register('));
+  assert(detail.includes('setPayment('));
+  assert(read('notification-center.js').includes("item.kind==='private_message'"));
+  assert.equal(typeof context.crossfitCash.register,'function');
+  assert.equal(typeof context.crossfitMessages.open,'function');
+});
+test('Kliendi registreerimise vaates pakutakse sularaha ka null krediidiga',()=>{
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;
+  context.state.wallets=[{user_id:clientId,credits:0}];
+  context.state.modal='training';context.state.modalData=11;
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Maksan kohapeal'));
+  assert(htmlRoot.innerHTML.includes('crossfitCash.register(11)'));
+  assert(!htmlRoot.innerHTML.includes('registerTraining(11)'));
+  assert(htmlRoot.innerHTML.includes('crossfitMessages.open()'));
+});
+test('Treeneril on privaatsõnumite postkast, kliendil sõnuminupp',()=>{
+  context.state.modal=null;
+  context.state.view='more';
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Privaatsõnumid'));
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;context.state.view='people';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Kirjuta treenerile'));
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
