@@ -94,7 +94,7 @@
       '<div class="my-credit-amount"><strong>'+creditText(amount)+'</strong>'+
       '<div><b>'+(amount===1?'treeningkord':'treeningkorda')+' alles</b>'+
       '<span>Üks kinnitatud registreering kasutab ühe krediidi.</span></div></div>'+
-      (amount<=0?'<p class="my-credit-notice">Krediidi saamiseks võta ühendust treeneriga. Äpis ei saa praegu maksta.</p>':'')+
+      (amount<=0?'<p class="my-credit-notice">Treeningule saad registreeruda ka sularahas kohapeal makstes. Krediidi saamiseks võta ühendust treeneriga.</p>':'')+
       '<button type="button" class="my-credit-help-link" onclick="openCreditHelp()">Kuidas krediiti saada? '+icons.chevron+'</button>'+
       (waiting?'<p class="my-credit-wait-note">'+waiting+' tulevast ootenimekirja registreeringut. Krediit arvestatakse alles koha saamisel.</p>':'')+
       '<button type="button" class="my-credit-history-link" onclick="crossfitMyAccount.showCreditHistory()">'+
@@ -113,7 +113,7 @@
     if(id===null)return '';
     const [label,color]=status(r,t);
     const description=history?(r.status==='confirmed'&&t.status!=='cancelled'?'Toimunud treening':'Registreeringu ajalugu'):
-      (r.status==='waitlist'?'Krediit arvestatakse koha saamisel':'Treeningukoht kinnitatud');
+      (r.status==='waitlist'?(r.payment_method==='cash'?'Maksad kohapeal':'Krediit arvestatakse koha saamisel'):(r.payment_method==='cash'?'Sularaha – '+(r.payment_status==='paid'?'tasutud':'tasumata'):'Treeningukoht kinnitatud'));
     return '<button class="my-booking-row" type="button" onclick="openTraining('+id+')">'+
       '<span class="my-booking-icon">'+icons.calendar+'</span>'+
       '<span class="my-booking-main"><strong>'+esc(t.title||'CrossFit')+'</strong>'+

@@ -79,7 +79,9 @@
       const name=trainer?nameFull:nameFull.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toLocaleUpperCase('et')+'.').join(' ');
       const photo=window.crossfitAvatars?.html(r.user_id,'medium')||'<span class="td-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toLocaleUpperCase('et'))+'</span>';
       const balance=trainer&&r.status==='confirmed'&&r.credit_charged?'<span class="td-person-credit">1 krediit kasutatud</span>':'';
-      const trainerPayment=trainer&&!waitlist&&r.payment_status==='unpaid'?'<span class="td-person-credit td-person-unpaid">Tasumata</span>':'';
+      const cash=r.payment_method==='cash';
+      const trainerPayment=trainer&&cash?'<span class="td-person-credit '+(r.payment_status==='paid'?'':'td-person-unpaid')+'">'+(r.payment_status==='paid'?'Sularaha tasutud':'Sularaha tasumata')+'</span>'+
+        (!waitlist&&r.status==='confirmed'&&r.payment_status==='unpaid'?'<button type="button" class="td-cash-paid-btn" onclick="setPayment('+Number(r.id)+',true)">Märgi tasutuks</button>':''):'';
       return '<div class="td-attendee">'+photo+
         '<div class="td-attendee-name"><strong>'+esc(name)+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':'Registreeritud')+'</small></div>'+
@@ -120,40 +122,53 @@
   }
   function clientActions(t,id,c){
     if(t.status!=='published'||past(t))return '';
-    const mine=current(t);
-    const waiting=mine?.status==='waitlist';
+    const mine=current(t), waiting=mine?.status==='waitlist';
+    const cash=mine?.payment_method==='cash';
+    const price=(Number(t.price_cents)||0)/100;
+    const priceText=new Intl.NumberFormat('et-EE',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(price);
     let deadline='';
     try{deadline=safeDate(window.cancellationDeadline(t).toISOString())}catch(_){}
     const deadlineText=deadline?'<p class="td-booking-deadline">Tasuta tühistamine kuni '+esc(deadline)+
       ' ('+Number(t.cancellation_hours||2)+' tundi enne treeningut).</p>':'';
     if(mine){
+      const payment=cash?'<p class="td-cash-status">'+
+        (mine.payment_status==='paid'?'Kohapealne makse on märgitud tasutuks.':
+          'Tasumine kohapeal: '+esc(priceText)+' sularahas. Treener kinnitab makse pärast tasumist.')+
+        '</p>':'';
       let content='<div class="td-booking-status">'+
         '<strong>'+(waiting?'Oled ootenimekirjas':'Sinu koht on kinnitatud')+'</strong>'+
-        '<p>'+(waiting?'Koha vabanemisel liigud automaatselt treeningule. Krediit arvestatakse koha kinnitamisel.':
+        '<p>'+(waiting?(cash?'Koha vabanemisel saad teate ja maksad kohapeal.':
+          'Koha vabanemisel liigud automaatselt treeningule. Krediit arvestatakse koha kinnitamisel.'):
           'Näeme treeningul! Siit saad registreeringut vaadata või selle tühistada.')+'</p>'+
         (waiting?'<span class="td-position">Koht ootenimekirjas: '+esc(String(window.waitPosition(t.id)||'—'))+'</span>':'')+
-        '</div>'+(!waiting?deadlineText:'<p class="td-booking-deadline">Ootenimekirjast lahkudes krediiti ei arvestata.</p>')+
+        payment+'</div>'+
+        (!waiting?deadlineText:'<p class="td-booking-deadline">Ootenimekirjast lahkumine on tasuta.</p>')+
         '<div class="td-actions">'+
         btn('openCalendar('+id+')','Lisa kalendrisse','secondary')+
         btn('cancelRegistration('+id+')','Tühista registreering','danger')+
         '</div>';
-      if(!waiting&&lateCancellation(t))content+='<p class="td-late-warning">Tasuta tühistamise tähtaeg on möödas. Tühistamisel krediiti ei tagastata.</p>';
+      if(!waiting&&lateCancellation(t)){
+        content+='<p class="td-late-warning">Tasuta tühistamise tähtaeg on möödas. '+
+          (cash?'Kui oled juba tasunud, lepi võimaliku tagastuse osas treeneriga kokku.':'Krediiti ei tagastata.')+'</p>';
+      }
       return block('Sinu registreering',content,'td-booking-section');
     }
-    const credits=Number(window.totalCredits?.()??0);
-    if(credits<=0)return block('Registreerimine',
-      '<div class="td-no-credit"><strong>Treeningkrediit on otsas</strong>'+
-      '<p>Registreerimiseks, ka ootenimekirjaga liitumiseks, on vaja vähemalt ühte krediiti. Krediit arvestatakse alles koha kinnitamisel.</p>'+
-      btn('openCreditHelp()','Kuidas krediiti saada?','secondary')+'</div>',
-      'td-booking-section');
-    const full=c.free<=0;
-    return block(full?'Liitu ootenimekirjaga':'Registreeru treeningule',
-      '<div class="td-booking-intro"><p>'+(full?
-        'Treening on täis. Krediit arvestatakse alles koha vabanemisel.':
-        'Registreerimisel kasutatakse sinu kontolt 1 treeningkrediit.')+'</p>'+
-      '<span>Sinu krediidijääk: '+esc(credits===Infinity?'∞':String(credits))+'</span></div>'+
-      (!full?deadlineText:'')+
-      btn('registerTraining('+id+')',full?'Liitu ootenimekirjaga':'Registreeru · 1 krediit'),
+    const credits=Number(window.totalCredits?.()??0), full=c.free<=0;
+    const creditButton=credits>0?
+      btn('registerTraining('+id+')',full?'Liitu ootenimekirjaga · 1 krediit':'Kasuta 1 treeningkrediit'):'';
+    const cashButton=btn('crossfitCash.register('+id+')',full?'Liitu ootenimekirjaga · maksan kohapeal':
+      'Maksan kohapeal '+esc(priceText),'secondary');
+    return block('Vali tasumise viis',
+      '<div class="td-booking-intro"><p>'+(full?'Treening on täis. Saad liituda ootenimekirjaga.':
+        'Vali treeningkrediit või maksmine kohapeal sularahas.')+'</p>'+
+        '<span>Sinu krediidijääk: '+esc(credits===Infinity?'∞':String(credits))+'</span></div>'+
+        (!full?deadlineText:'')+
+        '<div class="td-payment-choices">'+creditButton+cashButton+'</div>'+
+        '<p class="td-cash-explain">Sularahaga registreerumine ei kuluta krediiti. '+
+          (full?'Koha vabanemisel saad teate.':'Koht kinnitatakse kohe ja tasud treenerile kohapeal.')+
+          ' Korraga võib olla kuni kaks tasumata sularahabroneeringut.</p>'+
+        (credits<=0?btn('openCreditHelp()','Kuidas krediiti saada?','secondary'):'')+
+        btn('crossfitMessages.open()','Küsimus? Kirjuta treenerile','secondary'),
       'td-booking-section');
   }
   function detail(t){

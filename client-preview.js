@@ -11,7 +11,7 @@
   const originalMore=window.renderMore,originalModal=window.renderModal;
   const keys=['session','profile','view','modal','modalData','trainingTab',
     'trainings','registrations','profiles','wallets','creditTransactions',
-    'userPackages','notifications','packageTypes','removedClients'];
+    'userPackages','notifications','packageTypes','removedClients','privateMessages','messageClientId'];
   let original=null,scenario='booked';
   const validId=v=>{const n=Number(v);return Number.isSafeInteger(n)&&n>0?n:null;};
   const isPreview=()=>Boolean(s.clientPreview&&original);
@@ -70,6 +70,8 @@
       body:'See on näidisteade kliendieelvaates.',created_at:new Date().toISOString(),read_at:null
     }]:[];
     s.removedClients=[];
+    s.privateMessages=[];
+    s.messageClientId=null;
     s.trainingTab='upcoming';
     s.view='home';s.modal=null;s.modalData=null;
     s.clientPreview=true;
@@ -137,8 +139,8 @@
       '<li>Lepi treeneriga kokku treeningkrediidi kogus ja tasumine.</li>'+
       '<li>Treener lisab krediidi sinu kontole. Uut jääki näed lehel <strong>Minu</strong>.</li>'+
       '<li>Vali sobiv treening ja vajuta <strong>Registreeru</strong>.</li></ol>'+
-      '<p class="rcf-credit-disclaimer">Rakenduses ei saa praegu krediiti otse osta ega selle eest maksta. Kui krediit on otsas, ei saa ka ootenimekirjaga liituda.</p>'+
-      '<button type="button" class="btn btn-primary btn-block" onclick="closeModal();go(\'trainings\')">Vaata treeninguid</button>'+
+      '<p class="rcf-credit-disclaimer">Krediitide ostmiseks võta ühendust treeneriga. Treeningule saad registreeruda ka kohapealse sularahamaksega ilma krediidita.</p>'+
+      '<button type="button" class="btn btn-soft btn-block" onclick="closeModal();crossfitMessages.open()">Kirjuta treenerile</button><button type="button" class="btn btn-primary btn-block" onclick="closeModal();go(\'trainings\')">Vaata treeninguid</button>'+
       '</div></div></div>';
   };
   function blockUnsafe(event){
