@@ -82,6 +82,17 @@
       '" aria-pressed="'+(s.notificationsFilter===key)+'" onclick="crossfitNotifications.setFilter('+"'"+key+"'"+')">'+
       label+' <span>'+n+'</span></button>';
   }
+  function pushSettings(){
+    return '<details class="nc-push-settings"><summary>Telefoni märguannete seaded</summary>'+ 
+      '<section class="nc-push-card" aria-label="Telefoni teavitused">'+
+        '<div class="nc-push-head"><span class="nc-push-icon">'+svg.bell+'</span>'+
+          '<div><h2>Telefoni märguanded</h2><p id="pushText">Kontrollin teavituste olekut…</p></div>'+
+          '<span id="pushPill" class="pill">Kontrollin</span></div>'+
+        '<button class="btn btn-primary" id="pushToggle" type="button" onclick="togglePush()">Luba teavitused</button>'+
+        '<p class="nc-push-hint">Rakendusesisesed teated jäävad nähtavaks ka siis, kui telefoni märguanded on välja lülitatud.</p>'+
+      '</section>'+
+      '</details>'+;
+  }
   function render(){
     if(!s.session?.user)return previous();
     const counts=counters(),filtered=visible();
@@ -101,15 +112,7 @@
           s.notificationsFilter==='important'?'Olulisi teateid veel pole.':'Teavitusi veel ei ole.')+
         '</strong><span>Uued registreeringud ja treeningute muudatused ilmuvad siia.</span></div>')+
       '</div>'+ 
-      '<details class="nc-push-settings"><summary>Telefoni märguannete seaded</summary>'+ 
-      '<section class="nc-push-card" aria-label="Telefoni teavitused">'+
-        '<div class="nc-push-head"><span class="nc-push-icon">'+svg.bell+'</span>'+
-          '<div><h2>Telefoni märguanded</h2><p id="pushText">Kontrollin teavituste olekut…</p></div>'+
-          '<span id="pushPill" class="pill">Kontrollin</span></div>'+
-        '<button class="btn btn-primary" id="pushToggle" type="button" onclick="togglePush()">Luba teavitused</button>'+
-        '<p class="nc-push-hint">Rakendusesisesed teated jäävad nähtavaks ka siis, kui telefoni märguanded on välja lülitatud.</p>'+
-      '</section>'+
-      '</details>'+ 
+      (window.isTrainer()?pushSettings():'')+
       '<p class="nc-footnote">Näidatakse viimast 80 teadet. Telefoni märguanded eeldavad seadme ja brauseri luba.</p></div>';
   }
   function setFilter(value){
@@ -194,5 +197,5 @@
   if(timer&&typeof timer.unref==='function')timer.unref();
 
   window.renderNotifications=render;
-  window.crossfitNotifications={render,visible,counters,setFilter,open,markAll,markRead,refresh};
+  window.crossfitNotifications={render,visible,counters,setFilter,open,markAll,markRead,refresh,pushSettings};
 })();
