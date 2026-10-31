@@ -18,6 +18,12 @@
   const name=id=>String((s.profiles||[]).find(p=>p.user_id===id)?.display_name||'Klient');
   const ownMessages=()=>Array.isArray(s.privateMessages)?s.privateMessages:[];
   const visible=()=>s.modal==='privateMessages';
+  function scrollToLatest(){
+    window.setTimeout?.(()=>{
+      const list=document.querySelector?.('.cm-messages');
+      if(list)list.scrollTop=list.scrollHeight;
+    },0);
+  }
   const pending=(clientId=null)=>(s.notifications||[]).filter(n=>n.kind==='private_message'&&!n.read_at&&
     (!clientId||String(n.tag||'')==='crossfit-message-'+clientId));
   const count=()=>pending().length;
@@ -59,7 +65,7 @@
         m.id!==prev[i]?.id||m.body!==prev[i]?.body);
       s.privateMessages=fresh;
       lastSync=Date.now();
-      if(changed&&visible())window.render();
+      if(changed&&visible()){window.render();scrollToLatest();}
       return true;
     }catch(error){
       if(force)window.toast(error?.message||'Sõnumeid ei saanud laadida.');
@@ -86,7 +92,7 @@
     if(preview())return true;
     await refresh(true);
     if(s.modal==='privateMessages'&&currentClient())await markConversationRead(currentClient());
-    if(s.modal==='privateMessages')window.render();
+    if(s.modal==='privateMessages'){window.render();scrollToLatest();}
     return true;
   }
   async function openFromNotification(item){
@@ -146,6 +152,7 @@
       lastSync=0;
       await refresh(true);
       window.render();
+      scrollToLatest();
       window.toast('Sõnum saadetud');
       return true;
     }catch(error){window.toast(error?.message||'Sõnumi saatmine ebaõnnestus');return false}
@@ -177,5 +184,10 @@
     if(document.visibilityState==='visible'&&visible())refresh(true);
   });
   window.addEventListener?.('focus',()=>{if(visible())refresh(true)});
+  // Värskenda aktiivset vestlust automaatselt, et vastused ilmuksid ka ilma lehte sulgemata.
+  const tick=window.setInterval?.(()=>{
+    if(visible()&&!preview()&&uid()&&(!document.visibilityState||document.visibilityState==='visible'))refresh();
+  },20000);
+  if(tick&&typeof tick.unref==='function')tick.unref();
   window.crossfitMessages={open,openFromNotification,refresh,send,renderModal,count,threads};
 })();
