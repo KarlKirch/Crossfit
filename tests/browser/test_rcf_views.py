@@ -490,6 +490,10 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("kirjutuskaitstud", page.locator("#toast").inner_text().lower())
         page.evaluate("() => window.rcfClientPreview.setScenario('waitlist')")
         self.assertIn("Sinu ootenimekiri", page.locator(".rcf-home").inner_text())
+        self.assertTrue(page.evaluate("""() => {
+            const t=window.state.trainings.find(x=>window.mineFor(x.id)?.status==='waitlist');
+            return !!t && window.confirmedFor(t.id).length === t.capacity && t.capacity>0;
+        }"""), "Näidisolukorras peab ootenimekirja treening olema täis")
         page.evaluate("() => window.rcfClientPreview.exit()")
         after = page.evaluate("""() => ({
             user: window.state.session.user.id,
