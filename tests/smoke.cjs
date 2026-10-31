@@ -280,5 +280,42 @@ test('Tavakliendi avaleht ei sisalda eksitavaid topeltvalikuid',()=>{
   assert(!htmlRoot.innerHTML.includes('rcf-brand-hero'));
   assert(htmlRoot.innerHTML.includes('treening'));
 });
+
+test('Uus treening on 19:00, 90 min ja 8 eurot täiseurose sammuga',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  const html=context.trainingForm({});
+  assert.match(html,/id="tfTime"[^>]*>[\s\S]*<option selected>19:00<\/option>/);
+  assert.match(html,/id="tfDuration"[^>]*value="90"/);
+  assert.match(html,/id="tfPrice"[^>]*value="8"[^>]*step="1"/);
+  assert(!html.includes('step="0.01"'));
+});
+test('Mallide valikud ei paista halduses, treeningus ega uuel treeningul',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;context.state.modal=null;
+  for(const view of ['more','trainings']){
+    context.state.view=view;context.render();
+    assert(!htmlRoot.innerHTML.includes('openTemplates()'));
+    assert(!htmlRoot.innerHTML.includes('Treeningumallid'));
+  }
+  context.state.modal='training';context.state.modalData=12;context.render();
+  assert(!htmlRoot.innerHTML.includes('saveTrainingAsTemplate('));
+  assert(!context.trainingForm({}).includes('Mallid'));
+});
+test('WOD detail sisaldab ühte muudetavat teksti ja ühe sammu määramist',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.state.wodBank=[{id:27,title:'WOD',status:'ready',image_path:'test.webp',
+    source_date:'2026-10-30',workout_text:'5 ROUNDS 12 BURPEES',draft_text:'OLD OCR'}];
+  context.state.modal='wodDetail';context.state.modalData=27;
+  const html=context.renderModal();
+  assert(html.includes('id="wodText"'));
+  assert(!html.includes('Lõplik WOD-tekst'));
+  assert(!html.includes('Kava ülevaade'));
+  assert(!html.includes('Vaata automaatset algmustandit'));
+  assert(!html.includes('Salvesta mustand'));
+  assert(!html.includes('Loo tekstimustand uuesti'));
+  assert(html.includes('wbExisting')||html.includes('Loo uus treening'));
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
