@@ -344,6 +344,9 @@ test('Treeningud loetakse turvalise RPC kaudu, mitte otse tabelist',()=>{
   const app=read('app.js');
   assert(app.includes("rpc('wod_list_trainings_secure'"));
   assert(!app.includes('wod_trainings?select=*'));
+  assert(read('credit-system.js').includes("rpc('wod_list_trainings_secure'"));
+  assert(!read('credit-system.js').includes('wod_trainings?select=*'));
+  assert(!read('pro-features.js').includes('wod_trainings?select=*'));
 });
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
