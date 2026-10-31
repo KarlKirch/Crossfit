@@ -91,7 +91,7 @@
         '<button class="btn btn-primary" id="pushToggle" type="button" onclick="togglePush()">Luba teavitused</button>'+
         '<p class="nc-push-hint">Rakendusesisesed teated jäävad nähtavaks ka siis, kui telefoni märguanded on välja lülitatud.</p>'+
       '</section>'+
-      '</details>'+;
+      '</details>';
   }
   function render(){
     if(!s.session?.user)return previous();
