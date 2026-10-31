@@ -624,7 +624,11 @@ class RCFBrowserSmoke(unittest.TestCase):
 
     def test_client_cash_booking_without_credits_and_private_message(self):
         page=self.open_app("client",390,844)
-        page.evaluate("""() => { window.state.wallets=[{user_id:window.state.session.user.id,credits:0}]; window.render() }""")
+        page.evaluate("""() => {
+            window.state.wallets=[{user_id:window.state.session.user.id,credits:0}];
+            window.state.registrations=[];
+            window.render();
+        }""")
         page.evaluate("window.openTraining(201)")
         page.locator(".td-payment-choices").wait_for()
         self.assertEqual(page.get_by_role("button",name="Kasuta 1 treeningkrediit").count(),0)
