@@ -348,5 +348,22 @@ test('Treeningud loetakse turvalise RPC kaudu, mitte otse tabelist',()=>{
   assert(!read('credit-system.js').includes('wod_trainings?select=*'));
   assert(!read('pro-features.js').includes('wod_trainings?select=*'));
 });
+
+test('WOD fotol on nii pangas kui detailis kiire eelvaate nupp',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session.user.id=uid;
+  context.state.wodBank=[{id:29,title:'WOD',status:'ready',image_path:'2026/test.webp',
+    source_date:'2026-10-30',workout_text:'10 BURPEES'}];
+  context.state.modal='wodBank';context.state.modalData=null;
+  let html=context.renderModal();
+  assert(html.includes('wb-photo-trigger'));
+  assert(html.includes('crossfitWodUI.openImagePreview'));
+  assert.equal(typeof context.crossfitWodUI.openImagePreview,'function');
+  context.state.modal='wodDetail';context.state.modalData=29;
+  html=context.renderModal();
+  assert(html.includes('wb-detail-trigger'));
+  assert(html.includes('crossfitWodUI.openImagePreview'));
+  assert(!html.includes('openWodImage('));
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
