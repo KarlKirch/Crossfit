@@ -147,13 +147,17 @@ test('Historical WOD dates and structure are kept',()=>{
   const html=context.crossfitWodUI.structuredText('WOD: 10 burpees; 20 squats');
   assert(html.includes('10 burpees')&&html.includes('20 squats'));
 });
-test('Both roles have the RCF forest homepage',()=>{
+test('Treeneri bränd ja kliendi kiire avaleht on erinevad',()=>{
   for(const role of ['trainer','client']){
     context.state.profile.role=role;
     context.state.profile.user_id=role==='trainer'?uid:clientId;
     context.state.session.user.id=context.state.profile.user_id;
     context.state.modal=null;context.state.view='home';context.render();
-    assert(htmlRoot.innerHTML.includes('rcf-brand-hero'));
+    if(role==='trainer')assert(htmlRoot.innerHTML.includes('rcf-brand-hero'));
+    else{
+      assert(!htmlRoot.innerHTML.includes('rcf-brand-hero'));
+      assert(htmlRoot.innerHTML.includes('rcf-client-home'));
+    }
     assert(htmlRoot.innerHTML.includes('brand-rcf.webp'));
     assert(htmlRoot.innerHTML.includes('Monday WOD'));
   }
