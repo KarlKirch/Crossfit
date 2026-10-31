@@ -166,3 +166,83 @@ body .wb-image-preview-hint{
   body .wb-image-preview-img{max-height:calc(100dvh - 118px)}
   body .wb-image-preview-hint{font-size:10px}
 }
+
+
+/* Kohapealne maksmine */
+body .td-payment-choices{display:grid;gap:10px;margin:14px 0}
+body .td-payment-choices .td-button{width:100%;min-height:49px}
+body .td-payment-choices .td-button-secondary{
+  border:1px solid #B9EA6F;background:#33413A;color:#F4F6F7
+}
+body .td-cash-explain{
+  padding:10px 12px;border-radius:12px;background:#293137;
+  border:1px solid #596773;color:#D9E1E4;font-size:12px;line-height:1.55
+}
+body .td-cash-status{
+  padding:10px;margin:10px 0 2px;border-left:3px solid #B9EA6F;
+  border-radius:6px;background:#303B40;font-size:13px;color:#F4F6F7
+}
+body .td-cash-paid-btn{
+  min-height:30px;padding:6px 9px;margin-left:6px;border-radius:9px;
+  color:#14191E;background:#B9EA6F;border:0;font-weight:800;font-size:11px
+}
+/* Privaatvestlus */
+body .cm-entry{
+  box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;
+  margin:0 0 14px;padding:16px;border:1px solid #72866F;
+  border-radius:16px;background:#293C32;color:#F4F6F7;text-align:left
+}
+body .cm-entry-icon{
+  display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;
+  border-radius:12px;background:#B9EA6F;color:#14191E;font-size:24px
+}
+body .cm-entry>span:nth-child(2){flex:1;display:grid;gap:4px}
+body .cm-entry strong{font-size:15px}
+body .cm-entry small{font-size:12px;color:#CFDAD6}
+body .cm-unread{padding:4px 8px;border-radius:20px;background:#B9EA6F;color:#14191E;font-size:12px}
+body .cm-sheet .sheet-body{color:#F4F6F7}
+body .cm-inbox{display:grid;gap:9px}
+body .cm-inbox>p,body .cm-foot{color:#D1DADD;font-size:12px;line-height:1.5;margin:0 0 10px}
+body .cm-thread{
+  width:100%;display:flex;justify-content:space-between;gap:10px;
+  padding:14px;text-align:left;border-radius:12px;border:1px solid #54636D;
+  color:#F4F6F7;background:#293137
+}
+body .cm-thread>span:first-child{display:grid;gap:5px;min-width:0;flex:1}
+body .cm-thread strong{font-size:14px}
+body .cm-thread small{
+  font-size:12px;color:#C7D4D9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+body .cm-thread-date{font-size:10px;color:#B9EA6F;white-space:nowrap}
+body .cm-chat{display:grid;gap:12px}
+body .cm-chat>h3{margin:0;color:#F4F6F7;font-size:16px}
+body .cm-back{justify-self:start;background:transparent;color:#B9EA6F;border:0;padding:8px 0;font-size:13px}
+body .cm-messages{
+  display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:42dvh;
+  overflow-y:auto;overscroll-behavior:contain;padding:12px;
+  background:#182127;border:1px solid #54636D;border-radius:14px
+}
+body .cm-bubble{
+  display:grid;gap:5px;max-width:85%;padding:10px 12px;
+  border-radius:13px;background:#33404A;white-space:pre-wrap;overflow-wrap:anywhere
+}
+body .cm-bubble.cm-me{align-self:flex-end;background:#385941}
+body .cm-bubble.cm-other{align-self:flex-start}
+body .cm-bubble span{color:#F4F6F7;font-size:13px;line-height:1.55}
+body .cm-bubble small{color:#C9D8D4;font-size:10px;text-align:right}
+body .cm-chat>label{font-weight:700;font-size:12px}
+body .cm-chat>textarea{
+  width:100%;box-sizing:border-box;resize:vertical;min-height:90px;
+  background:#222B32;border:1px solid #71818A;border-radius:12px;
+  padding:12px;color:#F4F6F7;font-size:14px
+}
+body .cm-send{
+  background:#B9EA6F;color:#14191E;border:0;min-height:46px;
+  border-radius:12px;font-weight:900;font-size:14px
+}
+body .cm-send:disabled{opacity:.55}
+body .cm-empty{padding:18px;color:#D0DADD;font-size:13px;text-align:center}
+body .cm-warning{color:#E4D49C}
+body :is(.cm-entry,.cm-thread,.cm-send,.td-cash-paid-btn):focus-visible{
+  outline:3px solid #B9EA6F;outline-offset:2px
+}
