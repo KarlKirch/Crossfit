@@ -1,0 +1,80 @@
+/* Rõuge CrossFit 5.8.0 – klienditeekond ja administraatori turvaline eelvaade.
+   Paigutuse CSS on alati viimase kihina, nii telefoni kui arvuti jaoks. */
+.rcf-client-home{gap:14px}
+.rcf-client-home>.rcf-section-head:first-child{margin-top:2px}
+.rcf-client-home .rcf-feature-card{min-height:215px}
+.rcf-client-home .rcf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rcf-client-home .rcf-metric-card{min-height:105px}
+.rcf-client-home .rcf-wod-card{min-height:125px}
+.rcf-client-home .rcf-feature-card .rcf-card-eyebrow{color:#C8F59C}
+.rcf-client-home .rcf-feature-card .rcf-green-cta{background:#B9EA6F;color:#14191E}
+body .my-credit-help-link{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;margin:10px 0 4px;padding:12px 14px;
+  color:#B9EA6F;background:#343F47;border:1px solid #596773;
+  border-radius:12px;font:inherit;font-size:13px;font-weight:800;text-align:left
+}
+body .my-credit-help-link svg{height:17px;width:17px}
+body .my-credit-help-link:hover{background:#42505A}
+body .rcf-credit-help-sheet .sheet-body{color:#F4F6F7}
+body .rcf-credit-steps{display:grid;gap:12px;padding-left:22px;margin:12px 0 18px;
+  line-height:1.6;font-size:14px}
+body .rcf-credit-steps li::marker{color:#B9EA6F;font-weight:900}
+body .rcf-credit-disclaimer{
+  padding:13px;border:1px solid #596773;border-radius:12px;background:#303A42;
+  color:#D7E1E5;font-size:13px;line-height:1.55
+}
+body .td-booking-deadline{
+  margin:10px 0 12px;padding:11px 12px;border-left:3px solid #B9EA6F;
+  border-radius:5px 10px 10px 5px;background:#303B40;color:#F4F6F7;
+  font-size:13px;font-weight:700;line-height:1.5
+}
+body .nc-push-settings{
+  margin:20px 0 10px;padding:12px;border:1px solid #505D66;
+  border-radius:15px;background:#293137
+}
+body .nc-push-settings>summary{
+  cursor:pointer;padding:5px 2px;color:#F4F6F7;font-size:13px;font-weight:800
+}
+body .nc-push-settings[open] .nc-push-card{margin-top:12px}
+body .rcf-preview-entry{
+  display:grid;gap:11px;padding:18px;margin:0 0 17px;border:1px solid #687679;
+  border-radius:18px;background:linear-gradient(145deg,#343F47,#222A30);
+  box-shadow:0 10px 22px #0003
+}
+body .rcf-preview-entry h2{margin:6px 0;color:#F4F6F7;font-size:19px}
+body .rcf-preview-entry p{margin:0;color:#CFD9DD;font-size:13px;line-height:1.5}
+body .rcf-preview-entry small{color:#C2CDD3;font-size:11px}
+body .rcf-preview-kicker{font-size:10px;font-weight:900;letter-spacing:.9px;color:#B9EA6F}
+body .rcf-preview-start{
+  width:100%;padding:13px 16px;min-height:48px;border:1px solid #B9EA6F;
+  border-radius:12px;background:#B9EA6F;color:#14191E;font:inherit;font-size:14px;font-weight:900
+}
+body .rcf-preview-start:hover{background:#D0F59B}
+body .rcf-client-preview-banner{
+  position:sticky;top:calc(65px + env(safe-area-inset-top));z-index:39;
+  display:grid;gap:8px;padding:10px 12px;margin:0 0 8px;
+  border:2px solid #B9EA6F;border-radius:0 0 14px 14px;
+  background:#263239;color:#F4F6F7;box-shadow:0 8px 22px #0008
+}
+body .rcf-preview-label{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+body .rcf-preview-label strong{color:#B9EA6F;font-size:12px;letter-spacing:.5px}
+body .rcf-preview-label span{font-size:10px;color:#D5DFE3}
+body .rcf-preview-controls{display:flex;flex-wrap:wrap;gap:6px}
+body .rcf-preview-scenario{
+  min-height:32px;padding:6px 9px;border-radius:8px;border:1px solid #697981;
+  background:#343F47;color:#F4F6F7;font-size:11px;font-weight:800
+}
+body .rcf-preview-scenario.is-selected{background:#B9EA6F;color:#14191E;border-color:#B9EA6F}
+body .rcf-preview-exit{
+  padding:10px;border:1px solid #ABB8BD;border-radius:9px;
+  background:#F4F6F7;color:#14191E;font-size:12px;font-weight:900
+}
+body .rcf-client-preview-banner :is(button):focus-visible,
+body .rcf-preview-entry button:focus-visible{outline:3px solid #B9EA6F;outline-offset:2px}
+@media(max-width:390px){
+  body .rcf-client-preview-banner{gap:6px;padding:8px 9px}
+  body .rcf-preview-controls{gap:4px}
+  body .rcf-preview-scenario{padding:6px 7px;font-size:10px}
+  body .rcf-preview-label span{font-size:9px}
+}
