@@ -637,7 +637,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         with page.expect_request(lambda req: "/rpc/wod_register_cash" in req.url and req.method=="POST",timeout=10000) as sent:
             page.locator(".td-payment-choices").get_by_role("button",name="Maksan kohapeal",exact=False).click()
         self.assertEqual(sent.value.post_data_json["p_training_id"],201)
-        page.locator(".td-content").wait_for()
+        page.wait_for_function("() => document.querySelector('#toast')?.textContent?.includes('Koht kinnitatud')",timeout=10000)
         page.evaluate("() => window.crossfitMessages.open()")
         page.locator(".cm-sheet textarea").wait_for()
         self.assertEqual(page.locator(".cm-sheet .cm-chat").count(),1)
