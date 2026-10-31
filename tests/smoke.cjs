@@ -236,5 +236,44 @@ test('Tasuta tühistamine on uuel treeningul vaikimisi 2 tundi',()=>{
   context.copyTraining(12);
   assert.equal(context.state.modalData.cancellation_hours,2,'Vana treeningu kopeerimine peab kasutama uut 2h piiri');
 });
+
+test('Administraatori kliendieelvaade on kirjutuskaitstud ja taastab algvaate',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session={user:{id:uid,email:'trainer@example.ee'},access_token:'test'};
+  context.state.view='more';context.state.modal=null;
+  const initialTrainingCount=context.state.trainings.length;
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Vaata kliendina'),'Admin sees client preview entry');
+  assert.equal(typeof context.rcfClientPreview?.start,'function');
+  context.rcfClientPreview.start('booked');
+  assert.equal(context.state.profile.role,'client');
+  assert.equal(context.state.clientPreview,true);
+  assert.equal(context.state.view,'home');
+  assert(htmlRoot.innerHTML.includes('KLIENDIVAADE'), 'Preview banner is always visible');
+  assert(!htmlRoot.innerHTML.includes('Haldus'));
+  assert.equal(context.state.session.access_token,null);
+  assert.equal(context.state.trainings.length,initialTrainingCount);
+  assert(htmlRoot.innerHTML.includes('SINU JÄRGMINE TREENING'));
+  context.rcfClientPreview.setScenario('empty');
+  assert.equal(context.totalCredits(),0);
+  context.rcfClientPreview.setScenario('credits');
+  assert.equal(context.totalCredits(),3);
+  context.rcfClientPreview.exit();
+  assert.equal(context.state.clientPreview,false);
+  assert.equal(context.state.profile.role,'trainer');
+  assert.equal(context.state.session.user.id,uid);
+  assert.equal(context.state.view,'more');
+  assert.equal(context.state.trainings.length,initialTrainingCount);
+});
+test('Tavakliendi avaleht ei sisalda eksitavaid topeltvalikuid',()=>{
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;
+  context.state.view='home';
+  context.render();
+  assert(!htmlRoot.innerHTML.includes('Minu kavad'));
+  assert(!htmlRoot.innerHTML.includes('Minu areng'));
+  assert(!htmlRoot.innerHTML.includes('rcf-brand-hero'));
+  assert(htmlRoot.innerHTML.includes('treening'));
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
