@@ -94,7 +94,8 @@
       '<div class="my-credit-amount"><strong>'+creditText(amount)+'</strong>'+
       '<div><b>'+(amount===1?'treeningkord':'treeningkorda')+' alles</b>'+
       '<span>Üks kinnitatud registreering kasutab ühe krediidi.</span></div></div>'+
-      (amount<=0?'<p class="my-credit-notice">Krediidi lisamiseks võta ühendust treeneriga. Krediit lisatakse sinu kontole.</p>':'')+
+      (amount<=0?'<p class="my-credit-notice">Krediidi saamiseks võta ühendust treeneriga. Äpis ei saa praegu maksta.</p>':'')+
+      '<button type="button" class="my-credit-help-link" onclick="openCreditHelp()">Kuidas krediiti saada? '+icons.chevron+'</button>'+
       (waiting?'<p class="my-credit-wait-note">'+waiting+' tulevast ootenimekirja registreeringut. Krediit arvestatakse alles koha saamisel.</p>':'')+
       '<button type="button" class="my-credit-history-link" onclick="crossfitMyAccount.showCreditHistory()">'+
       'Vaata krediidi ajalugu '+icons.chevron+'</button></section>';
@@ -173,7 +174,8 @@
       '<span><strong>Konto ja seaded</strong><small>Teavitused, jagamine ja rakenduse haldus</small></span>'+icons.chevron+'</summary>'+
       '<div class="my-details-inner">'+
       menuRow(icons.edit,'Muuda profiili','Nimi ja profiilipilt','openProfileEdit()')+
-      menuRow(icons.bell,'Teavitused','Teavituste ajalugu ja lubamine',"go('notifications')")+
+      menuRow(icons.bell,'Teavitused','Vaata treeningute teateid',"go('notifications')")+
+      (window.crossfitNotifications?.pushSettings?.()||'')+
       menuRow(icons.share,'Kutsu sõber','Jaga CrossFiti linki','openShare()')+
       install+
       menuRow(icons.info,'Rakenduse info','Versioon ja kasutustingimused','openInfo()')+

@@ -410,5 +410,98 @@ class RCFBrowserSmoke(unittest.TestCase):
         }).toISOString()"""), "2026-11-12T17:00:00.000Z")
 
 
+    def test_trainer_client_preview_readonly_scenarios_and_restore(self):
+        page = self.open_app("trainer", 390, 844)
+        page.locator(".bottom-nav").get_by_role("button", name="Haldus").click()
+        page.get_by_role("button", name="Vaata kliendina").click()
+        page.locator(".rcf-client-preview-banner").wait_for()
+        self.assertIn("KLIENDIVAADE", page.locator(".rcf-client-preview-banner").inner_text())
+        self.assertEqual(page.locator(".bottom-nav .nav-btn").count(), 3)
+        self.assertFalse(page.evaluate("() => window.isTrainer()"))
+        self.assertIsNone(page.evaluate("() => window.state.session.access_token"))
+        self.assertEqual(page.locator(".rcf-feature-card").count(), 1)
+        self.snapshot("client-preview-booked-mobile")
+        page.get_by_role("button", name="0 krediiti").click()
+        self.assertIn("Krediiti alles", page.locator(".rcf-home").inner_text())
+        self.assertEqual(page.evaluate("() => window.totalCredits()"), 0)
+        self.snapshot("client-preview-no-credits-mobile")
+        self.assertTrue(page.evaluate("() => window.state.clientPreview"))
+        page.get_by_role("button", name="Tagasi haldusesse").click()
+        self.assertTrue(page.evaluate("() => window.isTrainer()"))
+        self.assertFalse(page.evaluate("() => window.state.clientPreview"))
+        self.assertEqual(page.locator(".bottom-nav .nav-btn").count(), 4)
+
+    def test_client_home_priority_and_no_duplicate_navigation(self):
+        page = self.open_app("client", 390, 844)
+        self.assertEqual(page.locator(".rcf-shortcuts").count(), 0)
+        self.assertEqual(page.locator(".rcf-brand-hero").count(), 0)
+        self.assertIn("SINU JÄRGMINE TREENING", page.locator(".rcf-feature-card").inner_text())
+        page.evaluate("""() => {
+            const earlier={...window.state.trainings[0],id:202,
+              title:'Veel üks vaba treening',
+              starts_at:new Date(Date.now()+3600000).toISOString()};
+            window.state.trainings.unshift(earlier);
+            window.render();
+        }""")
+        self.assertIn("Testtreening", page.locator(".rcf-feature-card").inner_text())
+        self.assertNotIn("Veel üks vaba treening", page.locator(".rcf-feature-card").inner_text())
+        page.locator(".bottom-nav").get_by_role("button", name="Treeningud").click()
+        self.assertEqual(page.locator(".tl-training-card").count(), 2)
+        for card in page.locator(".tl-training-card").all():
+            self.assertEqual(card.locator(".tl-card-actions button").count(), 1)
+
+    def test_client_booking_timing_privacy_and_credit_help(self):
+        page = self.open_app("client", 390, 844)
+        page.evaluate("window.openTraining(201)")
+        page.locator(".td-booking-section").wait_for()
+        self.assertIn("Tasuta tühistamine kuni", page.locator(".td-booking-section").inner_text())
+        self.assertNotIn("Testklient", page.locator(".td-people").inner_text())
+        page.locator(".sheet-close").click()
+        page.locator(".bottom-nav").get_by_role("button", name="Minu").click()
+        page.get_by_role("button", name="Kuidas krediiti saada?").click()
+        self.assertIn("treener", page.locator(".rcf-credit-help-sheet").inner_text().lower())
+        page.locator(".sheet-close").click()
+        self.assertEqual(page.locator(".my-account-page .nc-push-settings").count(), 1,
+                         "Telefoni märguannete seaded peavad olema Minu vaates")
+        page.locator(".top-actions").get_by_role("button", name="Teavitused").click()
+        page.locator(".nc-page").wait_for()
+        self.assertEqual(page.locator(".nc-push-settings").count(), 0,
+                         "Teavituste loend peab avanema ilma seadete plokita")
+
+
+    def test_preview_registration_is_blocked_before_any_network_write(self):
+        page = self.open_app("trainer", 390, 844)
+        before = page.evaluate("""() => ({
+            user: window.state.session.user.id,
+            count: window.state.registrations.length,
+            credits: window.state.wallets.length
+        })""")
+        writes = []
+        page.on("request", lambda req: writes.append(req.url)
+                if req.method in ("POST", "PATCH", "DELETE", "PUT")
+                and "/rest/v1/" in req.url else None)
+        page.evaluate("() => window.rcfClientPreview.start('credits')")
+        page.locator(".bottom-nav").get_by_role("button", name="Treeningud").click()
+        page.locator(".tl-training-card").first.wait_for()
+        page.locator(".tl-training-card .tl-action-main").first.click()
+        page.wait_for_timeout(100)
+        self.assertEqual(writes, [], "Kliendieelvaade ei tohi saata kirjutamispäringuid")
+        self.assertEqual(page.evaluate("() => window.state.registrations.length"), 0)
+        self.assertIn("kirjutuskaitstud", page.locator("#toast").inner_text().lower())
+        page.evaluate("() => window.rcfClientPreview.setScenario('waitlist')")
+        self.assertIn("Sinu ootenimekiri", page.locator(".rcf-home").inner_text())
+        self.assertTrue(page.evaluate("""() => {
+            const t=window.state.trainings.find(x=>window.mineFor(x.id)?.status==='waitlist');
+            return !!t && window.confirmedFor(t.id).length === t.capacity && t.capacity>0;
+        }"""), "Näidisolukorras peab ootenimekirja treening olema täis")
+        page.evaluate("() => window.rcfClientPreview.exit()")
+        after = page.evaluate("""() => ({
+            user: window.state.session.user.id,
+            count: window.state.registrations.length,
+            credits: window.state.wallets.length
+        })""")
+        self.assertEqual(before, after, "Eelvaatest väljumine peab taastama pärisoleku")
+
+
 if __name__ == "__main__":
     unittest.main()

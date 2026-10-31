@@ -18,7 +18,8 @@ function test(name,fn){
 }
 test('Scripts included and in expected order',()=>{
   assert(jsFiles.length>=18,'Expected modular app scripts');
-  assert.equal(jsFiles.at(-1),'brand-home.js');
+  assert.equal(jsFiles.at(-1),'client-preview.js');
+  assert(jsFiles.indexOf('client-preview.js')>jsFiles.indexOf('brand-home.js'));
   assert(jsFiles.indexOf('brand-home.js')>jsFiles.indexOf('notification-center.js'));
   assert(jsFiles.indexOf('training-form-redesign.js')>jsFiles.indexOf('wod-review-ui.js'));
 });
@@ -146,13 +147,17 @@ test('Historical WOD dates and structure are kept',()=>{
   const html=context.crossfitWodUI.structuredText('WOD: 10 burpees; 20 squats');
   assert(html.includes('10 burpees')&&html.includes('20 squats'));
 });
-test('Both roles have the RCF forest homepage',()=>{
+test('Treeneri bränd ja kliendi kiire avaleht on erinevad',()=>{
   for(const role of ['trainer','client']){
     context.state.profile.role=role;
     context.state.profile.user_id=role==='trainer'?uid:clientId;
     context.state.session.user.id=context.state.profile.user_id;
     context.state.modal=null;context.state.view='home';context.render();
-    assert(htmlRoot.innerHTML.includes('rcf-brand-hero'));
+    if(role==='trainer')assert(htmlRoot.innerHTML.includes('rcf-brand-hero'));
+    else{
+      assert(!htmlRoot.innerHTML.includes('rcf-brand-hero'));
+      assert(htmlRoot.innerHTML.includes('rcf-client-home'));
+    }
     assert(htmlRoot.innerHTML.includes('brand-rcf.webp'));
     assert(htmlRoot.innerHTML.includes('Monday WOD'));
   }
@@ -235,6 +240,45 @@ test('Tasuta tühistamine on uuel treeningul vaikimisi 2 tundi',()=>{
   assert(read('pro-features.js').includes('t.cancellation_hours??2'));
   context.copyTraining(12);
   assert.equal(context.state.modalData.cancellation_hours,2,'Vana treeningu kopeerimine peab kasutama uut 2h piiri');
+});
+
+test('Administraatori kliendieelvaade on kirjutuskaitstud ja taastab algvaate',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Test Coach'};
+  context.state.session={user:{id:uid,email:'trainer@example.ee'},access_token:'test'};
+  context.state.view='more';context.state.modal=null;
+  const initialTrainingCount=context.state.trainings.length;
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Vaata kliendina'),'Admin sees client preview entry');
+  assert.equal(typeof context.rcfClientPreview?.start,'function');
+  context.rcfClientPreview.start('booked');
+  assert.equal(context.state.profile.role,'client');
+  assert.equal(context.state.clientPreview,true);
+  assert.equal(context.state.view,'home');
+  assert(htmlRoot.innerHTML.includes('KLIENDIVAADE'), 'Preview banner is always visible');
+  assert(!htmlRoot.innerHTML.includes('Haldus'));
+  assert.equal(context.state.session.access_token,null);
+  assert.equal(context.state.trainings.length,initialTrainingCount);
+  assert(htmlRoot.innerHTML.includes('SINU JÄRGMINE TREENING'));
+  context.rcfClientPreview.setScenario('empty');
+  assert.equal(context.totalCredits(),0);
+  context.rcfClientPreview.setScenario('credits');
+  assert.equal(context.totalCredits(),3);
+  context.rcfClientPreview.exit();
+  assert.equal(context.state.clientPreview,false);
+  assert.equal(context.state.profile.role,'trainer');
+  assert.equal(context.state.session.user.id,uid);
+  assert.equal(context.state.view,'more');
+  assert.equal(context.state.trainings.length,initialTrainingCount);
+});
+test('Tavakliendi avaleht ei sisalda eksitavaid topeltvalikuid',()=>{
+  context.state.profile={user_id:clientId,role:'client',display_name:'Anna Test'};
+  context.state.session.user.id=clientId;
+  context.state.view='home';
+  context.render();
+  assert(!htmlRoot.innerHTML.includes('Minu kavad'));
+  assert(!htmlRoot.innerHTML.includes('Minu areng'));
+  assert(!htmlRoot.innerHTML.includes('rcf-brand-hero'));
+  assert(htmlRoot.innerHTML.includes('treening'));
 });
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);

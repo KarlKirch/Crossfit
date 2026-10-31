@@ -75,7 +75,8 @@
   function attendees(list,waitlist,trainer){
     if(!list.length)return '<div class="td-empty-attendees">Registreerunuid veel ei ole.</div>';
     return '<div class="td-attendee-list">'+list.map((r,i)=>{
-      const name=String(window.pname(r.user_id)||'Kasutaja');
+      const nameFull=String(window.pname(r.user_id)||'Kasutaja');
+      const name=trainer?nameFull:nameFull.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toLocaleUpperCase('et')+'.').join(' ');
       const photo=window.crossfitAvatars?.html(r.user_id,'medium')||'<span class="td-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toLocaleUpperCase('et'))+'</span>';
       const balance=trainer&&r.status==='confirmed'&&r.credit_charged?'<span class="td-person-credit">1 krediit kasutatud</span>':'';
       const trainerPayment=trainer&&!waitlist&&r.payment_status==='unpaid'?'<span class="td-person-credit td-person-unpaid">Tasumata</span>':'';
@@ -122,13 +123,18 @@
   function clientActions(t,id,c){
     if(t.status!=='published'||past(t))return '';
     const mine=current(t);
+    const waiting=mine?.status==='waitlist';
+    let deadline='';
+    try{deadline=safeDate(window.cancellationDeadline(t).toISOString())}catch(_){}
+    const deadlineText=deadline?'<p class="td-booking-deadline">Tasuta tühistamine kuni '+esc(deadline)+
+      ' ('+Number(t.cancellation_hours||2)+' tundi enne treeningut).</p>':'';
     if(mine){
-      const waiting=mine.status==='waitlist';
       let content='<div class="td-booking-status">'+
         '<strong>'+(waiting?'Oled ootenimekirjas':'Sinu koht on kinnitatud')+'</strong>'+
-        '<p>'+(waiting?'Koha vabanemisel liigutab süsteem sind automaatselt treeningule. Krediit arvestatakse koha saamisel.':'Näeme treeningul! Siin saad registreeringut vaadata või selle tühistada.')+'</p>'+
+        '<p>'+(waiting?'Koha vabanemisel liigud automaatselt treeningule. Krediit arvestatakse koha kinnitamisel.':
+          'Näeme treeningul! Siit saad registreeringut vaadata või selle tühistada.')+'</p>'+
         (waiting?'<span class="td-position">Koht ootenimekirjas: '+esc(String(window.waitPosition(t.id)||'—'))+'</span>':'')+
-        '</div>'+
+        '</div>'+(!waiting?deadlineText:'<p class="td-booking-deadline">Ootenimekirjast lahkudes krediiti ei arvestata.</p>')+
         '<div class="td-actions">'+
         btn('openCalendar('+id+')','Lisa kalendrisse','secondary')+
         btn('cancelRegistration('+id+')','Tühista registreering','danger')+
@@ -138,8 +144,9 @@
     }
     const credits=Number(window.totalCredits?.()??0);
     if(credits<=0)return block('Registreerimine',
-      '<div class="td-no-credit"><strong>Treeningkrediit on otsas</strong><p>Uue krediidi saamiseks pöördu treeneri poole. Kui treener selle lisab, saad registreeruda.</p>'+
-      btn("go('people');closeModal()",'Vaata minu kontot','secondary')+'</div>',
+      '<div class="td-no-credit"><strong>Treeningkrediit on otsas</strong>'+
+      '<p>Registreerimiseks, ka ootenimekirjaga liitumiseks, on vaja vähemalt ühte krediiti. Krediit arvestatakse alles koha kinnitamisel.</p>'+
+      btn('openCreditHelp()','Kuidas krediiti saada?','secondary')+'</div>',
       'td-booking-section');
     const full=c.free<=0;
     return block(full?'Liitu ootenimekirjaga':'Registreeru treeningule',
@@ -147,6 +154,7 @@
         'Treening on täis. Krediit arvestatakse alles koha vabanemisel.':
         'Registreerimisel kasutatakse sinu kontolt 1 treeningkrediit.')+'</p>'+
       '<span>Sinu krediidijääk: '+esc(credits===Infinity?'∞':String(credits))+'</span></div>'+
+      (!full?deadlineText:'')+
       btn('registerTraining('+id+')',full?'Liitu ootenimekirjaga':'Registreeru · 1 krediit'),
       'td-booking-section');
   }

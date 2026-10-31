@@ -41,10 +41,11 @@
     return c.free>0?'<span class="tl-pill tl-free">'+c.free+' vaba kohta</span>'
       :'<span class="tl-pill tl-waiting">Kohad täis</span>';
   }
-  function attendees(list){
+  function attendees(list,trainer){
     if(!list.length)return '<span class="tl-participants-none">Veel pole registreerunuid</span>';
     const top=list.slice(0,3).map(r=>{
-      const name=String(window.pname(r.user_id)||'Kasutaja');
+      const realName=String(window.pname(r.user_id)||'Kasutaja');
+      const name=trainer?realName:realName.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toLocaleUpperCase('et')+'.').join(' ');
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toLocaleUpperCase('et')||'?';
       return '<span class="tl-person">'+(window.crossfitAvatars?.html(r.user_id,'small')||'<span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span>')+'<span>'+esc(name)+'</span></span>';
     }).join('');
@@ -66,7 +67,7 @@
     const c=counts(t),duration=Number(t.duration_minutes)||0;
     const fill=c.capacity?Math.min(100,Math.round(c.confirmed.length/c.capacity*100)):0;
     const stopped=t.status==='cancelled';
-    const names=attendees(c.confirmed);
+    const names=attendees(c.confirmed,trainer);
     return '<article class="tl-training-card'+(stopped?' tl-card-cancelled':'')+'">'+
       '<div class="tl-card-top"><div class="tl-card-datebox"><span class="tl-card-day">'+esc(date(t.starts_at,dayfmt))+'</span>'+
       '<strong>'+esc(date(t.starts_at,timefmt))+'</strong></div>'+
@@ -79,7 +80,7 @@
       '<div class="tl-capacity-label">'+(past||stopped?'Registreerunuid '+c.confirmed.length:c.free>0?'Vabu kohti '+c.free:'Kõik kohad täidetud')+'</div></div>'+
       '<div class="tl-participants"><span class="tl-participants-label">Registreerunud</span><div class="tl-participants-list">'+names+'</div></div>'+
       '<div class="tl-card-actions">'+action(t,past,trainer,c)+
-      '<button type="button" class="tl-action tl-action-link" onclick="openTraining('+id+')">Täpsem info'+svg.arrow+'</button></div>'+(trainer&&(past||stopped)?'<button type="button" class="tl-history-remove" onclick="deleteTraining('+id+')">Eemalda ajaloost</button>':'')+
+      (trainer?'<button type="button" class="tl-action tl-action-link" onclick="openTraining('+id+')">Täpsem info'+svg.arrow+'</button>':'')+'</div>'+(trainer&&(past||stopped)?'<button type="button" class="tl-history-remove" onclick="deleteTraining('+id+')">Eemalda ajaloost</button>':'')+
     '</article>';
   }
   function grouped(list,past,trainer){

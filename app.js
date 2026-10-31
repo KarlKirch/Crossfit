@@ -4,7 +4,7 @@ const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
 const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
-const APP_VERSION='5.7.1';
+const APP_VERSION='5.8.0';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -65,7 +65,7 @@ function waitPosition(tid,uid=state.session?.user?.id){const w=waitlistFor(tid);
 
 function headers(token){const h={'apikey':SUPABASE_KEY,'Content-Type':'application/json'};if(token)h.Authorization='Bearer '+token;return h}
 async function request(url,opt={}){const r=await fetch(url,opt);const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(_){data=text}if(!r.ok){const msg=(data&&typeof data==='object'&&(data.message||data.msg||data.error_description||data.error||data.hint))||text||`HTTP ${r.status}`;throw new Error(msg)}return data}
-async function api(path,opt={}){if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}})}
+async function api(path,opt={}){if(state.clientPreview)throw new Error('Kliendieelvaade on kirjutuskaitstud.');if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}})}
 async function rpc(name,body={}){return api(`rpc/${name}`,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)})}
 function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'E-post ei ole kinnitatud. Ava kinnituskiri ja proovi uuesti.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas.';return s||'Toiming ebaõnnestus.'}
 
@@ -88,7 +88,7 @@ async function loadData(){
   const [t,r,p,w,tx,pt,up,n]=await Promise.all(queries);
   state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
 }
-async function reloadData(message){try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
+async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
 function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
@@ -109,6 +109,7 @@ function renderShell(content){
           :`<button class="top-icon-action" type="button" onclick="go('notifications')" aria-label="Teavitused${badge?', '+badge+' lugemata':''}" title="Teavitused">${icon.bell}${badge?`<span class="top-notification-badge">${badge>9?'9+':badge}</span>`:''}</button>`}
       </div>
     </header>
+    ${state.clientPreview?(window.rcfClientPreview?.banner?.()||''):''}
     <main class="main">${state.view==='home'?(window.crossfitInstall?.banner?.()||''):''}${content}</main>
     ${trainer?`<button class="fab" aria-label="Kiirtoimingud" onclick="openQuickActions()">+</button>`:''}
     <nav class="bottom-nav ${trainer?'nav-four':'nav-three'}" aria-label="Põhimenüü">
@@ -305,7 +306,7 @@ function quickSheet(){return `<div class="quick-grid"><button class="quick" oncl
 
 function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in window&&typeof Notification!=='undefined'}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=69',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=70',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render()}catch(e){toast(e.message)}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -318,7 +319,7 @@ async function installApp(){return window.crossfitInstall?.request?.()}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.installPrompt=e});
 window.addEventListener('appinstalled',()=>{state.installPrompt=null;toast('CrossFit on paigaldatud')});
 
-async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=69',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
+async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=70',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
 function showUpdateBanner(){updateBanner.classList.remove('hidden')}
 updateNow.addEventListener('click',()=>{if(state.swReg?.waiting)state.swReg.waiting.postMessage({type:'SKIP_WAITING'});else location.reload()});
 
