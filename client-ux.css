@@ -114,3 +114,55 @@ body .wb-advanced-actions>.btn{margin-top:10px}
   body .wb-edit-fields{grid-template-columns:1fr}
   body .wb-detail-photo{max-height:290px}
 }
+
+
+/* WOD-fotode kiire lugemisvaade – ei ava fotot kohe täissuuruses. */
+body .wb-photo-trigger{
+  display:block;width:100%;height:100%;margin:0;padding:0;
+  background:transparent;border:0;border-radius:inherit;cursor:zoom-in;
+  overflow:hidden;text-align:inherit;line-height:0
+}
+body .wb-photo-trigger:focus-visible{
+  outline:3px solid #B9EA6F;outline-offset:3px
+}
+body .wb-photo-trigger .wb-photo{width:100%;display:block}
+body .wb-detail-trigger{height:auto;line-height:0}
+body .wb-image-preview-open{overflow:hidden}
+body .wb-image-preview{
+  position:fixed;inset:0;z-index:10001;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;box-sizing:border-box;
+  background:rgba(7,11,15,.88);
+}
+body .wb-image-preview-panel{
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+  gap:10px;width:max-content;max-width:min(940px,94vw);
+  max-height:calc(100dvh - 32px);
+  padding:12px;border:1px solid #627177;border-radius:16px;
+  background:#222A30;box-shadow:0 18px 60px #0009;
+}
+body .wb-image-preview-close{
+  align-self:flex-end;min-width:88px;min-height:40px;
+  padding:8px 12px;border-radius:10px;border:1px solid #A3B1B8;
+  background:#343F47;color:#F4F6F7;
+  font:inherit;font-size:14px;font-weight:800;cursor:pointer
+}
+body .wb-image-preview-close:focus-visible{
+  outline:3px solid #B9EA6F;outline-offset:2px
+}
+body .wb-image-preview-img{
+  display:block;width:auto;height:auto;
+  max-width:100%;max-height:calc(100dvh - 145px);
+  object-fit:contain;border-radius:8px;
+}
+body .wb-image-preview-hint{
+  margin:0;color:#D7E1E5;font-size:11px;text-align:center
+}
+@media(max-width:600px){
+  body .wb-image-preview{padding:8px}
+  body .wb-image-preview-panel{
+    max-width:calc(100vw - 16px);padding:8px;gap:8px
+  }
+  body .wb-image-preview-img{max-height:calc(100dvh - 118px)}
+  body .wb-image-preview-hint{font-size:10px}
+}
