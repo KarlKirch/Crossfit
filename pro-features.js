@@ -29,14 +29,11 @@
   const baseLoadData=window.loadData;
   const baseRenderHome=window.renderHome;
   const baseRenderClients=window.renderClients;
-  const baseRenderTrainings=window.renderTrainings;
   const baseRenderMore=window.renderMore;
   const baseRenderModal=window.renderModal;
   const baseQuickSheet=window.quickSheet;
-  const baseTrainingDetail=window.trainingDetail;
   const baseShareSheet=window.shareSheet;
 
-  s.trainingTemplates=s.trainingTemplates||[];
   s.announcements=s.announcements||[];
   s.clientFilter=s.clientFilter||'all';
   s.clientSearch=s.clientSearch||'';
@@ -62,16 +59,10 @@
   window.loadData=async function(){
     await baseLoadData();
     if(!window.isTrainer()){
-      s.trainingTemplates=[];
       s.announcements=[];
       return;
     }
-    const [templates,announcements]=await Promise.all([
-      window.api('wod_training_templates?select=*&order=name.asc,id.asc'),
-      window.api('wod_announcements?select=*&order=created_at.desc&limit=50')
-    ]);
-    s.trainingTemplates=templates||[];
-    s.announcements=announcements||[];
+    s.announcements=await window.api('wod_announcements?select=*&order=created_at.desc&limit=50')||[];
   };
 
   window.renderHome=function(){
@@ -159,21 +150,6 @@
     window.render();
   };
 
-  window.renderTrainings=function(){
-    const html=baseRenderTrainings();
-    if(!window.isTrainer()) return html;
-    return html.replace(
-      '<button class="page-action" onclick="openTrainingForm()">+ Lisa</button>',
-      '<div style="display:flex;gap:6px"><button class="btn btn-soft btn-sm" onclick="openTemplates()">Mallid</button><button class="page-action" onclick="openTrainingForm()">+ Lisa</button></div>'
-    );
-  };
-
-  window.trainingDetail=function(t){
-    const html=baseTrainingDetail(t);
-    if(!window.isTrainer()) return html;
-    return html+`<div class="detail-block"><h3>Treeningumall</h3><div class="card-sub">Salvesta selle treeningu ülesehitus malliks, et järgmised treeningud kiiremini luua.</div><div class="training-actions"><button class="btn btn-soft" onclick="saveTrainingAsTemplate(${t.id})">Salvesta mallina</button><button class="btn btn-soft" onclick="openTemplates()">Ava mallid</button></div></div>`;
-  };
-
   function menuItem(iconSvg,label,desc,action){
     return `<button class="menu-item" onclick="${action}"><div class="menu-main"><div class="menu-icon">${iconSvg}</div><div><div class="menu-label">${label}</div><div class="menu-desc">${desc}</div></div></div><span class="chev">›</span></button>`;
   }
@@ -183,7 +159,6 @@
     if(!window.isTrainer()) return html;
     const extra=
       menuItem(featureIcon.megaphone,'Saada teadaanne','Kõigile või valitud treeningu osalejatele','openAnnouncement()')+
-      menuItem(featureIcon.template,'Treeningumallid','Loo ja kasuta korduvaid treeningupõhju','openTemplates()')+
       menuItem(featureIcon.stats,'Statistika','Täituvus, aktiivsus ja osalemised','openStats()')+
       menuItem(featureIcon.export,'Ekspordi andmed','Laadi kliendid, krediit ja treeningud CSV-faili','exportAllData()');
     const marker='<button class="menu-item" onclick="openInfo()">';
@@ -239,89 +214,6 @@
       s.modal='announcement';
       window.render();
     }catch(e){window.toast(e.message||'Teadaande saatmine ebaõnnestus')}
-  };
-
-  function templateCard(t){
-    return `<div class="client-card"><div class="client-top"><div><div class="client-name">${window.esc(t.name)}</div><div class="client-meta">${window.esc(t.title)} · ${t.duration_minutes} min · ${t.capacity} kohta · tühistus ${t.cancellation_hours} h</div></div><span class="pill ${t.active?'green':''}">${t.active?'Aktiivne':'Peidetud'}</span></div><div class="client-actions"><button class="btn btn-primary" onclick="useTemplate(${t.id})">Kasuta</button><button class="btn btn-soft" onclick="openTemplateForm(${t.id})">Muuda</button><button class="btn btn-danger" onclick="deleteTemplate(${t.id})">Kustuta</button></div></div>`;
-  }
-
-  function templatesSheet(){
-    return `<div class="card"><div class="card-title-row"><div><div class="card-title">Treeningumallid</div><div class="card-sub">Malli kasutamisel avaneb uus treening eeltäidetud andmetega. Kuupäeva ja kellaaega saad enne avaldamist muuta.</div></div><button class="btn btn-primary btn-sm" onclick="openTemplateForm()">+ Uus</button></div></div><div class="section"><h2>Mallid</h2><small>${s.trainingTemplates.length}</small></div><div class="stack">${s.trainingTemplates.map(templateCard).join('')||'<div class="empty">Treeningumalle pole veel loodud.</div>'}</div>`;
-  }
-
-  function templateForm(t={}){
-    return `<div class="form">
-      <div class="field"><label>Malli nimi</label><input id="tplName" maxlength="60" value="${window.esc(t.name||'')}" placeholder="Näiteks CrossFit E"></div>
-      <div class="field"><label>Treeningu nimetus</label><input id="tplTitle" maxlength="80" value="${window.esc(t.title||'CrossFit')}"></div>
-      <div class="form-grid"><div class="field"><label>Kestus (min)</label><input id="tplDuration" type="number" min="15" max="240" step="5" value="${t.duration_minutes||60}"></div><div class="field"><label>Kohti</label><input id="tplCapacity" type="number" min="1" max="100" value="${t.capacity||12}"></div></div>
-      <div class="field"><label>Tasuta tühistamine (h enne)</label><input id="tplCancel" type="number" min="0" max="72" value="${t.cancellation_hours??2}"></div>
-      <div class="field"><label>Päeva treening / WOD</label><textarea id="tplWorkout">${window.esc(t.workout||'')}</textarea></div>
-      <div class="field"><label>Treeneri märkus</label><textarea id="tplNote">${window.esc(t.note||'')}</textarea></div>
-      <div class="field"><label><input id="tplActive" type="checkbox" ${t.active!==false?'checked':''}> Mall on aktiivne</label></div>
-      <div class="form-actions"><button class="btn btn-primary" onclick="saveTemplate(${t.id||'null'})">Salvesta</button><button class="btn btn-soft" onclick="openTemplates()">Tagasi</button></div>
-    </div>`;
-  }
-
-  window.openTemplates=function(){s.modal='templates';s.modalData=null;window.render()};
-  window.openTemplateForm=function(id=null){
-    s.modal='templateForm';
-    s.modalData=id?s.trainingTemplates.find(t=>t.id===id)||{}:{};
-    window.render();
-  };
-  window.saveTemplate=async function(id){
-    const name=document.getElementById('tplName')?.value.trim();
-    const title=document.getElementById('tplTitle')?.value.trim();
-    const duration=Number(document.getElementById('tplDuration')?.value||0);
-    const capacity=Number(document.getElementById('tplCapacity')?.value||0);
-    const cancellation=Number(document.getElementById('tplCancel')?.value||0);
-    const workout=document.getElementById('tplWorkout')?.value.trim()||null;
-    const note=document.getElementById('tplNote')?.value.trim()||null;
-    const active=!!document.getElementById('tplActive')?.checked;
-    if(!name||!title||duration<15||capacity<1){window.toast('Kontrolli malli andmeid');return}
-    const body={name,title,duration_minutes:duration,capacity,cancellation_hours:cancellation,workout,note,active,updated_at:new Date().toISOString()};
-    try{
-      if(id) await window.api(`wod_training_templates?id=eq.${id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
-      else await window.api('wod_training_templates',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({...body,created_by:s.session.user.id})});
-      await window.reloadData('Treeningumall salvestatud');
-      s.modal='templates';window.render();
-    }catch(e){window.toast(e.message||'Malli salvestamine ebaõnnestus')}
-  };
-  window.deleteTemplate=async function(id){
-    const t=s.trainingTemplates.find(x=>x.id===id);
-    if(!t||!confirm(`Kustutada mall „${t.name}“?`)) return;
-    try{
-      await window.api(`wod_training_templates?id=eq.${id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});
-      await window.reloadData('Mall kustutatud');
-      s.modal='templates';window.render();
-    }catch(e){window.toast(e.message)}
-  };
-  window.useTemplate=function(id){
-    const t=s.trainingTemplates.find(x=>x.id===id);
-    if(!t) return;
-    window.openTrainingForm({
-      title:t.title,
-      duration_minutes:t.duration_minutes,
-      capacity:t.capacity,
-      cancellation_hours:t.cancellation_hours,
-      workout:t.workout,
-      note:t.note,
-      price_cents:0
-    });
-  };
-  window.saveTrainingAsTemplate=async function(id){
-    const t=s.trainings.find(x=>x.id===id);
-    if(!t) return;
-    const name=prompt('Malli nimi:',t.title)||'';
-    if(!name.trim()) return;
-    try{
-      await window.api('wod_training_templates',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({
-        name:name.trim(),title:t.title,duration_minutes:t.duration_minutes,capacity:t.capacity,
-        cancellation_hours:t.cancellation_hours,workout:t.workout||null,note:t.note||null,
-        active:true,created_by:s.session.user.id
-      })});
-      await window.reloadData('Treening salvestati mallina');
-      s.modal='training';s.modalData=id;window.render();
-    }catch(e){window.toast(e.message)}
   };
 
   function statsData(){
@@ -430,8 +322,6 @@
 
   window.renderModal=function(){
     if(s.modal==='announcement') return sheet('Saada teadaanne',announcementForm());
-    if(s.modal==='templates') return sheet('Treeningumallid',templatesSheet());
-    if(s.modal==='templateForm') return sheet(s.modalData?.id?'Muuda malli':'Uus treeningumall',templateForm(s.modalData||{}));
     if(s.modal==='stats') return sheet('Statistika',statsSheet());
     return baseRenderModal();
   };
@@ -439,7 +329,6 @@
   Object.assign(window,{
     applyClientSearch,setClientFilter,
     openAnnouncement,toggleAnnouncementTraining,sendAnnouncement,
-    openTemplates,openTemplateForm,saveTemplate,deleteTemplate,useTemplate,saveTrainingAsTemplate,
     openStats,exportAllData
   });
 
