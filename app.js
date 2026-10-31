@@ -65,7 +65,7 @@ function waitPosition(tid,uid=state.session?.user?.id){const w=waitlistFor(tid);
 
 function headers(token){const h={'apikey':SUPABASE_KEY,'Content-Type':'application/json'};if(token)h.Authorization='Bearer '+token;return h}
 async function request(url,opt={}){const r=await fetch(url,opt);const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(_){data=text}if(!r.ok){const msg=(data&&typeof data==='object'&&(data.message||data.msg||data.error_description||data.error||data.hint))||text||`HTTP ${r.status}`;throw new Error(msg)}return data}
-async function api(path,opt={}){if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}})}
+async function api(path,opt={}){if(state.clientPreview)throw new Error('Kliendieelvaade on kirjutuskaitstud.');if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}})}
 async function rpc(name,body={}){return api(`rpc/${name}`,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)})}
 function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'E-post ei ole kinnitatud. Ava kinnituskiri ja proovi uuesti.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas.';return s||'Toiming ebaõnnestus.'}
 
@@ -88,7 +88,7 @@ async function loadData(){
   const [t,r,p,w,tx,pt,up,n]=await Promise.all(queries);
   state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
 }
-async function reloadData(message){try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
+async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
 function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
@@ -109,6 +109,7 @@ function renderShell(content){
           :`<button class="top-icon-action" type="button" onclick="go('notifications')" aria-label="Teavitused${badge?', '+badge+' lugemata':''}" title="Teavitused">${icon.bell}${badge?`<span class="top-notification-badge">${badge>9?'9+':badge}</span>`:''}</button>`}
       </div>
     </header>
+    ${state.clientPreview?(window.rcfClientPreview?.banner?.()||''):''}
     <main class="main">${state.view==='home'?(window.crossfitInstall?.banner?.()||''):''}${content}</main>
     ${trainer?`<button class="fab" aria-label="Kiirtoimingud" onclick="openQuickActions()">+</button>`:''}
     <nav class="bottom-nav ${trainer?'nav-four':'nav-three'}" aria-label="Põhimenüü">
