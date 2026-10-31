@@ -57,10 +57,7 @@
       [icons.people,'Kliendid',"go('people')",false],
       [icons.user,'Haldus',"go('more')",false]
     ]:[
-      [icons.calendar,'Treeningud',"go('trainings')",true],
-      [icons.dumbbell,'Minu kavad',"go('trainings')",false],
-      [icons.trend,'Minu areng',"go('people')",false],
-      [icons.user,'Profiil',"go('people')",false]
+      [icons.calendar,'Treeningud',"go('trainings')",true]
     ];
     return '<div class="rcf-shortcuts" aria-label="Kiire navigeerimine">'+items.map(a=>tile(...a)).join('')+'</div>';
   }
@@ -77,7 +74,7 @@
     const action=trainer?'Vaata treeningut':booked?.status==='confirmed'?'Vaata oma registreeringut':
       booked?.status==='waitlist'?'Vaata ootenimekirja':'Vaata ja registreeru';
     return '<article class="rcf-feature-card">'+
-      '<span class="rcf-card-eyebrow">JÄRGMINE TREENING</span>'+
+      '<span class="rcf-card-eyebrow">'+(!trainer&&booked?'SINU JÄRGMINE TREENING':!trainer?'JÄRGMINE VABA TREENING':'JÄRGMINE TREENING')+'</span>'+
       '<p class="rcf-feature-date">'+esc(clock.format(new Date(t.starts_at)))+'</p>'+
       '<h3>'+esc(t.title||'CrossFit WOD')+'</h3>'+
       '<div class="rcf-feature-metrics"><span>'+icons.people+' '+confirmed(t).length+' / '+Math.max(0,Number(t.capacity)||0)+' kohta</span>'+
@@ -86,21 +83,16 @@
       (id?'<button type="button" class="rcf-green-cta" onclick="openTraining('+id+')">'+action+icons.chevron+'</button>':'')+
       '</article>';
   }
-  function wodCard(){
-    const today=dd.format(new Date());
-    const list=(s.trainings||[]).filter(t=>t.status==='published'&&String(t.workout||'').trim());
-    const selected=list.find(t=>{
-      try{return dd.format(new Date(t.starts_at))===today}catch(_){return false}
-    })||future().find(t=>String(t.workout||'').trim());
-    if(!selected){
-      return '<div class="rcf-wod-card rcf-wod-empty"><h3>Uut WOD-i veel pole</h3>'+
-        '<p>Kui treener lisab järgmise kava, näed seda siin.</p></div>';
-    }
-    const id=eid(selected);
-    const actualToday=dd.format(new Date(selected.starts_at))===today;
+  function wodCard(featured){
+    // Sama treening, mis kliendil avalehel esil; mitte suvaline muu päeva WOD.
+    const selected=featured;
+    if(!selected)return '';
     const text=String(selected.workout||'').trim();
+    if(!text)return '<div class="rcf-wod-card rcf-wod-empty"><h3>Selle treeningu WOD pole veel lisatud</h3>'+
+      '<p>Treener lisab kava enne treeningut. Siin näed seda kohe pärast avaldamist.</p></div>';
+    const id=eid(selected);
     return '<article class="rcf-wod-card">'+
-      '<span class="rcf-card-eyebrow">'+(actualToday?'TÄNANE WOD':'JÄRGMISE TREENINGU WOD')+'</span>'+
+      '<span class="rcf-card-eyebrow">VALITUD TREENINGU WOD</span>'+
       '<h3>'+esc(selected.title||'CrossFit WOD')+'</h3>'+
       '<p class="rcf-wod-date">'+esc(short.format(new Date(selected.starts_at)))+'</p>'+
       '<div class="rcf-wod-content">'+esc(text)+'</div>'+
@@ -113,8 +105,8 @@
       '<span class="rcf-metric-copy"><span>'+title+'</span><strong>'+value+'</strong><small>'+description+'</small></span>'+
       icons.chevron+'</button>';
   }
-  function latest(futureList){
-    const items=futureList.slice(1,4);
+  function latest(futureList,featured){
+    const items=futureList.filter(t=>Number(t.id)!==Number(featured?.id)).slice(0,3);
     return sectionTitle('Veel treeninguid','Vaata kõiki',"go('trainings')")+
       (items.length?'<div class="rcf-later-list">'+items.map(t=>{
         const id=eid(t);
@@ -138,21 +130,30 @@
       '</div>';
   }
   function clientStats(){
+    const uid=s.session?.user?.id;
+    const pending=(s.registrations||[]).filter(r=>r.user_id===uid&&
+      ['confirmed','waitlist'].includes(r.status)&&future().some(t=>Number(t.id)===Number(r.training_id))).length;
     return '<div class="rcf-metrics">'+
-      metric(icons.credit,'Minu krediidid',credit(),'treeningkorda alles',"go('people')")+
-      metric(icons.trend,'Minu treeningud',attendeeCount(),'osalemist viimase 30 päevaga',"go('people')")+
+      metric(icons.credit,'Krediiti alles',credit(),'treeningkorda',"go('people')")+
+      metric(icons.calendar,'Minu registreeringud',pending,'tulevast aega',"go('people')")+
       '</div>';
   }
   function render(){
     if(!s.profile||!s.session?.user)return previous();
-    const trainer=window.isTrainer(),list=future(),t=list[0]||null;
-    return '<div class="rcf-home">'+banner(trainer)+quick(trainer)+
-      sectionTitle('Järgmine treening','Vaata kõiki',"go('trainings')")+nextCard(t,trainer)+
-      sectionTitle(trainer?'Järgmise treeningu kava':'Treeningu WOD','',null)+wodCard()+
-      (trainer?trainerStats(list):clientStats())+
-      (trainer?'<div class="rcf-admin-quick">'+tile(icons.plus,'Lisa treening','openTrainingForm()',true)+
-        tile(icons.dumbbell,'WOD-pank','openWodBank()')+'</div>':'')+
-      latest(list)+'</div>';
+    const trainer=window.isTrainer(),list=future();
+    const booked=!trainer&&list.find(t=>myReg(t)?.status==='confirmed');
+    const waiting=!trainer&&!booked&&list.find(t=>myReg(t)?.status==='waitlist');
+    const t=trainer?list[0]||null:
+      booked||waiting||list.find(t=>available(t)>0)||list[0]||null;
+    const title=!trainer&&booked?'Sinu järgmine treening':
+      !trainer&&waiting?'Sinu ootenimekiri':'Järgmine treening';
+    const head=sectionTitle(title,'Vaata kõiki',"go('trainings')")+nextCard(t,trainer);
+    const stats=trainer?trainerStats(list):clientStats();
+    const wod=sectionTitle('Treeningu WOD','',null)+wodCard(t);
+    if(!trainer)return '<div class="rcf-home rcf-client-home">'+head+stats+wod+latest(list,t)+'</div>';
+    return '<div class="rcf-home">'+banner(true)+quick(true)+head+wod+stats+
+      '<div class="rcf-admin-quick">'+tile(icons.plus,'Lisa treening','openTrainingForm()',true)+
+      tile(icons.dumbbell,'WOD-pank','openWodBank()')+'</div>'+latest(list,t)+'</div>';
   }
   window.renderHome=render;
   window.rcfBrandHome={render,attendeeCount};
