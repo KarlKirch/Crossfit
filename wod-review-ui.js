@@ -57,7 +57,7 @@
   }
   function effectiveDate(entry){
     const recorded=validDate(entry.source_date);
-    // Treeneri kinnitatud WOD-i käsitsi kontrollitud kuupäev jääb alati määravaks.
+    // Kasutusvalmis WOD-i salvestatud kuupäev jääb määravaks; masskinnitus ei tõenda fotokontrolli.
     if(entry.status==='ready'&&recorded)return {date:recorded,kind:'verified',conflict:false,recorded};
     if(entry.source_drive_file_id){
       const board=imageDateFromText(entry);
@@ -89,7 +89,7 @@
   }
   function dateCaption(entry){
     const kind=effectiveDate(entry).kind;
-    return kind==='verified'?'Treeneri kinnitatud kuupäev':
+    return kind==='verified'?'Salvestatud kuupäev (kontrolli vajadusel)':
       kind==='board'?'Kuupäev WOD-i tekstist':
       kind==='filename'?'Foto kuupäev failinimest':
       kind==='new'?'Foto loomise kuupäev':'Kuupäev vajab kontrollimist';
@@ -212,7 +212,7 @@
         '</div></div>'+
       '<div class="wb-card-workout">'+structuredText(text,true)+'</div>'+
       '<button type="button" class="wb-card-open" onclick="openWodEntry('+id+')">'+
-        (entry.status==='ready'?'Vaata kogu WOD-i':'Ava kogu kava ja kontrolli')+' '+svg.arrow+'</button>'+
+        (entry.status==='ready'?'Ava ja muuda WOD-i':'Ava ja täienda WOD-i')+' '+svg.arrow+'</button>'+
     '</article>';
   }
   function filters(){
@@ -252,8 +252,8 @@
         '<button type="button" class="sheet-close" aria-label="Sulge" onclick="closeModal()">×</button></div>'+
       '<div class="sheet-body wb-body">'+
       '<div class="wb-intro"><span>PRIVAATNE TREENINGUKOGU</span>'+
-        '<h2>Leia ja kontrolli WOD-e</h2>'+
-        '<p>Originaalfotod jäävad alles. Kinnitamata tekste ei muudeta automaatselt valmis WOD-ideks.</p></div>'+
+        '<h2>Leia ja kasuta WOD-i</h2>'+
+        '<p>Ava kava, paranda vajadusel ühes tekstikastis ning määra see treeningule. Fotod jäävad alles.</p></div>'+
       '<div class="wb-counts">'+
         [['all','Kõik WOD-id'],['review','Vajab kontrolli'],['pending','Töötlemata'],['ready','Valmis']].map(([key,label])=>
           '<button type="button" onclick="crossfitWodUI.setFilter('+"'"+(key==='all'?'all':key)+"'"+')"><strong>'+n[key]+
