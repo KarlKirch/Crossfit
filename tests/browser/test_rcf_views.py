@@ -46,7 +46,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(self.page_errors, [],
                          'Brauseris ilmnesid käsitlemata JavaScripti vead')
 
-    def open_app(self, role="client", width=390, height=844, browser=None, wods=None):
+    def open_app(self, role="client", width=390, height=844, browser=None, wods=None, messages=None):
         uid = TRAINER if role == "trainer" else CLIENT
         profile = {"user_id": uid, "display_name": "Testtreener" if role == "trainer" else "Testklient",
                    "role": role, "avatar_path": None}
@@ -91,6 +91,8 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = [{"user_id": CLIENT, "credits": 3}]
                     elif name == "wod_bank_entries":
                         payload = wods if wods is not None else []
+                    elif name == "wod_private_messages":
+                        payload = messages if messages is not None else []
                     else:
                         payload = []
                 else:
@@ -618,6 +620,60 @@ class RCFBrowserSmoke(unittest.TestCase):
         preview.get_by_role("button", name="Sulge pildi eelvaade").click()
         self.assertEqual(preview.count(), 0)
         self.assertEqual(page.locator("#wodText").count(), 1)
+
+
+    def test_client_cash_booking_without_credits_and_private_message(self):
+        page=self.open_app("client",390,844)
+        page.evaluate("""() => { window.state.wallets=[{user_id:window.state.session.user.id,credits:0}]; window.render() }""")
+        page.evaluate("window.openTraining(201)")
+        page.locator(".td-payment-choices").wait_for()
+        self.assertEqual(page.get_by_role("button",name="Kasuta 1 treeningkrediit").count(),0)
+        self.assertIn("Maksan kohapeal",page.locator(".td-payment-choices").inner_text())
+        page.on("dialog",lambda dialog: dialog.accept())
+        with page.expect_request(lambda req: "/rpc/wod_register_cash" in req.url and req.method=="POST",timeout=10000) as sent:
+            page.locator(".td-payment-choices").get_by_role("button",name="Maksan kohapeal",exact=False).click()
+        self.assertEqual(sent.value.post_data_json["p_training_id"],201)
+        page.locator(".td-content").wait_for()
+        page.evaluate("() => window.crossfitMessages.open()")
+        page.locator(".cm-sheet textarea").wait_for()
+        self.assertEqual(page.locator(".cm-sheet .cm-chat").count(),1)
+        page.locator("#cmBody").fill("Sooviksin maksta kohapeal sularahas.")
+        with page.expect_request(lambda req: "/rpc/wod_send_private_message" in req.url and req.method=="POST",timeout=10000) as req:
+            page.locator("#cmSend").click()
+        self.assertEqual(req.value.post_data_json["p_body"],"Sooviksin maksta kohapeal sularahas.")
+        self.assertEqual(req.value.post_data_json["p_client_id"],CLIENT)
+
+    def test_trainer_private_inbox_and_reply(self):
+        messages=[{"id":10,"client_id":CLIENT,"sender_id":CLIENT,
+                   "body":"Tulen kohale sularahaga.",
+                   "created_at":datetime.now(timezone.utc).isoformat()}]
+        page=self.open_app("trainer",390,844,messages=messages)
+        page.locator(".bottom-nav").get_by_role("button",name="Haldus").click()
+        page.get_by_role("button",name="Privaatsõnumid",exact=False).click()
+        page.locator(".cm-inbox").wait_for()
+        self.assertIn("Testklient",page.locator(".cm-inbox").inner_text())
+        page.locator(".cm-thread").first.click()
+        self.assertIn("Tulen kohale sularahaga",page.locator(".cm-messages").inner_text())
+        page.locator("#cmBody").fill("Sobib, näeme trennis!")
+        with page.expect_request(lambda req: "/rpc/wod_send_private_message" in req.url and req.method=="POST",timeout=10000) as req:
+            page.get_by_role("button",name="Saada sõnum").click()
+        self.assertEqual(req.value.post_data_json["p_client_id"],CLIENT)
+        self.assertEqual(req.value.post_data_json["p_body"],"Sobib, näeme trennis!")
+
+    def test_preview_cash_and_messages_are_read_only(self):
+        page=self.open_app("trainer",390,844)
+        page.evaluate("() => window.rcfClientPreview.start('empty')")
+        self.assertTrue(page.evaluate("() => window.state.clientPreview"))
+        page.evaluate("() => window.openTraining(201)")
+        page.locator(".td-payment-choices").wait_for()
+        page.on("dialog",lambda dialog: dialog.accept())
+        page.locator(".td-payment-choices").get_by_role("button",name="Maksan kohapeal",exact=False).click()
+        self.assertTrue(page.evaluate("() => window.state.clientPreview"))
+        page.evaluate("() => window.crossfitMessages.open()")
+        self.assertIn("ei saa pärissõnumit saata",page.locator(".cm-sheet").inner_text())
+        self.assertEqual(page.locator("#cmSend").count(),0)
+        page.evaluate("() => window.rcfClientPreview.exit()")
+        self.assertTrue(page.evaluate("() => window.isTrainer()"))
 
 
 if __name__ == "__main__":
