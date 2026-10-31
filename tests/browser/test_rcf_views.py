@@ -503,5 +503,45 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(before, after, "Eelvaatest väljumine peab taastama pärisoleku")
 
 
+    def test_wod_editor_one_text_saves_edits_and_assigns_in_one_click(self):
+        wod=[{"id":77,"title":"WOD","status":"ready","image_path":"test/photo.webp",
+              "source_date":"2026-09-15","workout_text":"10 BURPEES",
+              "draft_text":"OLD OCR NOT TO DISPLAY","created_at":"2026-09-15T00:00:00Z"}]
+        page=self.open_app("trainer",390,844,wods=wod)
+        page.evaluate("() => window.openWodEntry(77)")
+        page.locator("#wodText").wait_for()
+        self.assertEqual(page.locator("#wodText").count(),1)
+        self.assertEqual(page.locator(".wb-detail-preview").count(),0)
+        self.assertNotIn("Algmustand",page.locator(".sheet").inner_text())
+        self.assertNotIn("OLD OCR NOT TO DISPLAY",page.locator(".sheet").inner_text())
+        page.locator("#wodText").fill("10 BURPEES\n20 SQUATS")
+        writes=[]
+        page.on("request",lambda req: writes.append((req.url,req.post_data_json))
+                if req.method=="PATCH" and "/rest/v1/" in req.url else None)
+        page.locator("#wbExisting").select_option("201")
+        page.locator(".wb-use-panel .wb-primary").click()
+        page.locator(".td-sheet").wait_for()
+        self.assertEqual(len(writes),2, "Saving edits and assigning require two backend updates, one user click")
+        self.assertIn("wod_bank_entries",writes[0][0])
+        self.assertEqual(writes[0][1]["workout_text"],"10 BURPEES\n20 SQUATS")
+        self.assertEqual(writes[0][1]["status"],"ready")
+        self.assertIn("wod_trainings",writes[1][0])
+        self.assertEqual(writes[1][1]["workout"],"10 BURPEES\n20 SQUATS")
+
+    def test_training_defaults_and_no_templates_on_mobile(self):
+        page=self.open_app("trainer",390,844)
+        page.evaluate("() => window.openTrainingForm()")
+        page.locator(".tf-form").wait_for()
+        self.assertEqual(page.locator("#tfTime").input_value(),"19:00")
+        self.assertEqual(page.locator("#tfDuration").input_value(),"90")
+        self.assertEqual(page.locator("#tfPrice").input_value(),"8")
+        self.assertEqual(page.locator("#tfPrice").get_attribute("step"),"1")
+        page.locator(".sheet-close").click()
+        page.locator(".bottom-nav").get_by_role("button",name="Treeningud").click()
+        self.assertEqual(page.get_by_role("button",name="Mallid").count(),0)
+        page.locator(".bottom-nav").get_by_role("button",name="Haldus").click()
+        self.assertNotIn("Treeningumallid",page.locator(".main").inner_text())
+
+
 if __name__ == "__main__":
     unittest.main()
