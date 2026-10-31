@@ -89,13 +89,6 @@
       '<header class="nc-heading"><div><span class="nc-eyebrow">SINU SÕNUMID</span><h1>Teavitused</h1>'+
         '<p>Treeningukoht, ootenimekiri ja olulised muudatused.</p></div>'+
         '<button class="nc-refresh" type="button" onclick="crossfitNotifications.refresh(true)" aria-label="Värskenda teateid">'+svg.refresh+'</button></header>'+
-      '<section class="nc-push-card" aria-label="Telefoni teavitused">'+
-        '<div class="nc-push-head"><span class="nc-push-icon">'+svg.bell+'</span>'+
-          '<div><h2>Telefoni märguanded</h2><p id="pushText">Kontrollin teavituste olekut…</p></div>'+
-          '<span id="pushPill" class="pill">Kontrollin</span></div>'+
-        '<button class="btn btn-primary" id="pushToggle" type="button" onclick="togglePush()">Luba teavitused</button>'+
-        '<p class="nc-push-hint">Rakendusesisesed teated jäävad nähtavaks ka siis, kui telefoni märguanded on välja lülitatud.</p>'+
-      '</section>'+
       '<div class="nc-toolbar"><div class="nc-filters" role="group" aria-label="Teadete filtrid">'+
         filterButton('all','Kõik',counts.total)+
         filterButton('unread','Lugemata',counts.unread)+
@@ -107,7 +100,17 @@
         (s.notificationsFilter==='unread'?'Kõik teated on loetud.':
           s.notificationsFilter==='important'?'Olulisi teateid veel pole.':'Teavitusi veel ei ole.')+
         '</strong><span>Uued registreeringud ja treeningute muudatused ilmuvad siia.</span></div>')+
-      '</div><p class="nc-footnote">Näidatakse viimast 80 teadet. Telefoni märguanded eeldavad seadme ja brauseri luba.</p></div>';
+      '</div>'+ 
+      '<details class="nc-push-settings"><summary>Telefoni märguannete seaded</summary>'+ 
+      '<section class="nc-push-card" aria-label="Telefoni teavitused">'+
+        '<div class="nc-push-head"><span class="nc-push-icon">'+svg.bell+'</span>'+
+          '<div><h2>Telefoni märguanded</h2><p id="pushText">Kontrollin teavituste olekut…</p></div>'+
+          '<span id="pushPill" class="pill">Kontrollin</span></div>'+
+        '<button class="btn btn-primary" id="pushToggle" type="button" onclick="togglePush()">Luba teavitused</button>'+
+        '<p class="nc-push-hint">Rakendusesisesed teated jäävad nähtavaks ka siis, kui telefoni märguanded on välja lülitatud.</p>'+
+      '</section>'+
+      '</details>'+ 
+      '<p class="nc-footnote">Näidatakse viimast 80 teadet. Telefoni märguanded eeldavad seadme ja brauseri luba.</p></div>';
   }
   function setFilter(value){
     if(!['all','unread','important'].includes(value))return;
