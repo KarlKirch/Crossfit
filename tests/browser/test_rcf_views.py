@@ -466,5 +466,36 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertTrue(page.locator(".nc-push-settings").count() > 0)
 
 
+    def test_preview_registration_is_blocked_before_any_network_write(self):
+        page = self.open_app("trainer", 390, 844)
+        before = page.evaluate("""() => ({
+            user: window.state.session.user.id,
+            count: window.state.registrations.length,
+            credits: window.state.wallets.length
+        })""")
+        writes = []
+        page.on("request", lambda req: writes.append(req.url)
+                if req.method in ("POST", "PATCH", "DELETE", "PUT")
+                and "/rest/v1/" in req.url else None)
+        page.evaluate("() => window.rcfClientPreview.start('credits')")
+        page.locator(".bottom-nav").get_by_role("button", name="Treeningud").click()
+        page.locator(".tl-training-card").first.wait_for()
+        page.locator(".tl-training-card .tl-action-main").first.click()
+        page.wait_for_timeout(100)
+        self.assertEqual(writes, [], "Kliendieelvaade ei tohi saata kirjutamispäringuid")
+        self.assertEqual(page.evaluate("() => window.state.registrations.length"), 0)
+        self.assertIn("kirjutuskaitstud", page.locator("#toast").inner_text().lower())
+        page.evaluate("() => window.rcfClientPreview.setScenario('waitlist')")
+        self.assertIn("Ootenimekirjas", page.locator(".rcf-feature-card").inner_text()
+                      + page.locator(".rcf-home").inner_text())
+        page.evaluate("() => window.rcfClientPreview.exit()")
+        after = page.evaluate("""() => ({
+            user: window.state.session.user.id,
+            count: window.state.registrations.length,
+            credits: window.state.wallets.length
+        })""")
+        self.assertEqual(before, after, "Eelvaatest väljumine peab taastama pärisoleku")
+
+
 if __name__ == "__main__":
     unittest.main()
