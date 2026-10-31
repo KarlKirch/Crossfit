@@ -149,9 +149,8 @@
       !trainer&&waiting?'Sinu ootenimekiri':'Järgmine treening';
     const head=sectionTitle(title,'Vaata kõiki',"go('trainings')")+nextCard(t,trainer);
     const stats=trainer?trainerStats(list):clientStats();
-    const wod=sectionTitle('Treeningu WOD','',null)+wodCard(t);
-    if(!trainer)return '<div class="rcf-home rcf-client-home">'+head+stats+wod+latest(list,t)+'</div>';
-    return '<div class="rcf-home">'+banner(true)+quick(true)+head+wod+stats+
+    if(!trainer)return '<div class="rcf-home rcf-client-home">'+head+stats+latest(list,t)+'</div>';
+    return '<div class="rcf-home">'+banner(true)+quick(true)+head+stats+
       '<div class="rcf-admin-quick">'+tile(icons.plus,'Lisa treening','openTrainingForm()',true)+
       tile(icons.dumbbell,'WOD-pank','openWodBank()')+'</div>'+latest(list,t)+'</div>';
   }
