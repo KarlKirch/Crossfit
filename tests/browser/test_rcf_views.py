@@ -343,6 +343,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         page = self.open_app("trainer", 390, 844, wods=wod)
         page.evaluate("() => window.openWodEntry(77)")
         page.locator("#wbExisting").wait_for(state="visible", timeout=10000)
+        page.on("dialog", lambda dialog: dialog.accept())
         page.locator("#wbExisting").select_option("201")
         with page.expect_request(lambda req: "/rest/v1/wod_trainings" in req.url
                                  and req.method == "PATCH", timeout=10000) as request:
@@ -520,6 +521,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         writes=[]
         page.on("request",lambda req: writes.append((req.url,req.post_data_json))
                 if req.method=="PATCH" and "/rest/v1/" in req.url else None)
+        page.on("dialog", lambda dialog: dialog.accept())
         page.locator("#wbExisting").select_option("201")
         page.locator(".wb-use-panel .wb-primary").click()
         page.locator(".td-sheet").wait_for()
