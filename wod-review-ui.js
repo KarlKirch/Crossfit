@@ -203,7 +203,10 @@
     const date=esc(dateOf(entry)),dateInfo=effectiveDate(entry);
     return '<article class="wb-card">'+
       '<div class="wb-card-head">'+
-        '<div class="wb-card-photo">'+image(entry)+'</div>'+
+        '<div class="wb-card-photo">'+
+          (entry.image_path||validDrive(entry.source_drive_file_id)
+            ?'<button type="button" class="wb-photo-trigger" aria-label="Suurenda WOD-i fotot" onclick="crossfitWodUI.openImagePreview(this.querySelector(\'img\'))">'+image(entry)+'</button>'
+            :image(entry))+'</div>'+
         '<div class="wb-card-content">'+
           '<div class="wb-card-flags"><span class="wb-status wb-status-'+tone+'">'+label+'</span>'+
             (!entry.image_path&&!entry.source_drive_file_id?'<span class="wb-status wb-status-missing">Pilt puudu</span>':'')+'</div>'+
@@ -291,9 +294,12 @@
     const text=textOf(entry);
     const recorded=validDate(entry.source_date)||info.date;
     const orig=entry.image_path?
+      '<button type="button" class="wb-photo-trigger wb-detail-trigger" aria-label="Suurenda WOD-i fotot" onclick="crossfitWodUI.openImagePreview(this.querySelector(\'img\'))">'+
       '<img class="wb-photo wb-detail-photo" data-wod-path="'+esc(entry.image_path)+
-      '" alt="WOD-i originaalfoto" loading="lazy" onclick="openWodImage(\''+esc(entry.image_path)+'\')">':
-      (entry.source_drive_file_id?image(entry):'<span class="wb-photo-placeholder">Originaalfotot pole</span>');
+      '" alt="WOD-i originaalfoto" loading="lazy"></button>':
+      (validDrive(entry.source_drive_file_id)?
+        '<button type="button" class="wb-photo-trigger wb-detail-trigger" aria-label="Suurenda WOD-i fotot" onclick="crossfitWodUI.openImagePreview(this.querySelector(\'img\'))">'+image(entry)+'</button>':
+        '<span class="wb-photo-placeholder">Originaalfotot pole</span>');
     const existing=(s.trainings||[]).filter(t=>t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now())
       .sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)).slice(0,50);
     const choose=existing.length?'<section class="wb-use-panel"><h3>Kasuta seda WOD-i treeningus</h3>'+
@@ -330,6 +336,69 @@
       '<div class="sheet-head"><div id="wbDetailTitle" class="sheet-title">WOD-i muutmine</div>'+
       '<button type="button" class="sheet-close" aria-label="Sulge" onclick="closeModal()">×</button></div>'+
       '<div class="sheet-body wb-detail-body">'+form+'</div></div></div>';
+  }
+
+  // Kiirvaade kasutab juba allalaaditud pilti. WOD-i lehte ega kerimiskohta ei muudeta.
+  let returnFocus=null;
+  function closeImagePreview(){
+    const overlay=document.getElementById('wbImagePreview');
+    if(!overlay)return false;
+    overlay.remove();
+    document.removeEventListener('keydown',onPreviewKeydown,true);
+    document.body.classList.remove('wb-image-preview-open');
+    const target=returnFocus;
+    returnFocus=null;
+    if(target?.isConnected)target.focus({preventScroll:true});
+    return true;
+  }
+  function onPreviewKeydown(event){
+    if(event.key!=='Escape')return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeImagePreview();
+  }
+  function openImagePreview(imageElement){
+    if(!window.isTrainer()||!imageElement)return false;
+    const imageUrl=imageElement.currentSrc||imageElement.src;
+    if(!imageUrl){
+      window.toast('Foto laadib veel. Proovi hetke pärast uuesti.');
+      return false;
+    }
+    closeImagePreview();
+    returnFocus=imageElement.closest('button')||imageElement;
+    const overlay=document.createElement('div');
+    overlay.id='wbImagePreview';
+    overlay.className='wb-image-preview';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','WOD-i foto suurem eelvaade');
+    overlay.tabIndex=-1;
+    const panel=document.createElement('div');
+    panel.className='wb-image-preview-panel';
+    const close=document.createElement('button');
+    close.type='button';
+    close.className='wb-image-preview-close';
+    close.setAttribute('aria-label','Sulge pildi eelvaade');
+    close.textContent='× Sulge';
+    close.addEventListener('click',closeImagePreview);
+    const image=document.createElement('img');
+    image.className='wb-image-preview-img';
+    image.src=imageUrl;
+    image.alt=imageElement.alt||'WOD-i originaalfoto';
+    image.setAttribute('draggable','false');
+    const hint=document.createElement('p');
+    hint.className='wb-image-preview-hint';
+    hint.textContent='Sulgemiseks vajuta ×, puuduta tausta või vajuta Esc.';
+    panel.append(close,image,hint);
+    overlay.appendChild(panel);
+    overlay.addEventListener('click',event=>{
+      if(event.target===overlay)closeImagePreview();
+    });
+    document.body.appendChild(overlay);
+    document.body.classList.add('wb-image-preview-open');
+    document.addEventListener('keydown',onPreviewKeydown,true);
+    close.focus({preventScroll:true});
+    return true;
   }
 
   function renderModal(){
@@ -453,5 +522,5 @@
   }
 
   window.renderModal=renderModal;
-  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,useNew,saveText,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText,displayWodTitle};
+  window.crossfitWodUI={renderBank,renderDetail,filtered,paged,counts,setFilter,setSort,search,page,reset,useExisting,useNew,saveText,openImagePreview,closeImagePreview,formattedSections,structuredText,effectiveDate,dateOf,imageDateFromText,displayWodTitle};
 })();

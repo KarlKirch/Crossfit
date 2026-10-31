@@ -581,5 +581,44 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("Testtreening", page.locator(".td-content").inner_text())
 
 
+    def test_wod_photo_quick_preview_in_bank_and_detail(self):
+        wod = [{"id": 77, "title": "WOD", "status": "ready",
+                "workout_text": "10 BURPEES", "draft_text": "",
+                "image_path": "test/photo.webp", "source_date": "2026-09-15"}]
+        page = self.open_app("trainer", 390, 844, wods=wod)
+        page.evaluate("window.openWodBank()")
+        page.locator(".wb-card-photo .wb-photo-trigger").wait_for()
+        page.locator(".wb-card-photo img").evaluate(
+            "(img) => { img.src = '/Crossfit/brand-rcf.webp'; }"
+        )
+        page.locator(".wb-card-photo .wb-photo-trigger").click()
+        preview = page.locator("#wbImagePreview")
+        preview.wait_for(state="visible")
+        self.assertEqual(preview.get_attribute("role"), "dialog")
+        self.assertLessEqual(
+            page.locator(".wb-image-preview-img").evaluate(
+                "img => img.getBoundingClientRect().width"
+            ), page.evaluate("() => innerWidth * 0.96")
+        )
+        self.assertEqual(page.evaluate("() => window.state.modal"), "wodBank")
+        self.snapshot("trainer-wod-photo-quick-preview")
+        page.keyboard.press("Escape")
+        self.assertEqual(preview.count(), 0)
+        page.locator(".wb-card-photo .wb-photo-trigger").click()
+        page.locator("#wbImagePreview").click(position={"x": 5, "y": 5})
+        self.assertEqual(preview.count(), 0)
+        page.evaluate("window.openWodEntry(77)")
+        page.locator(".wb-detail-trigger").wait_for()
+        page.locator(".wb-detail-trigger img").evaluate(
+            "(img) => { img.src = '/Crossfit/brand-rcf.webp'; }"
+        )
+        page.locator(".wb-detail-trigger").click()
+        preview.wait_for(state="visible")
+        self.assertEqual(page.evaluate("() => window.state.modal"), "wodDetail")
+        preview.get_by_role("button", name="Sulge pildi eelvaade").click()
+        self.assertEqual(preview.count(), 0)
+        self.assertEqual(page.locator("#wodText").count(), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
