@@ -37,7 +37,7 @@
       '<div class="install-auth-icon">'+downloadIcon+'</div>' +
       '<div class="install-auth-copy"><strong>CrossFit telefoni avakuvale</strong>' +
       '<span>Ava järgmine kord ühe puudutusega – paigaldamine on tasuta.</span></div>' +
-      '<button type="button" class="btn btn-primary install-auth-action" onclick="installApp()">Paigalda</button>' +
+      '<button type="button" class="btn btn-primary install-auth-action" onclick="installApp()">'+(device().ios?'Vaata juhendit':'Paigalda')+'</button>' +
       '</section>';
   }
 
@@ -47,7 +47,7 @@
       '<div class="install-promo-icon">'+downloadIcon+'</div>' +
       '<div class="install-promo-copy"><strong>Lisa CrossFit avakuvale</strong>' +
       '<span>Kiirem ligipääs treeningutele ja registreerimisele.</span></div>' +
-      '<button type="button" class="install-promo-button" onclick="installApp()">Paigalda</button>' +
+      '<button type="button" class="install-promo-button" onclick="installApp()">'+(device().ios?'Juhend':'Paigalda')+'</button>' +
       '<button type="button" class="install-promo-dismiss" aria-label="Peida paigaldamiskutse" onclick="crossfitInstall.dismissBanner()">×</button>' +
       '</section>';
   }
@@ -78,15 +78,16 @@
       intro='Kõige kindlam viis on avada rakendus Safari brauseris.';
       steps=[
         'Ava menüüst „Ava brauseris“ või kopeeri allolev link ja kleebi see Safari aadressiribale.',
-        'Vajuta Safaris jagamise ikooni (ruut ja nool).',
-        'Vali „Lisa avakuvale“ ning vajuta „Lisa“.'
+        'Vajuta Safari lehemenüüs „Jaga“ või jagamisikooni (ruut ja nool).',
+        'Vali „Lisa avakuvale“, jäta „Ava veebirakendusena“ sisse ja vajuta „Lisa“.'
       ];
     }else if(d.ios){
       title='Lisa CrossFit iPhone’i avakuvale';
+      intro='iPhone ei paigalda veebirakendust automaatselt äpi nupust. Lisa see Safari jagamismenüüst; ikoon luuakse telefoni avakuvale.';
       steps=[
-        'Vajuta Safari jagamise ikooni (ruut ja üles suunatud nool).',
-        'Vali „Lisa avakuvale“.',
-        'Vajuta „Lisa“. CrossFiti ikoon ilmub avakuvale.'
+        'Ava see aadress Safari brauseris. Vajuta lehemenüü nupule ja vali „Jaga“ (või otse jagamisikoonile).',
+        'Keri allapoole ning vali „Lisa avakuvale“. Kui valik puudub, ava „Muuda toiminguid“ ja lisa see.',
+        'Kontrolli, et „Ava veebirakendusena“ (Open as Web App) on sisse lülitatud, ning vajuta „Lisa“. Otsi Rõuge CrossFiti ikooni avakuvalt.'
       ];
     }else if(d.android){
       title='Paigalda CrossFit Androidile';
