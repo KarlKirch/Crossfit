@@ -58,13 +58,23 @@
           <button id="authEmailSendBtn" type="submit" class="btn btn-primary btn-block">Saada sisselogimislink</button>
           <p class="auth-field-note">Parooli pole vaja. Saad e-kirja turvalise sisselogimislingiga.</p>
         </form>`;
+    const joinGuide=`<section class="auth-join-guide" aria-labelledby="authJoinTitle">
+        <h2 id="authJoinTitle">Kuidas Rõuge CrossFitiga liituda?</h2>
+        <ol class="auth-join-steps">
+          <li>Vali „Loo konto“ ning sisesta nimi, e-posti aadress ja parool.</li>
+          <li>Liitumistaotlus jõuab automaatselt treenerile.</li>
+          <li>Treener kinnitab sinu kasutajakonto.</li>
+          <li>Pärast kinnitamist logi sisse ja registreeru treeningule.</li>
+        </ol>
+        <p class="auth-join-note">Konto loomiseks ei pea e-posti kinnituskirja avama.</p>
+      </section>`;
     return `<div class="auth"><div class="auth-box">
       <div class="auth-logo" role="img" aria-label="Rõuge CrossFit logo"></div><h1>Rõuge CrossFit</h1>
       <p class="auth-intro">Treeningud, registreerimine ja treeningkrediit ühes kohas.</p>
       <div class="auth-card"><div class="tabs">
         <button type="button" class="${signup?'':'on'}" onclick="setAuthMode('login')">Logi sisse</button>
         <button type="button" class="${signup?'on':''}" onclick="setAuthMode('signup')">Loo konto</button>
-      </div>${switcher}<div id="authMessage" role="status" aria-live="polite"></div>${form}</div>
+      </div>${switcher}<div id="authMessage" role="status" aria-live="polite"></div>${form}${joinGuide}</div>
       ${installCard}
     </div></div>`;
   }
