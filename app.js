@@ -90,7 +90,7 @@ async function loadData(){
   const [t,r,p,w,tx,pt,up,n]=await Promise.all(queries);
   state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
 }
-async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await ensureProfile();if(isAwaitingApproval()){render();return;}await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
+async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
 function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
