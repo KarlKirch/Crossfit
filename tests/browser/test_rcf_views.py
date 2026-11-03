@@ -69,6 +69,7 @@ class RCFBrowserSmoke(unittest.TestCase):
                    "user": {"id": uid, "email": "test@example.invalid",
                             "user_metadata": {"display_name": profile["display_name"]}}}
         profile_read_count = 0
+        removed_clients = []
         def handler(route):
             nonlocal profile_read_count
             request = route.request
@@ -101,6 +102,24 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = wods if wods is not None else []
                     elif name == "wod_private_messages":
                         payload = messages if messages is not None else []
+                    elif name == "wod_removed_clients":
+                        payload = removed_clients
+                    elif name == "wod_remove_client":
+                        args = request.post_data_json
+                        if role != "trainer" or args.get("p_user_id") != CLIENT:
+                            route.fulfill(status=403, content_type="application/json",
+                                          body=json.dumps({"message": "Keelatud"}))
+                            return
+                        removed_clients.append({
+                            "user_id": CLIENT,
+                            "reason": args.get("p_reason"),
+                            "removed_at": datetime.now(timezone.utc).isoformat()
+                        })
+                        payload = True
+                    elif name == "wod_restore_client":
+                        args = request.post_data_json
+                        removed_clients[:] = [r for r in removed_clients if r["user_id"] != args.get("p_user_id")]
+                        payload = True
                     elif name == "wod_list_join_requests_v2":
                         payload = join_requests if join_requests is not None else []
                     else:
@@ -188,6 +207,25 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(colors["text"], "rgb(244, 246, 247)")
         self.snapshot("trainer-client-card-desktop")
 
+
+    def test_trainer_can_remove_client_and_find_archived_client(self):
+        page = self.open_app("trainer", 390, 844, browser=self.webkit)
+        page.locator(".bottom-nav").get_by_role("button", name="Kliendid").click()
+        page.locator(".cl-card").first.wait_for(state="visible")
+        self.assertEqual(page.evaluate("typeof window.removeClient"), "function")
+        page.get_by_role("button", name="Kliendikaart").first.click()
+        page.locator(".cl-detail.cl-danger").count()
+        page.locator(".cl-danger summary").click()
+        page.on("dialog", lambda dialog: dialog.accept())
+        with page.expect_request(lambda req: "/rpc/wod_remove_client" in req.url and req.method == "POST") as req:
+            page.locator(".cl-danger button.btn-danger").click()
+        self.assertEqual(req.value.post_data_json["p_user_id"], CLIENT)
+        page.locator(".cl-page").wait_for(state="visible")
+        page.locator(".cl-filter").filter(has_text="Eemaldatud").click()
+        page.locator(".cl-card-archived").wait_for(state="visible")
+        self.assertIn("Testklient", page.locator(".cl-card-archived").inner_text())
+        self.assertIn("Arhiveeritud", page.locator(".cl-card-archived").inner_text())
+        self.snapshot("trainer-archived-client-iphone")
 
     def test_trainer_profile_editor_readability_on_iphone(self):
         page = self.open_app("trainer", 390, 844, browser=self.webkit)

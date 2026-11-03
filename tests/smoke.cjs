@@ -23,6 +23,9 @@ test('Scripts included and in expected order',()=>{
   assert(jsFiles.indexOf('client-preview.js')>jsFiles.indexOf('brand-home.js'));
   assert(jsFiles.indexOf('brand-home.js')>jsFiles.indexOf('notification-center.js'));
   assert(jsFiles.indexOf('training-form-redesign.js')>jsFiles.indexOf('wod-review-ui.js'));
+  assert(jsFiles.includes('client-admin.js'),'Kliendi eemaldamise moodul puudub');
+  assert(jsFiles.indexOf('client-admin.js')<jsFiles.indexOf('client-directory.js'),
+    'Eemaldamise moodul peab laadima enne kliendihalduse uut kujundust');
 });
 test('All linked JS/CSS files exist and parse',()=>{
   assert(cssFiles.length);
@@ -90,6 +93,8 @@ test('App and all feature modules initialize without browser network',()=>{
     vm.runInContext(code,context,{filename:file,timeout:10000});
   }
   assert(context.state&&typeof context.render==='function');
+  assert.equal(typeof context.removeClient,'function','Kliendi eemaldamise toiming puudub');
+  assert.equal(typeof context.restoreClient,'function','Kliendi taastamise toiming puudub');
 });
 const uid='11111111-1111-4111-8111-111111111111';
 const clientId='22222222-2222-4222-8222-222222222222';
