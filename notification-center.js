@@ -9,7 +9,7 @@
   if(!s||typeof window.renderNotifications!=='function')return;
   const previous=window.renderNotifications;
   const esc=value=>window.esc(value);
-  const IMPORTANT=new Set(['waitlist_promoted','training_cancelled','training_changed','training_details_changed','training_full','private_message','cash_booking']);
+  const IMPORTANT=new Set(['waitlist_promoted','training_cancelled','training_changed','training_details_changed','training_full','private_message','cash_booking','join_request']);
   const CATEGORIES={
     registration_confirmed:{name:'Registreering',icon:'check'},
     waitlist_joined:{name:'Ootenimekiri',icon:'clock'},
@@ -21,7 +21,9 @@
     training_full:{name:'Treening täis',icon:'users'},
     announcement:{name:'Teadaanne',icon:'megaphone'},
     private_message:{name:'Privaatsõnum',icon:'bell'},
-    cash_booking:{name:'Sularahabroneering',icon:'bell'}
+    cash_booking:{name:'Sularahabroneering',icon:'bell'},
+    join_request:{name:'Liitumistaotlus',icon:'users'},
+    join_decision:{name:'Liitumise otsus',icon:'check'}
   };
   const svg={
     check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 5 11-11"/></svg>',
@@ -141,6 +143,10 @@
     const id=validId(idValue),item=notificationItems().find(n=>Number(n.id)===id);
     if(!item||!s.session?.user)return false;
     if(!item.read_at)await markRead([id]);
+    if(item.kind==='join_request'){
+      await window.crossfitApprovals?.open?.();
+      return true;
+    }
     if(item.kind==='private_message'){
       await window.crossfitMessages?.openFromNotification?.(item);
       return true;
