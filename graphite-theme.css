@@ -265,6 +265,16 @@ body :is(.install-promo,.install-auth-card,.auth-box,.auth-email-confirm,.auth-c
 }
 body .auth{background:radial-gradient(ellipse at 48% 0%,#343F47,#14191E 72%)}
 body .auth-box{box-shadow:0 24px 60px #0008}
+/* Registreerimis- ja sisselogimiskaardi tekst peab tumeda teema taustal loetav olema. */
+body .auth-card{background:#293137;color:#F4F6F7;border:1px solid #505D66}
+body .auth-card .field label{color:#F4F6F7}
+body .auth-card .auth-field-note{color:#C2CDD3}
+body .auth-card .auth-email-confirm p{color:#D4DDE1}
+body .auth-card .tabs{background:#323D45}
+body .auth-card .tabs button{color:#D4DDE1}
+body .auth-card .tabs button.on{background:#B9EA6F;color:#14191E}
+body .auth-card .notice{color:#B9EA6F;background:#323F32}
+body .auth-card .notice.bad{color:#FFD7D9;background:#49343A}
 body .auth-box h1,body .auth-intro{color:#F4F6F7}
 body :is(.auth-method-switch,.auth-email-confirm,.auth-code-details){
   background:#323D45;border-color:#606C75
