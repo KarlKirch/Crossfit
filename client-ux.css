@@ -246,3 +246,95 @@ body .cm-warning{color:#E4D49C}
 body :is(.cm-entry,.cm-thread,.cm-send,.td-cash-paid-btn):focus-visible{
   outline:3px solid #B9EA6F;outline-offset:2px
 }
+
+
+/* Rõuge CrossFiti QR-koodi suur eelvaade, salvestamine ja A4-print. */
+body .qr-inline-wrap{display:flex;justify-content:center;padding:15px 0 6px}
+body .qr-inline-trigger{
+  display:grid;justify-items:center;gap:9px;margin:0;padding:12px 14px;
+  border:1px solid #71818A;border-radius:14px;background:#fff;
+  color:#14191E;cursor:zoom-in;font:inherit;font-size:12px;font-weight:800
+}
+body .qr-inline-trigger .qr-small-svg{display:block;width:165px;height:165px}
+body .qr-inline-trigger:focus-visible,
+body .qr-preview-card button:focus-visible{outline:3px solid #B9EA6F;outline-offset:3px}
+body.qr-preview-open{overflow:hidden}
+body .qr-preview-overlay{
+  position:fixed;inset:0;z-index:10040;overflow-y:auto;overscroll-behavior:contain;
+  display:flex;justify-content:center;align-items:center;
+  padding:12px;box-sizing:border-box;background:rgba(8,12,16,.9)
+}
+body .qr-preview-card{
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+  gap:12px;width:min(460px,96vw);max-height:calc(100dvh - 24px);overflow-y:auto;
+  padding:18px;border:1px solid #677783;border-radius:19px;
+  color:#F4F6F7;background:#222B31;box-shadow:0 15px 65px #000a
+}
+body .qr-preview-header{
+  width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:12px
+}
+body .qr-preview-header strong{display:block;font-size:19px;letter-spacing:1px;color:#F4F6F7}
+body .qr-preview-header p{margin:4px 0 0;font-size:12px;color:#D1DBE0}
+body .qr-preview-close{
+  width:40px;height:40px;flex-shrink:0;border:1px solid #71818A;
+  border-radius:11px;background:#34424B;color:#F4F6F7;
+  font-size:25px;line-height:1;cursor:pointer
+}
+body .qr-preview-card .qr-large-svg{
+  display:block;flex-shrink:0;width:min(100%,360px,44dvh);
+  aspect-ratio:1/1;height:auto;border:7px solid #fff;border-radius:7px;
+  background:#fff;box-sizing:border-box
+}
+body .qr-preview-link{
+  width:100%;text-align:center;color:#D5DFE5;font-size:12px;
+  overflow-wrap:anywhere
+}
+body .qr-preview-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%}
+body .qr-preview-card .qr-preview-actions button{
+  min-height:46px;border-radius:11px;padding:10px 8px;
+  font:inherit;font-size:13px;font-weight:800;cursor:pointer
+}
+body .qr-preview-print{
+  border:1px solid #B9EA6F;background:#B9EA6F;color:#14191E
+}
+body .qr-preview-save{
+  border:1px solid #99ADB6;background:#34454E;color:#F4F6F7
+}
+body .qr-preview-hint{
+  margin:0;text-align:center;font-size:11px;line-height:1.5;color:#CDD8DE
+}
+body #crossfitQRPrintSheet{display:none}
+@media(max-width:380px){
+  body .qr-preview-card{gap:9px;padding:12px}
+  body .qr-preview-header strong{font-size:16px}
+  body .qr-preview-hint{font-size:10px}
+}
+@media print{
+  @page{size:A4 portrait;margin:16mm}
+  html,body{margin:0!important;padding:0!important;background:white!important;
+    color:black!important;overflow:visible!important}
+  body > *:not(#crossfitQRPrintSheet){display:none!important}
+  body #crossfitQRPrintSheet{
+    display:flex!important;align-items:center;flex-direction:column;justify-content:flex-start;
+    width:100%;min-height:225mm;box-sizing:border-box;margin:0!important;
+    padding:25mm 8mm 0!important;background:white!important;color:black!important;
+    text-align:center;font-family:Arial,Helvetica,sans-serif!important;
+    break-inside:avoid;page-break-inside:avoid
+  }
+  body #crossfitQRPrintSheet h1{
+    margin:0 0 7mm;color:#111!important;font-size:28pt!important;
+    font-weight:900;letter-spacing:1.2pt
+  }
+  body #crossfitQRPrintSheet p{
+    margin:0 0 16mm;color:#222!important;font-size:13pt!important;
+    font-weight:700;letter-spacing:.5pt
+  }
+  body #crossfitQRPrintSheet .qr-print-svg{
+    display:block;width:120mm!important;height:120mm!important;
+    max-width:120mm;max-height:120mm;background:white!important
+  }
+  body #crossfitQRPrintSheet .qr-print-url{
+    margin-top:12mm;font-size:11pt;color:black!important;
+    overflow-wrap:anywhere
+  }
+}
