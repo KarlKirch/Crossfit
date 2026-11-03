@@ -56,17 +56,23 @@
     };
   }
 
+  let removing=false;
   window.removeClient=async function(uid){
-    const p=s.profiles.find(x=>x.user_id===uid);
-    if(!p) return;
+    if(removing||!window.isTrainer()||s.clientPreview)return;
+    const p=s.profiles.find(x=>x.user_id===uid&&x.role==='client');
+    if(!p||isRemoved(uid))return;
     const ok=confirm(`Eemaldada klient ${p.display_name}?\n\nTema tulevased registreeringud tühistatakse, paketiga broneeritud kasutamata korrad tagastatakse ja push-teavitused peatatakse. Treeninguajalugu säilib ning klienti saab hiljem taastada.`);
     if(!ok) return;
-    const reason=prompt('Soovi korral lisa eemaldamise põhjus. Võid jätta tühjaks:','')||null;
+    const reason=prompt('Soovi korral lisa eemaldamise põhjus. Võid jätta tühjaks:','');
+    if(reason===null)return;
+    removing=true;
     try{
-      await window.rpc('wod_remove_client',{p_user_id:uid,p_reason:reason});
+      const removed=await window.rpc('wod_remove_client',{p_user_id:uid,p_reason:reason.trim()||null});
+      if(removed!==true)throw new Error('Server ei kinnitanud kliendi eemaldamist.');
       s.modal=null;s.modalData=null;s.view='people';
-      await window.reloadData('Klient eemaldatud');
+      await window.reloadData('Klient eemaldatud. Ajalugu säilitati ja klienti saab taastada.');
     }catch(e){window.toast(e.message||'Kliendi eemaldamine ebaõnnestus')}
+    finally{removing=false}
   };
 
   window.restoreClient=async function(uid){
