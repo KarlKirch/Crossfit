@@ -60,7 +60,7 @@
     if(!uid()||!trainer()||s.clientPreview||fetching)return false;
     fetching=true;
     try{
-      const raw=await window.rpc('wod_list_join_requests',{});
+      const raw=await window.rpc('wod_list_join_requests_v2',{});
       s.joinRequests=Array.isArray(raw)?raw:[];
       if(s.modal==='joinRequests')window.render();
       return true;
