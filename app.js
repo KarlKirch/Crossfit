@@ -72,7 +72,7 @@ function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.
 async function refreshSession(){if(!state.session?.refresh_token)return false;try{const data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:headers(),body:JSON.stringify({refresh_token:state.session.refresh_token})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));return true}catch(_){state.session=null;localStorage.removeItem('wod_session');return false}}
 async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
 window.ensureProfile=ensureProfile;
-function isAwaitingApproval(){return state.profile?.role!=='trainer'&&Boolean(state.profile?.approval_status)&&state.profile.approval_status!=='approved'}
+function isAwaitingApproval(){return Boolean(state.profile?.approval_status)&&state.profile.approval_status!=='approved'}
 async function loadData(){
   const since=new Date(Date.now()-365*86400000).toISOString();
   const trainer=isTrainer();
