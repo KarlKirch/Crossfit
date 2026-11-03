@@ -406,5 +406,26 @@ test('Treeneril on privaatsõnumite postkast, kliendil sõnuminupp',()=>{
   context.render();
   assert(htmlRoot.innerHTML.includes('Kirjuta treenerile'));
 });
+
+test('QR-pilt avaneb suurelt, seda saab printida või PNG-na salvestada',()=>{
+  const qr=context.crossfitQR;
+  assert.equal(typeof qr.open,'function');
+  assert.equal(typeof qr.close,'function');
+  assert.equal(typeof qr.print,'function');
+  assert.equal(typeof qr.download,'function');
+  assert.equal(qr.url,'https://karlkirch.github.io/Crossfit/');
+  assert.equal(qr.matrixSize,37,'QR sisaldab nelja mooduli laiust valget serva');
+  const svg=qr.svg('qr-verify');
+  assert(svg.includes('viewBox="0 0 37 37"'));
+  assert(svg.includes('shape-rendering="crispEdges"'));
+  assert((svg.match(/<rect /g)||[]).length>200);
+  const share=context.shareSheet();
+  assert(share.includes('class="qr-inline-trigger"'));
+  assert(share.includes('crossfitQR.open()'));
+  assert(read('pro-features.js').includes('Salvesta PNG'));
+  assert(read('client-ux.css').includes('@media print'));
+  assert(read('client-ux.css').includes('body > *:not(#crossfitQRPrintSheet)'));
+  assert(read('pro-features.js').includes("canvas.toDataURL('image/png')"));
+});
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);

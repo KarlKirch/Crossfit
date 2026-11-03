@@ -311,13 +311,141 @@
     }catch(e){window.toast(e.message||'Eksport ebaõnnestus')}
   };
 
-  function qrHtml(){
-    const cells=QR_ROWS.join('').split('').map(v=>`<span style="width:5px;height:5px;background:${v==='1'?'#111':'#fff'}"></span>`).join('');
-    return `<div style="display:flex;justify-content:center;margin-top:12px"><div style="display:grid;grid-template-columns:repeat(33,5px);grid-template-rows:repeat(33,5px);background:#fff;padding:8px;border-radius:14px;border:1px solid #dde3df">${cells}</div></div>`;
+  // QR-kood on sama, mis varasemas jagamisvaates. SVG ja PNG
+  // kasutavad sama maatriksit ning piisavat valget serva skannimiseks.
+  const QR_QUIET=2;
+  const QR_DIM=QR_ROWS.length+QR_QUIET*2;
+  let qrFocus=null;
+  function qrSvg(className){
+    const cells=[];
+    QR_ROWS.forEach((bits,row)=>{
+      for(let col=0;col<bits.length;col++){
+        if(bits[col]==='1')cells.push('<rect x="'+(col+QR_QUIET)+
+          '" y="'+(row+QR_QUIET)+'" width="1" height="1"/>');
+      }
+    });
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="'+className+
+      '" viewBox="0 0 '+QR_DIM+' '+QR_DIM+'" role="img" shape-rendering="crispEdges"'+
+      ' aria-label="Rõuge CrossFiti QR-kood">'+
+      '<rect width="'+QR_DIM+'" height="'+QR_DIM+'" fill="#ffffff"/>'+
+      '<g fill="#000000">'+cells.join('')+'</g></svg>';
   }
+  function qrHtml(){
+    return '<div class="qr-inline-wrap"><button type="button" class="qr-inline-trigger"'+
+      ' onclick="crossfitQR.open()" aria-label="Suurenda QR-koodi, prindi või salvesta">'+
+      qrSvg('qr-small-svg')+
+      '<span>Suurenda QR-koodi</span></button></div>';
+  }
+  function qrClose(){
+    const overlay=document.getElementById('crossfitQRViewer');
+    if(!overlay)return false;
+    overlay.remove();
+    document.getElementById('crossfitQRPrintSheet')?.remove();
+    document.body.classList.remove('qr-preview-open');
+    document.removeEventListener('keydown',qrKeydown,true);
+    const focus=qrFocus;qrFocus=null;
+    if(focus?.isConnected)focus.focus({preventScroll:true});
+    return true;
+  }
+  function qrKeydown(event){
+    if(event.key==='Escape'){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      qrClose();
+    }else if(event.key==='Tab'){
+      const overlay=document.getElementById('crossfitQRViewer');
+      if(!overlay)return;
+      const buttons=[...overlay.querySelectorAll('button')].filter(b=>!b.disabled);
+      if(!buttons.length)return;
+      const first=buttons[0],last=buttons[buttons.length-1];
+      if(event.shiftKey&&document.activeElement===first){
+        event.preventDefault();last.focus();
+      }else if(!event.shiftKey&&document.activeElement===last){
+        event.preventDefault();first.focus();
+      }
+    }
+  }
+  function qrOpen(){
+    if(document.getElementById('crossfitQRViewer'))return true;
+    qrFocus=document.activeElement;
+    const overlay=document.createElement('div');
+    overlay.id='crossfitQRViewer';
+    overlay.className='qr-preview-overlay';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','Rõuge CrossFiti QR-koodi printimine');
+    overlay.innerHTML=
+      '<div class="qr-preview-card">'+
+        '<div class="qr-preview-header"><div><strong>RÕUGE CROSSFIT</strong>'+
+          '<p>Skanni ja registreeru treeningule</p></div>'+
+          '<button type="button" class="qr-preview-close" onclick="crossfitQR.close()"'+
+          ' aria-label="Sulge QR-koodi vaade">×</button></div>'+
+        qrSvg('qr-large-svg')+
+        '<div class="qr-preview-link">'+window.esc(APP_URL)+'</div>'+
+        '<div class="qr-preview-actions">'+
+          '<button type="button" class="qr-preview-print" onclick="crossfitQR.print()">Prindi QR-kood</button>'+
+          '<button type="button" class="qr-preview-save" onclick="crossfitQR.download()">Salvesta PNG</button>'+
+        '</div>'+
+        '<p class="qr-preview-hint">Prindile jääb ainult QR-koodiga kutse. PNG-pilt sobib ka plakati jaoks.</p>'+
+      '</div>';
+    overlay.addEventListener('click',event=>{
+      if(event.target===overlay)qrClose();
+    });
+    const sheet=document.createElement('section');
+    sheet.id='crossfitQRPrintSheet';
+    sheet.setAttribute('aria-hidden','true');
+    sheet.innerHTML='<h1>RÕUGE CROSSFIT</h1>'+
+      '<p>SKANNI JA REGISTREERU TREENINGULE</p>'+
+      qrSvg('qr-print-svg')+
+      '<div class="qr-print-url">'+APP_URL+'</div>';
+    document.body.appendChild(sheet);
+    document.body.appendChild(overlay);
+    document.body.classList.add('qr-preview-open');
+    document.addEventListener('keydown',qrKeydown,true);
+    overlay.querySelector('.qr-preview-close')?.focus({preventScroll:true});
+    return true;
+  }
+  function qrDownload(){
+    try{
+      const scale=32,size=QR_DIM*scale;
+      const canvas=document.createElement('canvas');
+      canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      if(!ctx)throw new Error('Pildifaili ei saa selles brauseris luua.');
+      ctx.imageSmoothingEnabled=false;
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);
+      ctx.fillStyle='#000000';
+      QR_ROWS.forEach((bits,row)=>{
+        for(let col=0;col<bits.length;col++){
+          if(bits[col]==='1')ctx.fillRect((col+QR_QUIET)*scale,
+            (row+QR_QUIET)*scale,scale,scale);
+        }
+      });
+      const link=document.createElement('a');
+      link.href=canvas.toDataURL('image/png');
+      link.download='Rouge-CrossFit-QR-kood.png';
+      document.body.appendChild(link);
+      link.click();link.remove();
+      window.toast('QR-koodi PNG-pilt salvestamiseks valmis');
+      return true;
+    }catch(error){
+      window.toast(error.message||'QR-koodi salvestamine ebaõnnestus');
+      return false;
+    }
+  }
+  function qrPrint(){
+    if(!document.getElementById('crossfitQRPrintSheet'))qrOpen();
+    window.print();
+  }
+  window.crossfitQR={open:qrOpen,close:qrClose,download:qrDownload,print:qrPrint,
+    svg:qrSvg,matrixSize:QR_DIM,url:APP_URL};
 
   window.shareSheet=function(){
-    return baseShareSheet()+`<div class="card" style="margin-top:12px"><div class="card-title">QR-kood</div><div class="card-sub">Näita seda ekraanilt või prindi välja. Skännides avaneb CrossFiti konto loomise ja treeningute link.</div>${qrHtml()}<div class="card-sub" style="text-align:center;margin-top:9px">${window.esc(APP_URL)}</div></div>`;
+    return baseShareSheet()+
+      '<div class="card" style="margin-top:12px"><div class="card-title">QR-kood</div>'+
+      '<div class="card-sub">Vajuta QR-koodile, et see suuremalt avada, PNG-pildina salvestada või välja printida.</div>'+
+      qrHtml()+'<div class="card-sub" style="text-align:center;margin-top:9px">'+
+      window.esc(APP_URL)+'</div></div>';
   };
 
   window.renderModal=function(){
