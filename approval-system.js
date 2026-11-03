@@ -108,7 +108,7 @@
       (p.email_verified===false?'<small class="rcf-join-unverified">E-post kontrollimata – kinnita ainult teadaolev inimene</small>':'')+'</div>'+ 
       (p.join_note?'<p class="rcf-join-note">'+esc(p.join_note)+'</p>':'')+
       '<div class="rcf-join-actions">'+
-      '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\\''+esc(p.client_id)+'\\',true)">Kinnita</button>'+
+      '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\''+esc(p.client_id)+'\',true)">Kinnita</button>'+
       (pendingStatus?'<button type="button" class="rcf-join-reject" onclick="crossfitApprovals.decide(\''+
         esc(p.client_id)+'\',false)">Keeldu</button>':'')+
       '</div></div>';
