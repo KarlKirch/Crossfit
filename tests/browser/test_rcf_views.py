@@ -101,7 +101,7 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = wods if wods is not None else []
                     elif name == "wod_private_messages":
                         payload = messages if messages is not None else []
-                    elif name == "wod_list_join_requests":
+                    elif name == "wod_list_join_requests_v2":
                         payload = join_requests if join_requests is not None else []
                     else:
                         payload = []
@@ -769,7 +769,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         requests=[{"client_id":CLIENT,"display_name":"Ootel klient",
                    "email":"liituja@example.invalid","join_note":"Soovin tulla trenni",
                    "created_at":datetime.now(timezone.utc).isoformat(),
-                   "approval_status":"pending"}]
+                   "approval_status":"pending", "email_verified":True}]
         page=self.open_app("trainer",390,844,join_requests=requests)
         page.evaluate("() => window.go('more')")
         page.get_by_role("button",name="Liitumistaotlused",exact=False).click()
