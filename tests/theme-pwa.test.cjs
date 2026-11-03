@@ -187,3 +187,15 @@ test('kinnitamata liituja kinnitamine on piiratud treeneriga serveris', () => {
   assert.match(fn, /\/rest\/v1\/rpc\/wod_review_join_request/);
   assert.doesNotMatch(read('app.js'), /SUPABASE_SERVICE_ROLE_KEY/);
 });
+
+test('avaliku sisselogimislehe juures kuvatakse arusaadav liitumiskord', () => {
+  const auth = read('auth-flow.js');
+  const theme = read('graphite-theme.css');
+  assert.match(auth, /Kuidas Rõuge CrossFitiga liituda\?/);
+  assert.match(auth, /Liitumistaotlus jõuab automaatselt treenerile/);
+  assert.match(auth, /Treener kinnitab sinu kasutajakonto/);
+  assert.match(auth, /Pärast kinnitamist logi sisse ja registreeru treeningule/);
+  assert.match(auth, /Konto loomiseks ei pea e-posti kinnituskirja avama/);
+  assert.match(auth, /\$\{form\}\$\{joinGuide\}/);
+  assert.match(theme, /body \.auth-join-steps/);
+});

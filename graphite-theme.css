@@ -376,3 +376,11 @@ body .rcf-metric-card>svg{color:#B9EA6F}
 body .rcf-metric-copy strong{color:#F4F6F7}
 body .rcf-metric-icon{color:#B9EA6F;background:#38444A}
 body .rcf-admin-quick .rcf-shortcut{background:#293137;border-color:#505D66}
+
+/* Liitumisjuhis avalehel: nähtav nii sisselogimise kui konto loomise vaates. */
+body .auth-join-guide{margin-top:18px;padding-top:17px;border-top:1px solid #59656D;color:#F4F6F7}
+body .auth-join-guide h2{margin:0 0 12px;font-size:16px;line-height:1.35;font-weight:800;color:#F4F6F7}
+body .auth-join-steps{margin:0;padding:0;list-style:none;counter-reset:join-step;display:grid;gap:11px}
+body .auth-join-steps li{counter-increment:join-step;display:grid;grid-template-columns:24px minmax(0,1fr);align-items:start;gap:10px;font-size:13px;line-height:1.45;color:#E3EAED}
+body .auth-join-steps li::before{content:counter(join-step);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#B9EA6F;color:#14191E;font-size:12px;font-weight:850}
+body .auth-join-note{margin:13px 0 0;color:#C2CDD3;font-size:12px;line-height:1.45}
