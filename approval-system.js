@@ -137,7 +137,7 @@
   }
   window.renderMore=function(){
     const html=beforeMore();
-    return trainer()&&!s.clientPreview?adminEntry()+html:html;
+    return trainer()&&!s.clientPreview?html.replace('</header>','</header>'+adminEntry()):html;
   };
   window.renderModal=function(){
     return s.modal==='joinRequests'?renderRequests():beforeModal();
