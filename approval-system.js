@@ -103,10 +103,12 @@
       new Intl.DateTimeFormat('et-EE',{timeZone:'Europe/Tallinn',day:'numeric',month:'long',year:'numeric'}).format(time):'';
     return '<div class="rcf-join-card">'+
       '<div class="rcf-join-person"><strong>'+esc(p.display_name||'Kasutaja')+'</strong>'+
-      '<small>'+esc(p.email||'')+'</small><small>'+esc(date)+'</small></div>'+
+      '<small>'+esc(p.email||'')+'</small><small>'+esc(date)+'</small>'+
+      (p.email_verified===false?'<small class="rcf-join-unverified">E-post pole veel kinnitatud</small>':'')+'</div>'+ 
       (p.join_note?'<p class="rcf-join-note">'+esc(p.join_note)+'</p>':'')+
       '<div class="rcf-join-actions">'+
-      '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\''+esc(p.client_id)+'\',true)">Kinnita</button>'+
+      (p.email_verified===false?'<button type="button" class="rcf-join-accept" disabled title="Kliendi e-post pole veel kinnitatud">Ootab e-posti kinnitamist</button>':
+        '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\''+esc(p.client_id)+'\',true)">Kinnita</button>')+
       (pendingStatus?'<button type="button" class="rcf-join-reject" onclick="crossfitApprovals.decide(\''+
         esc(p.client_id)+'\',false)">Keeldu</button>':'')+
       '</div></div>';
