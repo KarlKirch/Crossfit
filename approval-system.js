@@ -85,7 +85,8 @@
     if(!window.confirm('Kas soovid kasutaja '+person.display_name+' liitumise '+verb+'?'))return false;
     working=true;
     try{
-      await window.rpc('wod_review_join_request',{p_client_id:id,p_approve:!!approve});
+      if(approve)await window.crossfitApproveJoin(id);
+      else await window.rpc('wod_review_join_request',{p_client_id:id,p_approve:false});
       await refresh(true);
       await window.crossfitNotifications?.refresh?.(true);
       window.render();
@@ -104,11 +105,10 @@
     return '<div class="rcf-join-card">'+
       '<div class="rcf-join-person"><strong>'+esc(p.display_name||'Kasutaja')+'</strong>'+
       '<small>'+esc(p.email||'')+'</small><small>'+esc(date)+'</small>'+
-      (p.email_verified===false?'<small class="rcf-join-unverified">E-post pole veel kinnitatud</small>':'')+'</div>'+ 
+      (p.email_verified===false?'<small class="rcf-join-unverified">E-post kontrollimata – kinnita ainult teadaolev inimene</small>':'')+'</div>'+ 
       (p.join_note?'<p class="rcf-join-note">'+esc(p.join_note)+'</p>':'')+
       '<div class="rcf-join-actions">'+
-      (p.email_verified===false?'<button type="button" class="rcf-join-accept" disabled title="Kliendi e-post pole veel kinnitatud">Ootab e-posti kinnitamist</button>':
-        '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\''+esc(p.client_id)+'\',true)">Kinnita</button>')+
+      '<button type="button" class="rcf-join-accept" onclick="crossfitApprovals.decide(\''+esc(p.client_id)+'\',true)">Kinnita</button>'+
       (pendingStatus?'<button type="button" class="rcf-join-reject" onclick="crossfitApprovals.decide(\''+
         esc(p.client_id)+'\',false)">Keeldu</button>':'')+
       '</div></div>';
