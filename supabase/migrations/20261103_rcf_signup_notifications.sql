@@ -11,7 +11,9 @@ DECLARE
   full_name text;
   motivation text;
 BEGIN
-  IF NEW.raw_user_meta_data->>'app_identifier' IS DISTINCT FROM 'rouge_crossfit'
+  IF (NEW.raw_user_meta_data->>'app_identifier' IS DISTINCT FROM 'rouge_crossfit'
+      AND NOT (NEW.raw_user_meta_data ? 'join_reason'
+               AND NEW.raw_user_meta_data ? 'display_name'))
      OR coalesce(NEW.is_anonymous,false) OR NEW.email IS NULL THEN
     RETURN NEW;
   END IF;
