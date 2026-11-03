@@ -18,7 +18,8 @@ function test(name,fn){
 }
 test('Scripts included and in expected order',()=>{
   assert(jsFiles.length>=18,'Expected modular app scripts');
-  assert.equal(jsFiles.at(-1),'client-preview.js');
+  assert.equal(jsFiles.at(-1),'approval-system.js');
+  assert(jsFiles.indexOf('approval-system.js')>jsFiles.indexOf('client-preview.js'));
   assert(jsFiles.indexOf('client-preview.js')>jsFiles.indexOf('brand-home.js'));
   assert(jsFiles.indexOf('brand-home.js')>jsFiles.indexOf('notification-center.js'));
   assert(jsFiles.indexOf('training-form-redesign.js')>jsFiles.indexOf('wod-review-ui.js'));
@@ -426,6 +427,49 @@ test('QR-pilt avaneb suurelt, seda saab printida või PNG-na salvestada',()=>{
   assert(read('client-ux.css').includes('@media print'));
   assert(read('client-ux.css').includes('body > *:not(#crossfitQRPrintSheet)'));
   assert(read('pro-features.js').includes("canvas.toDataURL('image/png')"));
+});
+
+test('Uue konto kinnitamiseta ei näita rakendus treeninguid ega andmeid',()=>{
+  const oldProfile=context.state.profile,oldView=context.state.view;
+  context.state.profile={user_id:clientId,role:'client',display_name:'Taotleja',approval_status:'pending'};
+  context.state.session.user.id=clientId;
+  context.state.view='home';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('ootab kinnitamist'));
+  assert(htmlRoot.innerHTML.includes('Kontrolli taotluse olekut'));
+  assert(!htmlRoot.innerHTML.includes('Monday WOD'));
+  assert(!htmlRoot.innerHTML.includes('Krediit'));
+  context.state.profile.approval_status='rejected';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('ei kinnitatud'));
+  assert(!htmlRoot.innerHTML.includes('Monday WOD'));
+  context.state.profile=oldProfile;
+  context.state.session.user.id=uid;
+  context.state.view=oldView;
+});
+test('Treener kinnitab või keeldub liitumistaotlustest',()=>{
+  context.state.profile={user_id:uid,role:'trainer',display_name:'Treener',approval_status:'approved'};
+  context.state.session.user.id=uid;
+  context.state.modal=null;
+  context.state.view='more';
+  context.state.joinRequests=[{
+    client_id:clientId,display_name:'Taotleja',email:'taotleja@example.invalid',
+    join_note:'Soovin CrossFitiga liituda',approval_status:'pending',
+    created_at:new Date().toISOString()
+  }];
+  context.render();
+  assert(htmlRoot.innerHTML.includes('Liitumistaotlused'));
+  assert(htmlRoot.innerHTML.includes('1 ootel'));
+  context.state.modal='joinRequests';
+  context.render();
+  assert(htmlRoot.innerHTML.includes('taotleja@example.invalid'));
+  assert(htmlRoot.innerHTML.includes('Soovin CrossFitiga liituda'));
+  assert(htmlRoot.innerHTML.includes('crossfitApprovals.decide('));
+  assert(htmlRoot.innerHTML.includes('Kinnita'));
+  assert(htmlRoot.innerHTML.includes('Keeldu'));
+  assert(typeof context.crossfitApprovals.check==='function');
+  assert(typeof context.crossfitApprovals.refresh==='function');
+  assert(read('notification-center.js').includes("item.kind==='join_request'"));
 });
 process.stdout.write('\n'+count+' CrossFit smoke checks passed.\n');
 if(process.exitCode)process.exit(process.exitCode);
