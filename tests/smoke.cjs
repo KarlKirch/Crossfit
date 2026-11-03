@@ -422,7 +422,7 @@ test('QR-pilt avaneb suurelt, seda saab printida või PNG-na salvestada',()=>{
   const share=context.shareSheet();
   assert(share.includes('class="qr-inline-trigger"'));
   assert(share.includes('crossfitQR.open()'));
-  assert(share.includes('Salvesta PNG'));
+  assert(read('pro-features.js').includes('Salvesta PNG'));
   assert(read('client-ux.css').includes('@media print'));
   assert(read('client-ux.css').includes('body > *:not(#crossfitQRPrintSheet)'));
   assert(read('pro-features.js').includes("canvas.toDataURL('image/png')"));
