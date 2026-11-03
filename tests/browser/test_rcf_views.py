@@ -778,10 +778,9 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("Soovin tulla trenni",page.locator(".rcf-join-sheet").inner_text())
         self.snapshot("trainer-join-requests")
         page.on("dialog",lambda dialog:dialog.accept())
-        with page.expect_request(lambda req:"/rpc/wod_review_join_request" in req.url and req.method=="POST") as request:
+        with page.expect_request(lambda req:"/functions/v1/rcf-approve-join" in req.url and req.method=="POST") as request:
             page.locator(".rcf-join-accept").click()
-        self.assertEqual(request.value.post_data_json["p_client_id"],CLIENT)
-        self.assertEqual(request.value.post_data_json["p_approve"],True)
+        self.assertEqual(request.value.post_data_json["client_id"],CLIENT)
         page.locator(".rcf-join-sheet").wait_for(state="visible")
         with page.expect_request(lambda req:"/rpc/wod_review_join_request" in req.url and req.method=="POST") as denied:
             page.locator(".rcf-join-reject").click()
@@ -799,7 +798,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(page.locator("#authName").input_value(),"Uus Testija")
         self.snapshot("iphone-signup-readable-name")
 
-    def test_unverified_join_request_cannot_be_approved(self):
+    def test_unverified_join_request_can_be_approved_by_trainer(self):
         requests=[{"client_id":CLIENT,"display_name":"Kinnitamata klient",
                    "email":"ootel@example.invalid","join_note":"",
                    "created_at":datetime.now(timezone.utc).isoformat(),
@@ -809,9 +808,28 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.get_by_role("button",name="Liitumistaotlused",exact=False).click()
         sheet=page.locator(".rcf-join-sheet")
         sheet.wait_for(state="visible")
-        self.assertIn("E-post pole veel kinnitatud",sheet.inner_text())
-        self.assertTrue(sheet.locator(".rcf-join-accept").is_disabled())
+        self.assertIn("E-post kontrollimata",sheet.inner_text())
+        self.assertTrue(sheet.locator(".rcf-join-accept").is_enabled())
         self.assertIn("ootel@example.invalid",sheet.inner_text())
+        page.on("dialog",lambda dialog:dialog.accept())
+        with page.expect_request(lambda req:"/functions/v1/rcf-approve-join" in req.url and req.method=="POST") as approval:
+            sheet.locator(".rcf-join-accept").click()
+        self.assertEqual(approval.value.post_data_json["client_id"],CLIENT)
+
+
+    def test_signup_does_not_require_email_confirmation_link(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.evaluate("() => window.logout()")
+        page.get_by_role("button",name="Loo konto",exact=True).click()
+        page.locator("#authName").fill("Katse Kasutaja")
+        page.locator("#authEmail").fill("testkasutaja@example.invalid")
+        page.locator("#authPassword").fill("salajane10")
+        with page.expect_request(lambda req:"/auth/v1/signup" in req.url and req.method=="POST") as signup:
+            page.locator("#authSubmitBtn").click()
+        payload=signup.value.post_data_json
+        self.assertEqual(payload["data"]["app_identifier"],"rouge_crossfit")
+        self.assertEqual(payload["data"]["display_name"],"Katse Kasutaja")
+        self.assertIn("E-posti kinnituskirja avamine ei ole vajalik",page.locator("#authMessage").inner_text())
 
 
 if __name__ == "__main__":
