@@ -166,3 +166,24 @@ test('iPhone’i tõuketeavituse luba küsitakse otsesest kasutajatoimingust', (
   assert.match(app, /if\(Notification\.permission!=='granted'\)\{await enablePush\(\);return\}/);
   assert.match(app, /isIOSDevice\(\)&&!isStandaloneMode\(\)/);
 });
+
+test('liitumisel ei ole e-posti lingi avamise kohustust', () => {
+  const app = read('app.js');
+  const auth = read('auth-flow.js');
+  const approvals = read('approval-system.js');
+  assert.match(auth, /E-posti kinnitamise lisasammu ei ole vaja/);
+  assert.match(app, /E-posti kinnituskirja avamine ei ole vajalik/);
+  assert.match(app, /functions\/v1\/rcf-approve-join/);
+  assert.match(approvals, /await window\.crossfitApproveJoin\(id\)/);
+  assert.doesNotMatch(approvals, /disabled title="Kliendi e-post pole veel kinnitatud"/);
+});
+
+test('kinnitamata liituja kinnitamine on piiratud treeneriga serveris', () => {
+  const fn = read('supabase/functions/rcf-approve-join/index.ts');
+  assert.match(fn, /\/auth\/v1\/user/);
+  assert.match(fn, /coach\?\.\[0\]\?\.role !== 'trainer'/);
+  assert.match(fn, /\/auth\/v1\/admin\/users\//);
+  assert.match(fn, /email_confirm: true/);
+  assert.match(fn, /\/rest\/v1\/rpc\/wod_review_join_request/);
+  assert.doesNotMatch(read('app.js'), /SUPABASE_SERVICE_ROLE_KEY/);
+});
