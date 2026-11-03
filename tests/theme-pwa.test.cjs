@@ -199,3 +199,13 @@ test('avaliku sisselogimislehe juures kuvatakse arusaadav liitumiskord', () => {
   assert.match(auth, /\$\{form\}\$\{joinGuide\}/);
   assert.match(theme, /body \.auth-join-steps/);
 });
+
+test('Minu profiili dialoogi foto ja abitekstid on tumedal taustal loetavad', () => {
+  assert.match(read('styles.css'), /\.cf-photo-editor\{[^}]*background:#fff/);
+  assert.match(graphite, /body \.sheet \.cf-photo-editor\{\s*background:#293137;\s*color:#F4F6F7/);
+  assert.match(graphite, /body \.sheet \.cf-photo-current strong\{color:#F4F6F7\}/);
+  assert.match(graphite, /body \.sheet \.cf-photo-editor p\{color:#C2CDD3\}/);
+  assert.match(graphite, /body \.sheet \.cf-profile-form input:disabled/);
+  assert.ok(contrast('#293137','#D4DFE4') >= 4.5);
+  assert.ok(contrast('#293137','#C2CDD3') >= 4.5);
+});
