@@ -32,8 +32,9 @@
         ${signup?'<div class="field"><label for="authName">Ees- ja perekonnanimi</label><input id="authName" autocomplete="name" required></div>':''}
         <div class="field"><label for="authEmail">E-posti aadress</label><input id="authEmail" type="email" inputmode="email" autocomplete="email" required></div>
         <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="6" required></div>
+        ${signup?'<div class="field"><label for="authReason">Miks soovid liituda? (vabatahtlik)</label><textarea id="authReason" maxlength="300" rows="3" placeholder="Näiteks soovin osaleda CrossFiti treeningutel"></textarea></div>':''}
         <button id="authSubmitBtn" class="btn btn-primary btn-block" type="submit">${signup?'Loo konto':'Logi sisse'}</button>
-        ${signup?'<p class="auth-field-note">Konto kinnitamiseks ava vajaduse korral e-postis saadetud link. Hiljem saad sisse logida ka ilma paroolita.</p>':''}
+        ${signup?'<p class="auth-field-note">Kinnita oma e-posti aadress. Seejärel saadetakse sinu liitumistaotlus treenerile. Treeningutele pääsed pärast treeneri heakskiitu.</p>':''}
       </form>`
       :linkSent
        ?`<div class="auth-email-confirm">

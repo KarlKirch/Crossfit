@@ -46,12 +46,12 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(self.page_errors, [],
                          'Brauseris ilmnesid käsitlemata JavaScripti vead')
 
-    def open_app(self, role="client", width=390, height=844, browser=None, wods=None, messages=None):
+    def open_app(self, role="client", width=390, height=844, browser=None, wods=None, messages=None, approval="approved", approval_after_check=False, join_requests=None):
         uid = TRAINER if role == "trainer" else CLIENT
         profile = {"user_id": uid, "display_name": "Testtreener" if role == "trainer" else "Testklient",
-                   "role": role, "avatar_path": None}
+                   "role": role, "avatar_path": None, "approval_status": approval}
         other = {"user_id": CLIENT, "display_name": "Testklient",
-                 "role": "client", "avatar_path": None}
+                 "role": "client", "avatar_path": None, "approval_status": "approved"}
         profiles = [profile, other] if role == "trainer" else [profile]
         upcoming = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()
         trainings = [{
@@ -68,7 +68,9 @@ class RCFBrowserSmoke(unittest.TestCase):
                    "refresh_token": "TEST_REFRESH_NO_NETWORK",
                    "user": {"id": uid, "email": "test@example.invalid",
                             "user_metadata": {"display_name": profile["display_name"]}}}
+        profile_read_count = 0
         def handler(route):
+            nonlocal profile_read_count
             request = route.request
             url = urlparse(request.url)
             if url.netloc == urlparse(BACKEND).netloc:
@@ -80,7 +82,13 @@ class RCFBrowserSmoke(unittest.TestCase):
                     name = url.path.split("/")[-1]
                     query = parse_qs(url.query)
                     if name == "wod_profiles":
-                        payload = [profile] if "user_id" in query else profiles
+                        if "user_id" in query:
+                            profile_read_count += 1
+                            if approval_after_check and profile_read_count > 1:
+                                profile["approval_status"] = "approved"
+                            payload = [profile]
+                        else:
+                            payload = profiles
                     elif name == "wod_trainings":
                         payload = trainings
                     elif name == "wod_list_trainings_secure":
@@ -93,6 +101,8 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = wods if wods is not None else []
                     elif name == "wod_private_messages":
                         payload = messages if messages is not None else []
+                    elif name == "wod_list_join_requests":
+                        payload = join_requests if join_requests is not None else []
                     else:
                         payload = []
                 else:
@@ -118,8 +128,11 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.page = self.context.new_page()
         self.page.on('pageerror', lambda e: self.page_errors.append(str(e)))
         self.page.goto(APP_URL, wait_until="domcontentloaded")
-        self.page.locator(".app-shell").wait_for(state="visible", timeout=20000)
-        self.page.locator(".bottom-nav").wait_for(state="visible")
+        if approval == "approved":
+            self.page.locator(".app-shell").wait_for(state="visible", timeout=20000)
+            self.page.locator(".bottom-nav").wait_for(state="visible")
+        else:
+            self.page.locator(".rcf-approval-panel").wait_for(state="visible", timeout=20000)
         # WOD moodul värskendab treeneri andmeid 160 ms pärast alglaadimist.
         # Ootame selle ära, et Playwright ei klõpsaks vahepeal eemaldatud DOM-nuppe.
         self.page.wait_for_timeout(350)
@@ -730,6 +743,49 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator(".qr-inline-trigger").click()
         page.get_by_role("button",name="Sulge QR-koodi vaade").click()
         self.assertEqual(page.locator("#crossfitQRViewer").count(),0)
+
+
+    def test_pending_client_is_blocked_until_approved(self):
+        page=self.open_app("client",390,844,approval="pending",approval_after_check=True)
+        gate=page.locator(".rcf-approval-panel")
+        self.assertIn("ootab kinnitamist",gate.inner_text())
+        self.assertEqual(page.locator(".app-shell").count(),0)
+        self.assertEqual(page.evaluate("() => window.state.trainings.length"),0)
+        self.assertEqual(page.evaluate("() => window.state.registrations.length"),0)
+        self.snapshot("pending-client-approval-gate")
+        gate.get_by_role("button",name="Kontrolli taotluse olekut").click()
+        page.locator(".app-shell").wait_for(state="visible")
+        self.assertEqual(page.evaluate("() => window.state.profile.approval_status"),"approved")
+        self.assertEqual(page.locator(".rcf-approval-panel").count(),0)
+
+    def test_rejected_client_cannot_access_app(self):
+        page=self.open_app("client",390,844,approval="rejected")
+        self.assertIn("ei kinnitatud",page.locator(".rcf-approval-panel").inner_text())
+        self.assertEqual(page.locator(".app-shell").count(),0)
+        self.assertEqual(page.evaluate("() => window.state.trainings.length"),0)
+        self.assertEqual(page.locator(".bottom-nav").count(),0)
+
+    def test_trainer_can_review_join_requests(self):
+        requests=[{"client_id":CLIENT,"display_name":"Ootel klient",
+                   "email":"liituja@example.invalid","join_note":"Soovin tulla trenni",
+                   "created_at":datetime.now(timezone.utc).isoformat(),
+                   "approval_status":"pending"}]
+        page=self.open_app("trainer",390,844,join_requests=requests)
+        page.evaluate("() => window.go('more')")
+        page.get_by_role("button",name="Liitumistaotlused",exact=False).click()
+        page.get_by_role("dialog",name="Liitumistaotlused").wait_for(state="visible")
+        self.assertIn("liituja@example.invalid",page.locator(".rcf-join-sheet").inner_text())
+        self.assertIn("Soovin tulla trenni",page.locator(".rcf-join-sheet").inner_text())
+        self.snapshot("trainer-join-requests")
+        page.on("dialog",lambda dialog:dialog.accept())
+        with page.expect_request(lambda req:"/rpc/wod_review_join_request" in req.url and req.method=="POST") as request:
+            page.locator(".rcf-join-accept").click()
+        self.assertEqual(request.value.post_data_json["p_client_id"],CLIENT)
+        self.assertEqual(request.value.post_data_json["p_approve"],True)
+        page.locator(".rcf-join-sheet").wait_for(state="visible")
+        with page.expect_request(lambda req:"/rpc/wod_review_join_request" in req.url and req.method=="POST") as denied:
+            page.locator(".rcf-join-reject").click()
+        self.assertEqual(denied.value.post_data_json["p_approve"],False)
 
 
 if __name__ == "__main__":
