@@ -788,5 +788,31 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(denied.value.post_data_json["p_approve"],False)
 
 
+    def test_signup_name_readable_on_iphone_webkit(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.evaluate("() => window.logout()")
+        page.get_by_role("button",name="Loo konto",exact=True).click()
+        page.locator("#authName").wait_for(state="visible")
+        page.locator("#authName").fill("Uus Testija")
+        self.assert_contrast("#authName","#authName")
+        self.assert_contrast(".auth-card",".auth-card .field label")
+        self.assertEqual(page.locator("#authName").input_value(),"Uus Testija")
+        self.snapshot("iphone-signup-readable-name")
+
+    def test_unverified_join_request_cannot_be_approved(self):
+        requests=[{"client_id":CLIENT,"display_name":"Kinnitamata klient",
+                   "email":"ootel@example.invalid","join_note":"",
+                   "created_at":datetime.now(timezone.utc).isoformat(),
+                   "approval_status":"pending","email_verified":False}]
+        page=self.open_app("trainer",390,844,join_requests=requests)
+        page.evaluate("() => window.go('more')")
+        page.get_by_role("button",name="Liitumistaotlused",exact=False).click()
+        sheet=page.locator(".rcf-join-sheet")
+        sheet.wait_for(state="visible")
+        self.assertIn("E-post pole veel kinnitatud",sheet.inner_text())
+        self.assertTrue(sheet.locator(".rcf-join-accept").is_disabled())
+        self.assertIn("ootel@example.invalid",sheet.inner_text())
+
+
 if __name__ == "__main__":
     unittest.main()
