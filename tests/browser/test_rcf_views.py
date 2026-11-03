@@ -787,6 +787,19 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(denied.value.post_data_json["p_approve"],False)
 
 
+    def test_joining_steps_visible_on_login_and_signup(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.evaluate("() => window.logout()")
+        guide=page.locator(".auth-join-guide")
+        guide.wait_for(state="visible")
+        self.assertIn("Kuidas Rõuge CrossFitiga liituda?",guide.inner_text())
+        self.assertEqual(guide.locator("li").count(),4)
+        self.assertIn("e-posti kinnituskirja",guide.inner_text())
+        page.get_by_role("button",name="Loo konto",exact=True).click()
+        self.assertTrue(page.locator(".auth-join-guide").is_visible())
+        self.assertEqual(page.locator(".auth-join-guide li").count(),4)
+        self.snapshot("iphone-joining-steps")
+
     def test_signup_name_readable_on_iphone_webkit(self):
         page=self.open_app("client",390,844,browser=self.webkit)
         page.evaluate("() => window.logout()")
