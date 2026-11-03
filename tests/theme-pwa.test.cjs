@@ -132,3 +132,37 @@ test('uue teema fail on teenusetöötaja vahemälus', () => {
   assert.ok(version);
   assert.ok(sw.includes('graphite-theme.css?v=' + version));
 });
+
+test('registreerimisvormi nimi ja tekst on tumedal kaardil loetavad', () => {
+  assert.match(graphite, /body \.auth-card\{background:#293137;color:#F4F6F7/);
+  assert.match(graphite, /body \.auth-card \.field label\{color:#F4F6F7/);
+  assert.match(graphite, /body \.auth-card \.auth-field-note\{color:#C2CDD3/);
+  assert.ok(contrast('#293137', '#F4F6F7') >= 4.5);
+});
+
+test('iPhone’i installijuhend näitab Safari lisamist ja Open as Web App valikut', () => {
+  const guide = read('install-guide.js');
+  assert.match(guide, /Lisa avakuvale/);
+  assert.match(guide, /Open as Web App/);
+  assert.match(guide, /Vaata juhendit/);
+  assert.match(read('index.html'), /apple-touch-icon/);
+  const manifest = JSON.parse(read('manifest.webmanifest'));
+  assert.ok(manifest.icons.some(icon => icon.type === 'image/png' && icon.sizes === '192x192'));
+});
+
+test('uued CrossFiti liitumised on Futboli kontodest eristatavad', () => {
+  const app = read('app.js');
+  const approvals = read('approval-system.js');
+  const migration = read('supabase/migrations/20261103_rcf_signup_notifications.sql');
+  assert.match(app, /app_identifier:'rouge_crossfit'/);
+  assert.match(approvals, /wod_list_join_requests_v2/);
+  assert.match(approvals, /email_verified===false/);
+  assert.match(migration, /NEW\.raw_user_meta_data->>'app_identifier' IS DISTINCT FROM 'rouge_crossfit'/);
+  assert.match(migration, /BEFORE UPDATE OF approval_status/);
+});
+
+test('iPhone’i tõuketeavituse luba küsitakse otsesest kasutajatoimingust', () => {
+  const app = read('app.js');
+  assert.match(app, /if\(Notification\.permission!=='granted'\)\{await enablePush\(\);return\}/);
+  assert.match(app, /isIOSDevice\(\)&&!isStandaloneMode\(\)/);
+});
