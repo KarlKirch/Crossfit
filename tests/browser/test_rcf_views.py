@@ -188,6 +188,20 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(colors["text"], "rgb(244, 246, 247)")
         self.snapshot("trainer-client-card-desktop")
 
+
+    def test_trainer_profile_editor_readability_on_iphone(self):
+        page = self.open_app("trainer", 390, 844, browser=self.webkit)
+        page.evaluate("() => window.openProfileEdit()")
+        page.locator(".sheet .cf-photo-editor").wait_for(state="visible")
+        self.assertEqual(page.locator(".sheet .cf-photo-editor").evaluate(
+            "e => getComputedStyle(e).backgroundColor"), "rgb(41, 49, 55)")
+        self.assert_contrast(".cf-photo-editor", ".cf-photo-current strong")
+        self.assert_contrast(".cf-photo-editor", ".cf-photo-editor p")
+        self.assert_contrast(".cf-profile-form #pfName", ".cf-profile-form #pfName")
+        self.assert_contrast(".cf-profile-form #pfEmail", ".cf-profile-form #pfEmail")
+        self.verify_fit()
+        self.snapshot("trainer-profile-editor-iphone")
+
     def test_small_phone_and_notifications(self):
         page = self.open_app("client", 360, 740)
         self.verify_fit()
@@ -230,6 +244,15 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assert_contrast(".my-booking-row", ".my-booking-description")
         self.assert_contrast(".my-booking-row", ".my-booking-main > strong")
         self.snapshot("client-account-contrast-mobile")
+
+        page.locator(".my-profile-edit").click()
+        profile = page.locator(".sheet .cf-photo-editor")
+        profile.wait_for(state="visible")
+        self.assert_contrast(".cf-photo-editor", ".cf-photo-current strong")
+        self.assert_contrast(".cf-photo-editor", ".cf-photo-current span:not(.cf-avatar):not(.cf-avatar-initials)")
+        self.assert_contrast(".cf-photo-editor", ".cf-photo-editor p")
+        self.assert_contrast(".cf-profile-form #pfEmail", ".cf-profile-form #pfEmail")
+        self.snapshot("client-profile-editor-contrast-mobile")
 
 
     def test_trainer_wod_bank_and_training_form_on_mobile(self):
