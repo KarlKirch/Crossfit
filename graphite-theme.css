@@ -384,3 +384,25 @@ body .auth-join-steps{margin:0;padding:0;list-style:none;counter-reset:join-step
 body .auth-join-steps li{counter-increment:join-step;display:grid;grid-template-columns:24px minmax(0,1fr);align-items:start;gap:10px;font-size:13px;line-height:1.45;color:#E3EAED}
 body .auth-join-steps li::before{content:counter(join-step);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#B9EA6F;color:#14191E;font-size:12px;font-weight:850}
 body .auth-join-note{margin:13px 0 0;color:#C2CDD3;font-size:12px;line-height:1.45}
+
+/* Minu profiili dialoog: foto eelvaate ja selgituste kontrast tumedal teemal.
+   Vana .cf-photo-editor kasutas valget tausta, kuid tekst oli hele. */
+body .sheet .cf-photo-editor{
+  background:#293137;
+  color:#F4F6F7;
+  border-color:#657079
+}
+body .sheet .cf-photo-current strong{color:#F4F6F7}
+body .sheet .cf-photo-current span:not(.cf-avatar):not(.cf-avatar-initials){
+  color:#D4DFE4
+}
+body .sheet .cf-photo-editor p{color:#C2CDD3}
+body .sheet .cf-profile-form .field label{color:#F4F6F7}
+body .sheet .cf-profile-form input:disabled{
+  background:#293137!important;
+  color:#D4DFE4!important;
+  border-color:#657079!important;
+  -webkit-text-fill-color:#D4DFE4;
+  opacity:1
+}
+body .sheet .cf-crop-body>p,body .sheet .cf-crop-body>label{color:#F4F6F7}
