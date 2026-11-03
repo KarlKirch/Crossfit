@@ -680,5 +680,57 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertTrue(page.evaluate("() => window.isTrainer()"))
 
 
+    def test_qr_click_preview_print_and_save_on_phone(self):
+        page=self.open_app("trainer",390,844)
+        page.evaluate("() => window.openShare()")
+        inline=page.locator(".qr-inline-trigger")
+        inline.wait_for(state="visible")
+        self.assertIn("Suurenda QR-koodi",inline.inner_text())
+        small_width=inline.locator("svg").evaluate("svg => svg.getBoundingClientRect().width")
+        inline.click()
+        viewer=page.locator("#crossfitQRViewer")
+        viewer.wait_for(state="visible")
+        large=viewer.locator(".qr-large-svg")
+        self.assertGreater(large.evaluate("svg => svg.getBoundingClientRect().width"),small_width)
+        self.assertEqual(large.get_attribute("viewBox"),"0 0 37 37")
+        self.assertEqual(page.locator("#crossfitQRPrintSheet .qr-print-svg").count(),1)
+        self.assertIn("https://karlkirch.github.io/Crossfit/",
+                      page.locator("#crossfitQRPrintSheet").inner_text())
+        self.snapshot("qr-quick-preview-phone")
+        page.evaluate("() => { window.__qrPrintCalls=0; window.print=() => window.__qrPrintCalls++ }")
+        viewer.get_by_role("button",name="Prindi QR-kood").click()
+        self.assertEqual(page.evaluate("() => window.__qrPrintCalls"),1)
+        page.emulate_media(media="print")
+        self.assertEqual(page.locator("#appRoot").evaluate(
+            "x => getComputedStyle(x).display"),"none")
+        self.assertEqual(page.locator("#crossfitQRPrintSheet").evaluate(
+            "x => getComputedStyle(x).display"),"flex")
+        page.emulate_media(media="screen")
+        with page.expect_download() as download:
+            viewer.get_by_role("button",name="Salvesta PNG").click()
+        self.assertEqual(download.value.suggested_filename,"Rouge-CrossFit-QR-kood.png")
+        self.assertTrue(download.value.url.startswith("data:image/png;base64,"))
+        page.keyboard.press("Escape")
+        self.assertEqual(viewer.count(),0)
+        self.assertEqual(page.locator("#crossfitQRPrintSheet").count(),0)
+        self.assertEqual(inline.count(),1)
+
+    def test_qr_preview_desktop_and_backdrop_closing(self):
+        page=self.open_app("client",1280,800,browser=self.webkit)
+        page.evaluate("() => window.openShare()")
+        page.locator(".qr-inline-trigger").click()
+        dialog=page.get_by_role("dialog",name="Rõuge CrossFiti QR-koodi printimine")
+        dialog.wait_for(state="visible")
+        self.assertGreater(dialog.locator(".qr-large-svg").evaluate(
+            "x => x.getBoundingClientRect().width"),200)
+        self.assertLessEqual(dialog.locator(".qr-large-svg").evaluate(
+            "x => x.getBoundingClientRect().width"),370)
+        page.locator("#crossfitQRViewer").click(position={"x":5,"y":5})
+        self.assertEqual(page.locator("#crossfitQRViewer").count(),0)
+        page.locator(".qr-inline-trigger").click()
+        page.get_by_role("button",name="Sulge QR-koodi vaade").click()
+        self.assertEqual(page.locator("#crossfitQRViewer").count(),0)
+
+
 if __name__ == "__main__":
     unittest.main()
