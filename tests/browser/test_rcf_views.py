@@ -1074,12 +1074,14 @@ class RCFBrowserSmoke(unittest.TestCase):
                                  and req.post_data_json.get("p_status")=="present") as request:
             section.get_by_role("button",name="Kohal",exact=True).click()
         self.assertEqual(request.value.post_data_json["p_registration_id"],2)
+        page.wait_for_function("() => document.querySelector('.at-panel')?.textContent?.includes('Kohal: 1')")
         self.assertIn("Kohal: 1",page.locator(".at-panel").inner_text())
         self.assertEqual(page.locator(".at-panel [aria-pressed='true']").count(),1)
         self.snapshot("iphone-trainer-marks-attendance")
         with page.expect_request(lambda req:"/rpc/wod_mark_attendance" in req.url
                                  and req.post_data_json.get("p_status")=="unmarked") as request:
             page.locator(".at-panel").get_by_role("button",name="Tühista märge").click()
+        page.wait_for_function("() => document.querySelector('.at-panel')?.textContent?.includes('Märkimata: 1')")
         self.assertIn("Märkimata: 1",page.locator(".at-panel").inner_text())
         self.verify_fit()
 
