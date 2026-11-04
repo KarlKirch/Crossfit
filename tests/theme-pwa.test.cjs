@@ -171,7 +171,7 @@ test('liitumisel ei ole e-posti lingi avamise kohustust', () => {
   const app = read('app.js');
   const auth = read('auth-flow.js');
   const approvals = read('approval-system.js');
-  assert.match(auth, /E-posti kinnitamise lisasammu ei ole vaja/);
+  assert.match(auth, /E-posti kinnituskirja ei saadeta/);
   assert.match(read('supabase/functions/rcf-signup/index.ts'), /E-posti kinnituskirja ei saadeta/);
   assert.match(app, /functions\/v1\/rcf-approve-join/);
   assert.match(approvals, /await window\.crossfitApproveJoin\(id\)/);
@@ -221,7 +221,7 @@ test('Rõuge CrossFiti jagamislink näitab uut logo ja selget liitumiskutset', (
   assert.match(html, /property="og:image:height" content="630"/);
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
   assert.match(html, /property="og:description" content="Loo konto/);
-  assert.match(app, /const SHARE_URL=APP_URL\+'\?liitu=rcf20261104'/);
+  assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(app, /navigator\.clipboard\.writeText\(SHARE_URL\)/);
   assert.match(app, /url:SHARE_URL/);
   assert.ok(sw.includes("'./social-preview-rcf.png'"));
@@ -260,6 +260,32 @@ test('CrossFiti liitumine ei saada Supabase Authi kinnituskirju ega muuda Futbol
   assert.match(sql, /TO service_role/);
   assert.match(auth, /minlength="\$\{signup\?8:6\}"/);
   assert.match(auth, /let method='password'/);
-  assert.match(html, /auth-flow\.js\?v=6/);
-  assert.ok(sw.includes('auth-flow.js?v=6'));
+  assert.match(html, /auth-flow\.js\?v=7/);
+  assert.ok(sw.includes('auth-flow.js?v=7'));
+  assert.ok(sw.includes("'./liitu.html'"));
+});
+
+test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga sisselogimise valik peidetud',()=>{
+  const index=read('index.html'),app=read('app.js'),qr=read('pro-features.js');
+  const html=read('liitu.html'),css=read('liitu.css'),js=read('liitu.js');
+  const auth=read('auth-flow.js'),sw=read('sw.js');
+  assert.match(html, /<form id="join-form" novalidate>/);
+  assert.match(html, /<meta property="og:image" content="https:\/\/karlkirch\.github\.io\/Crossfit\/social-preview-rcf\.png">/);
+  assert.match(html, /<meta property="og:url" content="https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html">/);
+  assert.match(html, /id="join-email"/);
+  assert.match(html, /minlength="8"/);
+  assert.match(html, /E-posti kinnituskirja ei saadeta/);
+  assert.match(js, /functions\/v1\/rcf-signup/);
+  assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
+  assert.match(js, /credentials:'omit',cache:'no-store'/);
+  assert.match(css, /input:focus-visible/);
+  assert.match(index, /app\.js\?v=53/);
+  assert.match(index, /pro-features\.js\?v=7/);
+  assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
+  assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
+  assert.match(auth, /const emailMode=false/);
+  assert.match(auth, /const switcher=''/);
+  assert.match(auth, /Parooli taastamiseks|Kui parool ununes/);
+  assert.match(sw, /crossfit-app-v84/);
+  assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
