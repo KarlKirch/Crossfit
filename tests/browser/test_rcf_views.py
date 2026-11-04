@@ -79,6 +79,23 @@ class RCFBrowserSmoke(unittest.TestCase):
                     payload = session
                 elif url.path == "/auth/v1/user":
                     payload = session["user"]
+                elif url.path == "/functions/v1/rcf-password-recovery":
+                    args = request.post_data_json or {}
+                    action = args.get("action")
+                    if action == "issue" and role == "trainer" and args.get("client_id") == CLIENT:
+                        payload = {"code": "ABCD-EF12-3456-7890", "expires_in_hours": 24,
+                                   "message": "Taastekood loodud"}
+                    elif action == "redeem":
+                        if args.get("code") == "ABCD-EF12-3456-7890" and args.get("email") == "test@example.invalid":
+                            payload = {"message": "Parool uuendatud. Nüüd saad uue parooliga sisse logida."}
+                        else:
+                            route.fulfill(status=400, content_type="application/json",
+                                body=json.dumps({"message": "Taastekood on vigane või aegunud."}))
+                            return
+                    else:
+                        route.fulfill(status=403, content_type="application/json",
+                            body=json.dumps({"message": "Koodi väljastamine ei ole lubatud."}))
+                        return
                 elif url.path == "/functions/v1/rcf-signup":
                     args = request.post_data_json or {}
                     if args.get("email") == "rate-limited@example.invalid":
@@ -956,6 +973,51 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertTrue(page.evaluate(
             "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
         self.snapshot("iphone-invitation-rate-limit")
+
+
+    def test_trainer_issues_client_reset_code_only_after_identity_confirmation(self):
+        page=self.open_app("trainer",390,844,browser=self.webkit)
+        page.locator(".bottom-nav").get_by_role("button",name="Kliendid").click()
+        page.get_by_role("button",name="Kliendikaart").first.click()
+        page.get_by_role("button",name="Väljasta taastekood").wait_for(state="visible")
+        page.on("dialog", lambda d: d.accept())
+        with page.expect_request(lambda req: "/functions/v1/rcf-password-recovery" in req.url
+                                 and req.post_data_json.get("action") == "issue") as issued:
+            page.get_by_role("button",name="Väljasta taastekood").click()
+        self.assertEqual(issued.value.post_data_json["client_id"], CLIENT)
+        page.locator(".rcf-recovery-code").wait_for(state="visible")
+        self.assertEqual(page.locator(".rcf-recovery-code").inner_text(),"ABCD-EF12-3456-7890")
+        self.assertIn("24 tundi",page.locator(".rcf-recovery-dialog").inner_text())
+        self.snapshot("iphone-trainer-reset-code")
+        page.get_by_role("button",name="Sulge",exact=True).last.click()
+        self.assertEqual(page.locator(".rcf-recovery-code").count(),0)
+
+    def test_client_reset_page_redeems_code_and_handles_invalid_code_on_iphone(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.goto(APP_URL+"taasta.html",wait_until="domcontentloaded")
+        page.locator("#reset-email").fill("test@example.invalid")
+        page.locator("#reset-code").fill("ABCD-EF12-3456-7890")
+        page.locator("#reset-password").fill("Parool2026Uus")
+        page.locator("#reset-confirm").fill("Parool2026Uus")
+        with page.expect_request(lambda req:"/functions/v1/rcf-password-recovery" in req.url
+                                 and req.post_data_json.get("action")=="redeem") as sent:
+            page.locator("#reset-submit").click()
+        self.assertEqual(sent.value.post_data_json["new_password"],"Parool2026Uus")
+        page.locator("#reset-success").wait_for(state="visible")
+        self.assertFalse(page.locator("#reset-form").is_visible())
+        self.snapshot("iphone-client-reset-success")
+
+        page.goto(APP_URL+"taasta.html",wait_until="domcontentloaded")
+        page.locator("#reset-email").fill("test@example.invalid")
+        page.locator("#reset-code").fill("1111-2222-3333-4444")
+        page.locator("#reset-password").fill("Parool2026Uus")
+        page.locator("#reset-confirm").fill("Parool2026Uus")
+        page.locator("#reset-submit").click()
+        self.assertIn("Taastekood on vigane",page.locator("#reset-feedback").inner_text())
+        self.assertTrue(page.locator("#reset-form").is_visible())
+        self.assertTrue(page.evaluate(
+            "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
+        self.snapshot("iphone-client-reset-invalid")
 
 
 if __name__ == "__main__":

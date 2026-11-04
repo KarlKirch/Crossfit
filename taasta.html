@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#14191e">
+  <title>Taasta parool – Rõuge CrossFit</title>
+  <meta name="description" content="Taasta Rõuge CrossFiti parool treenerilt saadud ühekordse taastekoodiga. E-posti kinnituskirja pole vaja.">
+  <link rel="icon" type="image/png" href="./icon-192.png?v=2">
+  <link rel="stylesheet" href="./liitu.css?v=1">
+  <script src="./taasta.js?v=1" defer></script>
+</head>
+<body>
+<main class="join-shell">
+  <a class="join-back" href="./">Tagasi sisselogimisse</a>
+  <header class="join-header">
+    <img src="./brand-rcf.webp" alt="Rõuge CrossFit" width="78" height="78">
+    <h1>Parooli taastamine</h1>
+    <p>Treeneri väljastatud taastekoodiga – ilma e-kirjata.</p>
+  </header>
+  <section class="join-panel">
+    <p class="join-kicker">KONTO TAASTAMINE</p>
+    <h2>Unustasid parooli?</h2>
+    <p class="join-desc">Võta ühendust treeneriga ja küsi oma kontole taastekood. See kehtib 24 tundi ning seda saab kasutada ainult ühe korra.</p>
+    <div id="reset-feedback" role="status" aria-live="polite"></div>
+    <form id="reset-form">
+      <label for="reset-email">Sinu kontoga seotud e-post</label>
+      <input id="reset-email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="nimi@naide.ee" required>
+      <label for="reset-code">Treenerilt saadud taastekood</label>
+      <input id="reset-code" type="text" autocomplete="off" autocapitalize="characters" maxlength="19" minlength="16" pattern="[A-Fa-f0-9-]{16,19}" placeholder="ABCD-EF12-3456-7890" required>
+      <label for="reset-password">Uus parool</label>
+      <input id="reset-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Vähemalt 8 tähemärki" required>
+      <label for="reset-confirm">Korda uut parooli</label>
+      <input id="reset-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+      <p class="join-hint">Kasuta uut parooli, mida pole teistes teenustes kasutatud.</p>
+      <button type="submit" id="reset-submit">Uuenda parool</button>
+    </form>
+    <div id="reset-success" hidden>
+      <h3>Parool on uuendatud</h3>
+      <p>Saad nüüd uue parooliga Rõuge CrossFiti äppi sisse logida. Taastekoodi uuesti kasutada ei saa.</p>
+      <a class="join-button-link" href="./">Logi sisse</a>
+    </div>
+    <div class="join-divider"></div>
+    <p class="join-existing">Kood puudub või aegus? Palu treeneril kliendikaardilt uus kood väljastada.</p>
+  </section>
+  <p class="join-version">Rõuge CrossFit · turvaline paroolitaaste</p>
+</main>
+</body>
+</html>
