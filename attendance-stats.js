@@ -56,37 +56,80 @@
     const marked=Math.max(0,Number(summary?.marked)||0);
     return {total,month,absent,marked,weekly:weeks(summary)};
   }
+  let selectedWeek=null;
+  function weekDetail(w){
+    const start=new Date(w.start+'T12:00:00Z');
+    const end=new Date(start);
+    end.setUTCDate(end.getUTCDate()+6);
+    const until=new Intl.DateTimeFormat('et-EE',{
+      day:'numeric',month:'short',timeZone:'UTC'
+    }).format(end);
+    return dateLabel(w.start)+' – '+until+': '+w.count+
+      (w.count===1?' kinnitatud osalemine':' kinnitatud osalemist');
+  }
+  function selectWeek(start){
+    const found=weeks(s.myAttendanceSummary).slice(-12).find(w=>w.start===start);
+    if(!found)return false;
+    selectedWeek=start;
+    const area=document.querySelector('.at-stats');
+    if(!area)return true;
+    area.querySelectorAll('.at-bar-cell').forEach(button=>{
+      const pressed=button.dataset.week===start;
+      button.setAttribute('aria-pressed',String(pressed));
+    });
+    const detail=area.querySelector('.at-week-detail');
+    if(detail)detail.textContent=weekDetail(found);
+    return true;
+  }
   function statsCard(){
     if(window.isTrainer())return '';
     const summary=s.myAttendanceSummary;
     if(!summary){
-      return '<section class="at-stats" aria-label="Minu treeningstatistika"><h2>Minu treeningstatistika</h2><p class="at-note">Laadin kohaloleku andmeid…</p></section>';
+      return '<section class="at-stats" aria-label="Minu treeningstatistika"><h2>Minu treeningstatistika</h2>'+
+        '<p class="at-note">Laadin kohaloleku andmeid…</p></section>';
     }
-    const stat=counts(summary),last12=stat.weekly.slice(-12);
-    const avg=(last12.reduce((n,w)=>n+w.count,0)/12).toLocaleString('et-EE',{
+    const stat=counts(summary);
+    const last12=stat.weekly.slice(-12);
+    const current=last12.at(-1)?.count||0;
+    const average=(last12.reduce((n,w)=>n+w.count,0)/12).toLocaleString('et-EE',{
       minimumFractionDigits:1,maximumFractionDigits:1
     });
-    const sequence=streak(stat.weekly), max=Math.max(1,...last12.map(w=>w.count));
+    const sequence=streak(stat.weekly);
+    const high=Math.max(1,...last12.map(w=>w.count));
+    const active=last12.find(w=>w.start===selectedWeek)||last12.at(-1)||null;
     const chart=last12.map(w=>{
-      const h=Math.max(w.count?12:3,Math.round(w.count/max*88));
-      const title='Nädal '+dateLabel(w.start)+': '+w.count+' '+(w.count===1?'osalemine':'osalemist');
-      return '<div class="at-bar-cell" title="'+esc(title)+'">'+
-        '<span class="at-bar" style="height:'+h+'px" aria-hidden="true"></span>'+
-        '<span class="at-bar-week">'+esc(dateLabel(w.start))+'</span></div>';
+      const height=Math.max(w.count?16:3,Math.round(w.count/high*84));
+      const message=weekDetail(w);
+      return '<button class="at-bar-cell" type="button" data-week="'+esc(w.start)+
+        '" data-count="'+w.count+'" aria-label="'+esc(message)+
+        '" aria-pressed="'+(w.start===active?.start)+
+        '" onclick="crossfitAttendance.selectWeek(this.dataset.week)">'+
+        '<strong class="at-bar-count">'+w.count+'</strong>'+
+        '<span class="at-bar" style="height:'+height+'px" aria-hidden="true"></span>'+
+        '<span class="at-bar-week">'+esc(dateLabel(w.start))+'</span></button>';
     }).join('');
+    const total12=last12.reduce((sum,w)=>sum+w.count,0);
     return '<section class="at-stats" aria-label="Minu treeningstatistika">'+
       '<h2>Minu treeningstatistika</h2>'+
       '<div class="at-metrics">'+
+        '<div><strong>'+current+'</strong><span>Sel nädalal kohal</span></div>'+
         '<div><strong>'+stat.month+'</strong><span>Sel kuul kohal</span></div>'+
         '<div><strong>'+stat.total+'</strong><span>Kokku kohal</span></div>'+
-        '<div><strong>'+avg+'</strong><span>Keskmiselt nädalas (12 nädalat)</span></div>'+
+        '<div><strong>'+average+'</strong><span>Keskmiselt nädalas (12 nädalat)</span></div>'+
         '<div><strong>'+sequence+'</strong><span>Aktiivset nädalat järjest</span></div>'+
       '</div>'+
-      '<h3>Viimased 12 nädalat</h3>'+
-      '<div class="at-chart" role="img" aria-label="Viimase 12 nädala treeningud">'+chart+'</div>'+
-      '<p class="at-note">Viimati kohal: '+esc(fmt(summary.last_attended))+
-      (stat.marked?'. Treener on märkinud '+stat.marked+' korral kohaloleku, neist '+stat.absent+' puudumist.':'. Kohalolekumärked veel puuduvad.')+'</p>'+
-      '<p class="at-note">Arvesse lähevad ainult treeneri kinnitatud osalemised. Varasemad registreeringud ei muutu automaatselt osalemisteks.</p>'+
+      '<div class="at-last-session"><span>Viimane treening</span>'+
+        '<strong>'+esc(fmt(summary.last_attended))+'</strong></div>'+
+      '<div class="at-chart-heading"><h3>Viimased 12 nädalat</h3>'+
+        '<span>'+total12+' kinnitatud osalemist</span></div>'+
+      '<div class="at-chart" role="group" aria-label="Vali nädal ja vaata kohalolekut">'+chart+'</div>'+
+      '<p class="at-week-detail" role="status" aria-live="polite">'+
+        (active?esc(weekDetail(active)):'Kohaloleku andmed puuduvad.')+'</p>'+
+      '<p class="at-note">'+
+        (stat.marked?'Treener on märkinud '+stat.marked+' korral kohaloleku, neist '+
+          stat.absent+' puudumist.':'Kohalolekumärked veel puuduvad.')+'</p>'+
+      '<p class="at-note">Arvesse lähevad ainult treeneri kinnitatud osalemised. '+
+      'Varasemad registreeringud ei muutu automaatselt osalemisteks.</p>'+
     '</section>';
   }
   function clientCard(uid){
@@ -185,5 +228,5 @@
     }catch(error){window.toast(error?.message||'Kohaloleku salvestamine ebaõnnestus');return false}
     finally{busy=false}
   }
-  window.crossfitAttendance={panel,mark,label,statsCard,clientCard,loadClient,attendanceStatus,streak,weeks};
+  window.crossfitAttendance={panel,mark,label,statsCard,clientCard,loadClient,attendanceStatus,streak,weeks,selectWeek};
 })();
