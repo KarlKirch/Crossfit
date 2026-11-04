@@ -70,7 +70,16 @@ Deno.serve(async (req: Request) => {
       method: 'POST', headers: admin,
       body: JSON.stringify({ p_ip_hash: ipHash, p_email_hash: emailHash })
     });
-    if (!gate.ok) return reply(503, 'Liitumistaotluste piirangut ei saanud kontrollida.');
+    if (!gate.ok) {
+      // Do not log email, IP, authorization headers or API keys.
+      // Status and PostgREST code are sufficient to diagnose quota failures.
+      const diagnostic = await gate.json().catch(() => ({}));
+      console.error('rcf-signup rate gate failed', {
+        status: gate.status,
+        code: String(diagnostic?.code || 'unknown').slice(0, 24)
+      });
+      return reply(503, 'Liitumistaotluste piirangut ei saanud kontrollida. Võta ühendust treeneriga.');
+    }
     if (await gate.json() !== true)
       return reply(429, 'Liiga palju liitumiskatseid. Proovi hiljem uuesti või võta ühendust treeneriga.');
 
