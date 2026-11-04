@@ -220,6 +220,7 @@
       '<div class="cl-detail-actions">'+(removed?
         '<button type="button" class="cl-button cl-button-main" onclick="crossfitClientDirectory.restore('+"'"+uid+"'"+')">Taasta klient</button>':
         '<button type="button" class="cl-button cl-button-main" onclick="openAddCredits('+"'"+uid+"'"+')">Lisa krediiti</button>')+
+      (!removed?'<button type="button" class="cl-button cl-button-outline" onclick="crossfitRecovery.issue('+"'"+uid+"'"+')">Väljasta taastekood</button>':'')+
       '<button type="button" class="cl-button cl-button-outline" onclick="closeModal()">Sulge</button></div>'+
       '<section class="cl-detail-section"><h3>Tulevased registreeringud <span>'+stat.upcoming.length+'</span></h3>'+
       (stat.upcoming.length?stat.upcoming.slice(0,12).map(bookingItem).join(''):'<p>Klient pole tulevastele treeningutele registreeritud.</p>')+'</section>'+
