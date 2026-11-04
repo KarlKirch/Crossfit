@@ -1,0 +1,26 @@
+name: RCF signup service safe probe (temporary)
+on:
+  push:
+    branches:
+      - fix/rcf-signup-email-limit-20261104
+    paths:
+      - '.github/workflows/rcf-signup-probe.yml'
+  workflow_dispatch:
+jobs:
+  invalid-request-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Test auth-free signup endpoint without creating an account
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rcf-signup'
+          status=$(curl -sS --retry 2 --retry-delay 2 --max-time 25 -o /tmp/bad.json -w '%{http_code}' -X POST "$url" -H 'Origin: https://karlkirch.github.io' -H 'Content-Type: application/json' --data '{"email":"bad"}')
+          test "$status" = "400" || { echo "Invalid signup returned HTTP $status"; cat /tmp/bad.json; exit 1; }
+          grep -q 'e-posti aadress' /tmp/bad.json
+          status=$(curl -sS --max-time 25 -o /tmp/forbidden.json -w '%{http_code}' -X POST "$url" -H 'Origin: https://untrusted.example' -H 'Content-Type: application/json' --data '{}')
+          test "$status" = "403" || { echo "Incorrect origin returned HTTP $status"; exit 1; }
+          status=$(curl -sS --max-time 25 -o /tmp/options.json -w '%{http_code}' -X OPTIONS "$url" -H 'Origin: https://karlkirch.github.io' -H 'Access-Control-Request-Method: POST')
+          test "$status" = "204" || { echo "OPTIONS returned HTTP $status"; exit 1; }
+          echo 'Signup service validated invalid payload, origin and CORS; zero users created.'
