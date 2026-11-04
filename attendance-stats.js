@@ -137,12 +137,21 @@
     const summary=s.clientAttendanceSummaries?.[uid];
     if(!summary)return '<section class="at-client-card"><h3>Tegelik kohalolek</h3><p>Laadin osalemiste arvu…</p></section>';
     const stat=counts(summary);
-    return '<section class="at-client-card"><h3>Tegelik kohalolek</h3>'+
-      '<div class="at-client-metrics"><span><strong>'+stat.total+'</strong> korda kokku</span>'+
+    const last12=stat.weekly.slice(-12);
+    const average=(last12.reduce((n,w)=>n+w.count,0)/12).toLocaleString('et-EE',{
+      minimumFractionDigits:1,maximumFractionDigits:1
+    });
+    const sequence=streak(stat.weekly);
+    return '<section class="at-client-card"><h3>Kliendi treeningaktiivsus</h3>'+
+      '<div class="at-client-metrics">'+
+      '<span><strong>'+(last12.at(-1)?.count||0)+'</strong> sel nädalal</span>'+
       '<span><strong>'+stat.month+'</strong> sel kuul</span>'+
+      '<span><strong>'+stat.total+'</strong> korda kokku</span>'+
+      '<span><strong>'+average+'</strong> keskmiselt nädalas (12 nädalat)</span>'+
+      '<span><strong>'+sequence+'</strong> aktiivset nädalat järjest</span>'+
       '<span><strong>'+stat.absent+'</strong> märgitud puudumist</span></div>'+
       '<p>Viimati kohal: '+esc(fmt(summary.last_attended))+'</p>'+
-      '<p>Need on kinnitatud kohalolekud, mitte üksnes broneeringud.</p></section>';
+      '<p>Need on treeneri kinnitatud osalemised, mitte üksnes broneeringud.</p></section>';
   }
   async function loadClient(uid){
     if(!window.isTrainer()||s.clientPreview||!s.session?.access_token||!uid)return;
