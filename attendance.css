@@ -36,3 +36,21 @@
  .at-action{flex:1 0 auto}
  .at-bar-week{font-size:8px}
 }
+
+/* Isiklik aktiivsus: kuus selget mõõdikut ja skaleeruv 12 nädala graafik. */
+.at-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.at-heading h2{margin:0}
+.at-verified{display:inline-block;border:1px solid #7d9972;border-radius:999px;background:#2b4035;color:#d2efb5;padding:6px 10px;font-size:11px;font-weight:700;line-height:1.25}
+.at-metric-date strong{font-size:18px;line-height:1.4;overflow-wrap:anywhere}
+.at-chart{grid-template-columns:repeat(12,minmax(34px,1fr));gap:5px;overflow-x:auto;overflow-y:hidden;padding:5px 2px 8px;min-height:151px;scrollbar-width:thin;scrollbar-color:#84969a transparent}
+.at-chart:focus-visible{outline:3px solid #b7e77e;outline-offset:3px}
+.at-bar-cell{min-height:134px;gap:5px}
+.at-bar-count{font-size:12px;font-weight:750;line-height:1.1;color:#edf5f3;font-variant-numeric:tabular-nums}
+.at-bar-current .at-bar{background:#e0f6bc}
+.at-bar-current .at-bar-week{color:#dcf3b9;font-weight:750}
+.at-bar-week{font-size:10px;min-height:27px;line-height:1.15}
+.at-chart-note{font-size:12px;margin:9px 0 0}
+.at-empty{margin:15px 0 0;padding:12px 13px;border:1px solid #839375;border-radius:11px;background:#304034;color:#f0f7ea;line-height:1.5}
+.at-retry{border:1px solid #c1e998;border-radius:11px;background:#d3f49e;color:#202a1a;font-size:14px;font-weight:800;min-height:44px;padding:9px 17px;margin-top:12px}
+.at-retry:focus-visible{outline:3px solid #b7e77e;outline-offset:3px}
+@media(min-width:650px){.at-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
