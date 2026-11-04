@@ -416,6 +416,21 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.snapshot("chromium-offline-app-shell")
 
 
+    def test_phone_update_repair_page_is_readable_and_isolated(self):
+        page = self.open_app("client", 390, 844, browser=self.webkit)
+        page.goto(APP_URL + "uuenda.html?v=1", wait_until="domcontentloaded")
+        page.get_by_role("heading", name="Äpi uuendamine").wait_for(state="visible")
+        page.get_by_role("button", name="Kontrolli ja uuenda äppi").wait_for(state="visible")
+        self.assertIn("See ei kustuta sinu kontot ega treeningstatistikat",
+                      page.locator(".panel").inner_text())
+        page.locator("details summary").click()
+        page.get_by_role("button", name="Paranda vahemälu ja ava äpp").wait_for(state="visible")
+        self.assertIn("Vajaduse korral tuleb tõuketeavitused uuesti lubada",
+                      page.locator("details").inner_text())
+        self.assertTrue(page.evaluate(
+            "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
+        self.snapshot("iphone-pwa-update-repair")
+
     def test_trainer_add_credits_numbers_readable_on_mobile(self):
         page = self.open_app("trainer", 390, 844)
         page.evaluate("(uid) => window.openAddCredits(uid)", CLIENT)
