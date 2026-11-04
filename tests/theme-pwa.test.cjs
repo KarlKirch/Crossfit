@@ -285,7 +285,7 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
-  assert.match(auth, /Parooli taastamiseks|Kui parool ununes/);
+  assert.match(auth, /Unustasid parooli\?/);
   assert.match(sw, /crossfit-app-v85/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
