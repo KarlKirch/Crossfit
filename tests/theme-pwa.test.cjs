@@ -154,7 +154,7 @@ test('uued CrossFiti liitumised on Futboli kontodest eristatavad', () => {
   const app = read('app.js');
   const approvals = read('approval-system.js');
   const migration = read('supabase/migrations/20261103_rcf_signup_notifications.sql');
-  assert.match(app, /app_identifier:'rouge_crossfit'/);
+  assert.match(read('supabase/functions/rcf-signup/index.ts'), /app_identifier: 'rouge_crossfit'/);
   assert.match(approvals, /wod_list_join_requests_v2/);
   assert.match(approvals, /email_verified===false/);
   assert.match(migration, /NEW\.raw_user_meta_data->>'app_identifier' IS DISTINCT FROM 'rouge_crossfit'/);
@@ -172,7 +172,7 @@ test('liitumisel ei ole e-posti lingi avamise kohustust', () => {
   const auth = read('auth-flow.js');
   const approvals = read('approval-system.js');
   assert.match(auth, /E-posti kinnitamise lisasammu ei ole vaja/);
-  assert.match(app, /E-posti kinnituskirja avamine ei ole vajalik/);
+  assert.match(read('supabase/functions/rcf-signup/index.ts'), /E-posti kinnituskirja ei saadeta/);
   assert.match(app, /functions\/v1\/rcf-approve-join/);
   assert.match(approvals, /await window\.crossfitApproveJoin\(id\)/);
   assert.doesNotMatch(approvals, /disabled title="Kliendi e-post pole veel kinnitatud"/);
