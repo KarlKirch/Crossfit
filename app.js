@@ -414,9 +414,7 @@ async function updateAppNow(){
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
     if(!reg){
-      reg=await navigator.serviceWorker.register('./sw.js?v=89',{
-        scope:'./',updateViaCache:'none'
-      });
+      reg=await getAppRegistration();
       state.swReg=reg;
     }
     // Erinevalt varasemast nupust kutsume alati päriselt välja update().
