@@ -13,7 +13,7 @@ test('avaliku äpi kontroll vaatab HTML-i, liitumist, teenusetöötajat ja serve
     const text = url.includes('liitu.html')
       ? '<form id="join-form" novalidate><script src="./liitu.js?v=1"></script>social-preview-rcf.png'
       : url.includes('liitu.js')
-        ? 'functions/v1/rcf-signup'
+        ? 'https://example.invalid/functions/v1/rcf-signup'
         : url.endsWith('/sw.js')
           ? "'./liitu.html'"
           : '<title>Rõuge CrossFit</title>';
