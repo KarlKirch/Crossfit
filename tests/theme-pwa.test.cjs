@@ -279,14 +279,14 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
   assert.match(js, /credentials:'omit',cache:'no-store'/);
   assert.match(css, /input:focus-visible/);
-  assert.match(index, /app\.js\?v=55/);
+  assert.match(index, /app\.js\?v=56/);
   assert.match(index, /pro-features\.js\?v=7/);
   assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Unustasid parooli\?/);
-  assert.match(sw, /crossfit-app-v87/);
+  assert.match(sw, /crossfit-app-v88/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
@@ -379,7 +379,7 @@ test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja kli
   assert.match(html,/attendance-stats\.js\?v=2/);
   assert.match(html,/attendance\.css\?v=2/);
   assert.match(html,/app\.js\?v=56/);
-  assert.match(sw,/crossfit-app-v87/);
+  assert.match(sw,/crossfit-app-v88/);
   assert.match(sw,/attendance-stats\.js\?v=2/);
 });
 
