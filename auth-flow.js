@@ -1,6 +1,6 @@
 'use strict';
 (function(){
-  let method='email';
+  let method='password';
   let linkSent=false;
   let email='';
   let lastSent=0;
@@ -16,6 +16,7 @@
   }
   function errorMessage(error){
     const msg=String(error?.message||error||'');
+    if(/email rate limit exceeded|over_email_send_rate_limit/i.test(msg))return 'E-posti saatmise piirang on täis. Logi sisse parooliga või proovi e-posti linki hiljem.';
     if(/rate limit|too many requests|429|security purposes.*seconds/i.test(msg))return 'Liiga palju päringuid. Oota mõni minut ja proovi uuesti.';
     if(/invalid|expired|otp_expired/i.test(msg))return 'Sisselogimiskood on vigane või aegunud. Proovi uut koodi.';
     return 'E-postiga sisselogimine ei õnnestunud. Proovi uuesti või kasuta parooli.';
