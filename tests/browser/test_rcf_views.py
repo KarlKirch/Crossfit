@@ -79,6 +79,13 @@ class RCFBrowserSmoke(unittest.TestCase):
                     payload = session
                 elif url.path == "/auth/v1/user":
                     payload = session["user"]
+                elif url.path == "/functions/v1/rcf-signup":
+                    args = request.post_data_json or {}
+                    if args.get("email") == "rate-limited@example.invalid":
+                        route.fulfill(status=429, content_type="application/json",
+                                      body=json.dumps({"message": "Liiga palju liitumiskatseid. Proovi hiljem uuesti."}))
+                        return
+                    payload = {"message": "Konto loodud. Liitumistaotlus jõudis treenerile. E-posti kinnituskirja ei saadeta. Pärast treeneri heakskiitu logi parooliga sisse."}
                 elif url.path.startswith("/rest/v1/"):
                     name = url.path.split("/")[-1]
                     query = parse_qs(url.query)
@@ -898,12 +905,26 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator("#authName").fill("Katse Kasutaja")
         page.locator("#authEmail").fill("testkasutaja@example.invalid")
         page.locator("#authPassword").fill("salajane10")
-        with page.expect_request(lambda req:"/auth/v1/signup" in req.url and req.method=="POST") as signup:
+        with page.expect_request(lambda req:"/functions/v1/rcf-signup" in req.url and req.method=="POST") as signup:
             page.locator("#authSubmitBtn").click()
         payload=signup.value.post_data_json
-        self.assertEqual(payload["data"]["app_identifier"],"rouge_crossfit")
-        self.assertEqual(payload["data"]["display_name"],"Katse Kasutaja")
-        self.assertIn("E-posti kinnituskirja avamine ei ole vajalik",page.locator("#authMessage").inner_text())
+        self.assertEqual(payload["email"],"testkasutaja@example.invalid")
+        self.assertEqual(payload["display_name"],"Katse Kasutaja")
+        self.assertIn("E-posti kinnituskirja ei saadeta",page.locator("#authMessage").inner_text())
+
+    def test_signup_rate_limit_message_is_readable_and_signup_only_calls_rcf_edge(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.evaluate("() => window.logout()")
+        page.get_by_role("button",name="Loo konto",exact=True).click()
+        page.locator("#authName").fill("Test Kasutaja")
+        page.locator("#authEmail").fill("rate-limited@example.invalid")
+        page.locator("#authPassword").fill("salajane10")
+        with page.expect_request(lambda req:"/functions/v1/rcf-signup" in req.url) as sent:
+            page.locator("#authSubmitBtn").click()
+        self.assertEqual(sent.value.method,"POST")
+        self.assertIn("Liiga palju liitumiskatseid",page.locator("#authMessage").inner_text())
+        self.assertIn("bad",page.locator("#authMessage .notice").get_attribute("class"))
+
 
 
 if __name__ == "__main__":

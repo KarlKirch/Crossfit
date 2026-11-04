@@ -1,6 +1,6 @@
 'use strict';
 (function(){
-  let method='email';
+  let method='password';
   let linkSent=false;
   let email='';
   let lastSent=0;
@@ -16,6 +16,7 @@
   }
   function errorMessage(error){
     const msg=String(error?.message||error||'');
+    if(/email rate limit exceeded|over_email_send_rate_limit/i.test(msg))return 'E-posti saatmise piirang on täis. Logi sisse parooliga või proovi e-posti linki hiljem.';
     if(/rate limit|too many requests|429|security purposes.*seconds/i.test(msg))return 'Liiga palju päringuid. Oota mõni minut ja proovi uuesti.';
     if(/invalid|expired|otp_expired/i.test(msg))return 'Sisselogimiskood on vigane või aegunud. Proovi uut koodi.';
     return 'E-postiga sisselogimine ei õnnestunud. Proovi uuesti või kasuta parooli.';
@@ -31,7 +32,7 @@
       ?`<form class="form" onsubmit="event.preventDefault();submitAuth()">
         ${signup?'<div class="field"><label for="authName">Ees- ja perekonnanimi</label><input id="authName" autocomplete="name" required></div>':''}
         <div class="field"><label for="authEmail">E-posti aadress</label><input id="authEmail" type="email" inputmode="email" autocomplete="email" required></div>
-        <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="6" required></div>
+        <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="${signup?8:6}" required></div>
         ${signup?'<div class="field"><label for="authReason">Miks soovid liituda? (vabatahtlik)</label><textarea id="authReason" maxlength="300" rows="3" placeholder="Näiteks soovin osaleda CrossFiti treeningutel"></textarea></div>':''}
         <button id="authSubmitBtn" class="btn btn-primary btn-block" type="submit">${signup?'Loo konto':'Logi sisse'}</button>
         ${signup?'<p class="auth-field-note">Pärast konto loomist saadetakse liitumistaotlus treenerile. E-posti kinnitamise lisasammu ei ole vaja. Kasuta õiget e-posti aadressi konto taastamiseks.</p>':''}
