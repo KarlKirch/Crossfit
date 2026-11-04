@@ -31,7 +31,7 @@
       ?`<form class="form" onsubmit="event.preventDefault();submitAuth()">
         ${signup?'<div class="field"><label for="authName">Ees- ja perekonnanimi</label><input id="authName" autocomplete="name" required></div>':''}
         <div class="field"><label for="authEmail">E-posti aadress</label><input id="authEmail" type="email" inputmode="email" autocomplete="email" required></div>
-        <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="6" required></div>
+        <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="${signup?8:6}" required></div>
         ${signup?'<div class="field"><label for="authReason">Miks soovid liituda? (vabatahtlik)</label><textarea id="authReason" maxlength="300" rows="3" placeholder="Näiteks soovin osaleda CrossFiti treeningutel"></textarea></div>':''}
         <button id="authSubmitBtn" class="btn btn-primary btn-block" type="submit">${signup?'Loo konto':'Logi sisse'}</button>
         ${signup?'<p class="auth-field-note">Pärast konto loomist saadetakse liitumistaotlus treenerile. E-posti kinnitamise lisasammu ei ole vaja. Kasuta õiget e-posti aadressi konto taastamiseks.</p>':''}
