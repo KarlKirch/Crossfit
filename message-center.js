@@ -47,6 +47,17 @@
     }
     return [...byId.values()].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at));
   }
+  // Säilita avatud vestluses pooleli olev tekst ka siis, kui taustal saabub
+  // värske sõnum või lõpeb asünkroonne vestluse avamine.
+  function redrawKeepingDraft(){
+    const beforeClient=currentClient();
+    const draft=document.getElementById('cmBody')?.value;
+    window.render();
+    if(typeof draft==='string'&&beforeClient===currentClient()){
+      const input=document.getElementById('cmBody');
+      if(input)input.value=draft;
+    }
+  }
   async function refresh(force=false){
     if(preview()||!uid()||loading)return false;
     if(!force&&Date.now()-lastSync<15000)return false;
@@ -65,7 +76,7 @@
         m.id!==prev[i]?.id||m.body!==prev[i]?.body);
       s.privateMessages=fresh;
       lastSync=Date.now();
-      if(changed&&visible()){window.render();scrollToLatest();}
+      if(changed&&visible()){redrawKeepingDraft();scrollToLatest();}
       return true;
     }catch(error){
       if(force)window.toast(error?.message||'Sõnumeid ei saanud laadida.');
@@ -92,7 +103,7 @@
     if(preview())return true;
     await refresh(true);
     if(s.modal==='privateMessages'&&currentClient())await markConversationRead(currentClient());
-    if(s.modal==='privateMessages'){window.render();scrollToLatest();}
+    if(s.modal==='privateMessages'){redrawKeepingDraft();scrollToLatest();}
     return true;
   }
   async function openFromNotification(item){
