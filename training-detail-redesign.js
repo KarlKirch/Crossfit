@@ -183,6 +183,7 @@
       (trainer?workout(t):'')+
       (note?block('Treeneri märkus','<p class="td-note">'+esc(note)+'</p>','td-notes'):'')+
       attendeesSection(t,counts,trainer)+
+      (trainer?(window.crossfitAttendance?.panel(t)||''):'')+
       ruleBlock(t)+
     '</div>';
   }
