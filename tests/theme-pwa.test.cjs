@@ -279,14 +279,14 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
   assert.match(js, /credentials:'omit',cache:'no-store'/);
   assert.match(css, /input:focus-visible/);
-  assert.match(index, /app\.js\?v=55/);
+  assert.match(index, /app\.js\?v=56/);
   assert.match(index, /pro-features\.js\?v=7/);
   assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Unustasid parooli\?/);
-  assert.match(sw, /crossfit-app-v87/);
+  assert.match(sw, /crossfit-app-v88/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
@@ -333,7 +333,7 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(read('liitu.html'),/href="\.\/taasta\.html"/);
   assert.match(index,/recovery-admin\.js\?v=1/);
   assert.match(index,/recovery\.css\?v=1/);
-  assert.match(sw,/crossfit-app-v87/);
+  assert.match(sw,/crossfit-app-v88/);
   assert.ok(sw.includes("'./taasta.js?v=1'"));
   assert.ok(app.includes('sw.js?v=87'));
 });
@@ -376,11 +376,11 @@ test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja kli
   assert.match(mine,/crossfitAttendance\?\.statsCard/);
   assert.match(training,/crossfitAttendance\?\.panel/);
   assert.match(directory,/crossfitAttendance\?\.clientCard/);
-  assert.match(html,/attendance-stats\.js\?v=1/);
-  assert.match(html,/attendance\.css\?v=1/);
-  assert.match(html,/app\.js\?v=55/);
-  assert.match(sw,/crossfit-app-v87/);
-  assert.match(sw,/attendance-stats\.js\?v=1/);
+  assert.match(html,/attendance-stats\.js\?v=2/);
+  assert.match(html,/attendance\.css\?v=2/);
+  assert.match(html,/app\.js\?v=56/);
+  assert.match(sw,/crossfit-app-v88/);
+  assert.match(sw,/attendance-stats\.js\?v=2/);
 });
 
 test('Privaatsõnumi pooleli kirjutatud tekst säilib asünkroonse värskendamise ajal',()=>{
@@ -415,4 +415,26 @@ test('CrossFiti registreerimise ja paroolitaaste API kasutavad PostgREST tänap�
   assert.equal((sql.match(/IS DISTINCT FROM 'service_role'/g)||[]).length,4);
   assert.equal((sql.match(/TO service_role;/g)||[]).length,4);
   assert.match(read('supabase/functions/rcf-signup/index.ts'),/signup rate gate failed/);
+});
+
+test('Kasutaja aktiivsuses on käesolev nädal, viimase treeningu kuupäev ja valitav 12-nädalane graafik',()=>{
+  const js=read('attendance-stats.js');
+  const css=read('attendance.css');
+  const mine=read('my-account-redesign.js');
+  const directory=read('client-directory.js');
+  assert.match(js,/Sel nädalal kohal/);
+  assert.match(js,/Sel kuul kohal/);
+  assert.match(js,/Kokku kohal/);
+  assert.match(js,/Aktiivset nädalat järjest/);
+  assert.match(js,/Viimane treening/);
+  assert.match(js,/function selectWeek\(start\)/);
+  assert.match(js,/aria-pressed/);
+  assert.match(js,/class="at-week-detail"/);
+  assert.match(js,/role="group"/);
+  assert.match(css,/\.at-bar-cell:focus-visible/);
+  assert.match(css,/\.at-chart\{[^}]*overflow-x:auto/);
+  assert.match(mine,/crossfitAttendance\?\.statsCard/);
+  assert.match(directory,/crossfitAttendance\?\.clientCard/);
+  assert.match(js,/Kliendi treeningaktiivsus/);
+  assert.match(js,/treeneri kinnitatud osalemised/);
 });
