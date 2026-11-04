@@ -259,6 +259,7 @@ test('CrossFiti liitumine ei saada Supabase Authi kinnituskirju ega muuda Futbol
   assert.match(sql, /REVOKE ALL ON FUNCTION public\.rcf_signup_try_slot/);
   assert.match(sql, /TO service_role/);
   assert.match(auth, /minlength="\$\{signup\?8:6\}"/);
+  assert.match(auth, /let method='password'/);
   assert.match(html, /auth-flow\.js\?v=6/);
   assert.ok(sw.includes('auth-flow.js?v=6'));
 });
