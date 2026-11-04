@@ -1097,7 +1097,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("Keskmiselt nädalas",stats.inner_text())
         self.assertEqual(stats.locator(".at-bar-cell").count(),12)
         self.assertIn("1",stats.locator(".at-metrics").inner_text())
-        self.assertIn("Kohal käidud",page.locator(".my-booking-list").inner_text())
+        self.assertIn("Kohal käidud",page.locator(".my-booking-list").last.inner_text())
         self.verify_fit()
         self.snapshot("iphone-personal-attendance-stats")
 
@@ -1108,7 +1108,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         stats.wait_for(state="visible")
         self.assertIn("0",stats.locator(".at-metrics").first.inner_text())
         self.assertIn("Varasemad registreeringud ei muutu automaatselt osalemisteks",stats.inner_text())
-        self.assertIn("Kohalolek märkimata",page.locator(".my-booking-list").inner_text())
+        self.assertIn("Kohalolek märkimata",page.locator(".my-booking-list").last.inner_text())
 
 
 if __name__ == "__main__":
