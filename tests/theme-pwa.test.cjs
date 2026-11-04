@@ -333,9 +333,9 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(read('liitu.html'),/href="\.\/taasta\.html"/);
   assert.match(index,/recovery-admin\.js\?v=1/);
   assert.match(index,/recovery\.css\?v=1/);
-  assert.match(sw,/crossfit-app-v86/);
+  assert.match(sw,/crossfit-app-v87/);
   assert.ok(sw.includes("'./taasta.js?v=1'"));
-  assert.ok(app.includes('sw.js?v=86'));
+  assert.ok(app.includes('sw.js?v=87'));
 });
 
 
@@ -379,6 +379,19 @@ test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja kli
   assert.match(html,/attendance-stats\.js\?v=1/);
   assert.match(html,/attendance\.css\?v=1/);
   assert.match(html,/app\.js\?v=55/);
-  assert.match(sw,/crossfit-app-v86/);
+  assert.match(sw,/crossfit-app-v87/);
   assert.match(sw,/attendance-stats\.js\?v=1/);
+});
+
+test('Privaatsõnumi pooleli kirjutatud tekst säilib asünkroonse värskendamise ajal',()=>{
+  const chat=read('message-center.js');
+  const html=read('index.html');
+  const sw=read('sw.js');
+  assert.match(chat,/function redrawKeepingDraft\(\)/);
+  assert.match(chat,/document\.getElementById\('cmBody'\)\?\.value/);
+  assert.match(chat,/if\(input\)input\.value=draft/);
+  assert.match(chat,/if\(changed&&visible\(\)\)\{redrawKeepingDraft\(\)/);
+  assert.match(chat,/if\(s\.modal==='privateMessages'\)\{redrawKeepingDraft\(\)/);
+  assert.match(html,/message-center\.js\?v=3/);
+  assert.match(sw,/message-center\.js\?v=3/);
 });
