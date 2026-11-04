@@ -23,11 +23,8 @@
   }
   function render(mode,installCard=''){
     const signup=mode==='signup';
-    const emailMode=!signup&&method==='email';
-    const switcher=signup?'':`<div class="auth-method-switch" role="group" aria-label="Sisselogimise viis">
-      <button type="button" class="${emailMode?'on':''}" aria-pressed="${emailMode}" onclick="crossfitAuth.setMethod('email')">E-posti lingiga</button>
-      <button type="button" class="${emailMode?'':'on'}" aria-pressed="${!emailMode}" onclick="crossfitAuth.setMethod('password')">Parooliga</button>
-    </div>`;
+    const emailMode=false; // E-posti lingiga sisselogimine pole SMTP seadistamiseni saadaval.
+    const switcher='';
     const form=signup||!emailMode
       ?`<form class="form" onsubmit="event.preventDefault();submitAuth()">
         ${signup?'<div class="field"><label for="authName">Ees- ja perekonnanimi</label><input id="authName" autocomplete="name" required></div>':''}
@@ -35,7 +32,8 @@
         <div class="field"><label for="authPassword">Parool</label><input id="authPassword" type="password" autocomplete="${signup?'new-password':'current-password'}" minlength="${signup?8:6}" required></div>
         ${signup?'<div class="field"><label for="authReason">Miks soovid liituda? (vabatahtlik)</label><textarea id="authReason" maxlength="300" rows="3" placeholder="Näiteks soovin osaleda CrossFiti treeningutel"></textarea></div>':''}
         <button id="authSubmitBtn" class="btn btn-primary btn-block" type="submit">${signup?'Loo konto':'Logi sisse'}</button>
-        ${signup?'<p class="auth-field-note">Pärast konto loomist saadetakse liitumistaotlus treenerile. E-posti kinnitamise lisasammu ei ole vaja. Kasuta õiget e-posti aadressi konto taastamiseks.</p>':''}
+        ${signup?'<p class="auth-field-note">Pärast konto loomist saadetakse liitumistaotlus treenerile. E-posti kinnituskirja ei saadeta. Pärast treeneri heakskiitu saad parooliga sisse logida.</p>':''}
+        ${signup?'<p class="auth-field-note"><a href="./liitu.html">Ava eraldi liitumisleht</a></p>':'<p class="auth-field-note">Kui parool ununes, võta treeneriga ühendust. E-posti sisselogimislink pole praegu saadaval.</p>'}
       </form>`
       :linkSent
        ?`<div class="auth-email-confirm">
@@ -80,7 +78,7 @@
     </div></div>`;
   }
   function setMethod(next){
-    method=next==='password'?'password':'email';
+    method='password';
     linkSent=false;
     window.setAuthMode('login');
   }
