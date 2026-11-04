@@ -215,6 +215,7 @@ test('Rõuge CrossFiti jagamislink näitab uut logo ja selget liitumiskutset', (
   const app = read('app.js');
   const sw = read('sw.js');
   assert.match(html, /property="og:image" content="https:\/\/karlkirch\.github\.io\/Crossfit\/social-preview-rcf\.png"/);
+  assert.match(html, /property="og:url" content="https:\/\/karlkirch\.github\.io\/Crossfit\/\?liitu=rcf20261104"/);
   assert.match(html, /property="og:image:type" content="image\/png"/);
   assert.match(html, /property="og:image:width" content="1200"/);
   assert.match(html, /property="og:image:height" content="630"/);
