@@ -333,7 +333,7 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(read('liitu.html'),/href="\.\/taasta\.html"/);
   assert.match(index,/recovery-admin\.js\?v=1/);
   assert.match(index,/recovery\.css\?v=1/);
-  assert.match(sw,/crossfit-app-v85/);
+  assert.match(sw,/crossfit-app-v86/);
   assert.ok(sw.includes("'./taasta.js?v=1'"));
   assert.ok(app.includes('sw.js?v=86'));
 });
