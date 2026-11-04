@@ -1,0 +1,38 @@
+name: RCF sotsiaalmeedia logo genereerimine
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/rcf-share-preview-logo-20261104
+    paths:
+      - '.github/workflows/rcf-social-assets.yml'
+      - 'scripts/generate-rcf-social-assets.py'
+
+permissions:
+  contents: write
+
+jobs:
+  create-artwork:
+    if: github.ref_name == 'fix/rcf-share-preview-logo-20261104' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install Pillow==11.3.0
+      - name: Generate PNG social preview and app icons from selected RCF logos
+        run: python scripts/generate-rcf-social-assets.py
+      - name: Commit generated artwork
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add icon-192.png icon-512.png social-preview-rcf.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate social preview and app PNG icons from selected RCF logo"
+            git push
+          fi
