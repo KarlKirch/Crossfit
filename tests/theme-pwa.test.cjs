@@ -260,8 +260,8 @@ test('CrossFiti liitumine ei saada Supabase Authi kinnituskirju ega muuda Futbol
   assert.match(sql, /TO service_role/);
   assert.match(auth, /minlength="\$\{signup\?8:6\}"/);
   assert.match(auth, /let method='password'/);
-  assert.match(html, /auth-flow\.js\?v=7/);
-  assert.ok(sw.includes('auth-flow.js?v=7'));
+  assert.match(html, /auth-flow\.js\?v=8/);
+  assert.ok(sw.includes('auth-flow.js?v=8'));
   assert.ok(sw.includes("'./liitu.html'"));
 });
 
@@ -279,14 +279,14 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
   assert.match(js, /credentials:'omit',cache:'no-store'/);
   assert.match(css, /input:focus-visible/);
-  assert.match(index, /app\.js\?v=53/);
+  assert.match(index, /app\.js\?v=54/);
   assert.match(index, /pro-features\.js\?v=7/);
   assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Parooli taastamiseks|Kui parool ununes/);
-  assert.match(sw, /crossfit-app-v84/);
+  assert.match(sw, /crossfit-app-v85/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
@@ -313,7 +313,7 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(sql,/now\(\) \+ interval '24 hours'/);
   assert.match(fn,/auth\/v1\/user/);
   assert.match(fn,/approval_status !== 'approved'/);
-  assert.match(fn,/auth\/v1\/admin\/users\/\+claimed\.value/);
+  assert.match(fn,/auth\/v1\/admin\/users\/.*claimed\.value/);
   assert.match(fn,/crypto\.getRandomValues/);
   assert.match(fn,/rcf_password_recovery_issue/);
   assert.match(fn,/rcf_password_recovery_claim/);
