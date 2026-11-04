@@ -773,9 +773,9 @@ class RCFBrowserSmoke(unittest.TestCase):
         viewer.wait_for(state="visible")
         large=viewer.locator(".qr-large-svg")
         self.assertGreater(large.evaluate("svg => svg.getBoundingClientRect().width"),small_width)
-        self.assertEqual(large.get_attribute("viewBox"),"0 0 37 37")
+        self.assertEqual(large.get_attribute("viewBox"),"0 0 41 41")
         self.assertEqual(page.locator("#crossfitQRPrintSheet .qr-print-svg").count(),1)
-        self.assertIn("https://karlkirch.github.io/Crossfit/",
+        self.assertIn("https://karlkirch.github.io/Crossfit/liitu.html",
                       page.locator("#crossfitQRPrintSheet").inner_text())
         self.snapshot("qr-quick-preview-phone")
         page.evaluate("() => { window.__qrPrintCalls=0; window.print=() => window.__qrPrintCalls++ }")
