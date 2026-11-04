@@ -33,7 +33,7 @@
         ${signup?'<div class="field"><label for="authReason">Miks soovid liituda? (vabatahtlik)</label><textarea id="authReason" maxlength="300" rows="3" placeholder="Näiteks soovin osaleda CrossFiti treeningutel"></textarea></div>':''}
         <button id="authSubmitBtn" class="btn btn-primary btn-block" type="submit">${signup?'Loo konto':'Logi sisse'}</button>
         ${signup?'<p class="auth-field-note">Pärast konto loomist saadetakse liitumistaotlus treenerile. E-posti kinnituskirja ei saadeta. Pärast treeneri heakskiitu saad parooliga sisse logida.</p>':''}
-        ${signup?'<p class="auth-field-note"><a href="./liitu.html">Ava eraldi liitumisleht</a></p>':'<p class="auth-field-note">Kui parool ununes, võta treeneriga ühendust. E-posti sisselogimislink pole praegu saadaval.</p>'}
+        ${signup?'<p class="auth-field-note"><a href="./liitu.html">Ava eraldi liitumisleht</a></p>':'<p class="auth-field-note">Unustasid parooli? Küsi treenerilt taastekood ja <a href="./taasta.html">taasta parool siin</a>. E-kirja pole vaja.</p>'}
       </form>`
       :linkSent
        ?`<div class="auth-email-confirm">
