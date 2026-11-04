@@ -1,0 +1,20 @@
+#rcf-recovery-overlay{
+  position:fixed;inset:0;z-index:99999;padding:18px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(5,11,13,.85);
+}
+.rcf-recovery-dialog{
+  box-sizing:border-box;width:min(100%,480px);max-height:calc(100dvh - 36px);
+  overflow:auto;padding:25px 22px;background:#273039;color:#f5f8f9;
+  border:1px solid #7d9096;border-radius:22px;box-shadow:0 20px 60px #0008;
+}
+.rcf-recovery-dialog h2{margin:0 0 14px;color:#fff}
+.rcf-recovery-dialog p{color:#dbe4e8;line-height:1.6}
+.rcf-recovery-code{
+  padding:19px 12px;border-radius:13px;background:#15251e;color:#d1fa96;
+  border:1px solid #91be60;font-weight:800;font-size:clamp(16px,5vw,25px);
+  letter-spacing:.075em;text-align:center;user-select:all;overflow-wrap:anywhere;
+}
+.rcf-recovery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}
+.rcf-recovery-actions .btn{width:100%;min-width:0}
+@media(max-width:390px){.rcf-recovery-actions{grid-template-columns:1fr}}
