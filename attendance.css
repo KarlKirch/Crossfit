@@ -25,6 +25,7 @@
 .at-bar-cell[data-count="0"] .at-bar{background:#687b83}
 .at-bar-week{display:block;color:#e2ebec;font-size:10px;text-align:center;white-space:nowrap}
 .at-week-detail{font-size:13px;margin:7px 0 0!important;padding:8px 11px;border-radius:9px;background:#202b31;color:#eaf3f4!important}
+.at-chart-hint{font-size:12px;color:#d1dfe3;margin:4px 0 5px!important}
 .at-note{font-size:12px;margin:14px 0 0}
 .at-attendees{display:flex;flex-direction:column;gap:9px}
 .at-attendee{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #526169}
