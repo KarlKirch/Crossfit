@@ -109,16 +109,6 @@
         '<span class="at-bar-week">'+esc(dateLabel(w.start))+'</span></button>';
     }).join('');
     const total12=last12.reduce((sum,w)=>sum+w.count,0);
-    // Väikesel ekraanil näita esmalt värskemat nädalat; vanemaid saab sõrmega kerida.
-    if(typeof requestAnimationFrame==='function'){
-      requestAnimationFrame(()=>{
-        const container=document.querySelector('.at-stats .at-chart');
-        if(container && container.scrollWidth>container.clientWidth){
-          const selected=container.querySelector('.at-bar-cell[aria-pressed="true"]');
-          if(selected)container.scrollLeft=selected.offsetLeft+selected.offsetWidth-container.clientWidth;
-        }
-      });
-    }
     return '<section class="at-stats" aria-label="Minu treeningstatistika">'+
       '<h2>Minu treeningstatistika</h2>'+
       '<div class="at-metrics">'+
@@ -133,7 +123,7 @@
       '<div class="at-chart-heading"><h3>Viimased 12 nädalat</h3>'+
         '<span>'+total12+' kinnitatud osalemist</span></div>'+
       '<div class="at-chart" role="group" aria-label="Vali nädal ja vaata kohalolekut">'+chart+'</div>'+
-      '<p class="at-chart-hint">Vali nädal. Telefonis saad vanemate nädalate vaatamiseks graafikut küljele libistada.</p>'+
+      '<p class="at-chart-hint">Vali graafiku tulp, et vaadata selle nädala täpset osalemiste arvu.</p>'+
       '<p class="at-week-detail" role="status" aria-live="polite">'+
         (active?esc(weekDetail(active)):'Kohaloleku andmed puuduvad.')+'</p>'+
       '<p class="at-note">'+
