@@ -393,8 +393,10 @@ async function setupServiceWorker(){
       void reg.update().catch(error=>console.warn('PWA taustakontroll ebaõnnestus',error));
     });
   }catch(error){
+    // Ära kuva uuenduste bannerit privaatrežiimis ega keskkondades,
+    // kus service worker on keelatud. Vea näitame ainult kasutaja
+    // enda algatatud uuenduskatsel.
     console.warn('PWA registreerimine ebaõnnestus',error);
-    updateHelp('Uuenduse kontroll ei õnnestunud. Ava parandamise juhis.');
   }
 }
 async function updateAppNow(){
