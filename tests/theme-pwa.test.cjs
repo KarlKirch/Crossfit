@@ -209,3 +209,29 @@ test('Minu profiili dialoogi foto ja abitekstid on tumedal taustal loetavad', ()
   assert.ok(contrast('#293137','#D4DFE4') >= 4.5);
   assert.ok(contrast('#293137','#C2CDD3') >= 4.5);
 });
+
+test('Rõuge CrossFiti jagamislink näitab uut logo ja selget liitumiskutset', () => {
+  const html = read('index.html');
+  const app = read('app.js');
+  const sw = read('sw.js');
+  assert.match(html, /property="og:image" content="https:\/\/karlkirch\.github\.io\/Crossfit\/social-preview-rcf\.png"/);
+  assert.match(html, /property="og:image:type" content="image\/png"/);
+  assert.match(html, /property="og:image:width" content="1200"/);
+  assert.match(html, /property="og:image:height" content="630"/);
+  assert.match(html, /name="twitter:card" content="summary_large_image"/);
+  assert.match(html, /property="og:description" content="Loo konto/);
+  assert.match(app, /const SHARE_URL=APP_URL\+'\?liitu=rcf20261104'/);
+  assert.match(app, /navigator\.clipboard\.writeText\(SHARE_URL\)/);
+  assert.match(app, /url:SHARE_URL/);
+  assert.ok(sw.includes("'./social-preview-rcf.png'"));
+  const file = require('node:fs').readFileSync(require('node:path').join(require('node:path').resolve(__dirname,'..'),'social-preview-rcf.png'));
+  assert.equal(file.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+  assert.equal(file.readUInt32BE(16),1200);
+  assert.equal(file.readUInt32BE(20),630);
+  assert.ok(file.length < 600000);
+  for (const size of [192,512]) {
+    const icon = require('node:fs').readFileSync(require('node:path').join(require('node:path').resolve(__dirname,'..'),`icon-${size}.png`));
+    assert.equal(icon.readUInt32BE(16),size);
+    assert.equal(icon.readUInt32BE(20),size);
+  }
+});
