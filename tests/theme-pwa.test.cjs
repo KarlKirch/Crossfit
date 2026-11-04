@@ -236,3 +236,29 @@ test('Rõuge CrossFiti jagamislink näitab uut logo ja selget liitumiskutset', (
     assert.equal(icon.readUInt32BE(20),size);
   }
 });
+
+test('CrossFiti liitumine ei saada Supabase Authi kinnituskirju ega muuda Futboli seadeid', () => {
+  const app = read('app.js');
+  const html = read('index.html');
+  const sw = read('sw.js');
+  const auth = read('auth-flow.js');
+  const server = read('supabase/functions/rcf-signup/index.ts');
+  const sql = read('supabase/migrations/20261104_rcf_signup_rate_gate.sql');
+  assert.match(app, /functions\/v1\/rcf-signup/);
+  assert.doesNotMatch(app, /auth\/v1\/signup/);
+  assert.match(app, /display_name:name,join_reason:reason/);
+  assert.match(server, /auth\/v1\/admin\/users/);
+  assert.match(server, /email_confirm: false/);
+  assert.match(server, /rcf_signup_try_slot/);
+  assert.match(server, /'rouge_crossfit'/);
+  assert.match(server, /password\.length < 8/);
+  assert.match(server, /approval_status !== 'pending'/);
+  assert.match(sql, /SECURITY DEFINER SET search_path = ''/);
+  assert.match(sql, /request\.jwt\.claim\.role/);
+  assert.match(sql, /pg_catalog\.pg_advisory_xact_lock/);
+  assert.match(sql, /REVOKE ALL ON FUNCTION public\.rcf_signup_try_slot/);
+  assert.match(sql, /TO service_role/);
+  assert.match(auth, /minlength="\$\{signup\?8:6\}"/);
+  assert.match(html, /auth-flow\.js\?v=6/);
+  assert.ok(sw.includes('auth-flow.js?v=6'));
+});
