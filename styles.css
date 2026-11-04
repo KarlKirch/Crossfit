@@ -1030,3 +1030,9 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .nc-empty span{color:var(--muted);line-height:1.5;font-size:12px}
 .nc-footnote{color:var(--muted);font-size:11px;line-height:1.5;margin:0;padding:0 2px}
 @media(max-width:430px){.nc-push-card{padding:13px}.nc-push-head{flex-wrap:wrap}.nc-push-head>.pill{margin-left:50px}.nc-notice{padding:12px 11px;gap:9px}.nc-item-icon{width:36px;height:36px}.nc-item-text>strong{font-size:13px}}
+
+/* Uuendusnupu tõrketekst ning eraldi taastamislehe link. */
+.update-banner a{display:inline-block;color:#d6f6a5;font-size:12px;font-weight:750;margin-top:6px;text-decoration:underline;text-underline-offset:3px}
+.update-banner a[hidden]{display:none}
+.update-banner button:disabled{opacity:.65;cursor:progress}
+.update-banner span{font-size:12px;line-height:1.35}
