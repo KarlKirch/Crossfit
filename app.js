@@ -4,8 +4,8 @@ const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
 const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
-const SHARE_URL=APP_URL+'?liitu=rcf20261104';
-const APP_VERSION='6.1.4';
+const SHARE_URL=APP_URL+'liitu.html';
+const APP_VERSION='6.1.5';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -70,7 +70,7 @@ async function api(path,opt={}){if(state.clientPreview)throw new Error('Kliendie
 async function rpc(name,body={}){return api(`rpc/${name}`,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)})}
 async function approveJoinRequest(clientId){if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/functions/v1/rcf-approve-join`,{method:'POST',headers:headers(state.session.access_token),body:JSON.stringify({client_id:clientId})})}
 window.crossfitApproveJoin=approveJoinRequest;
-function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'Sinu liitumine ootab treeneri kinnitust. E-posti kinnituskirja ei pea avama.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas.';return s||'Toiming ebaõnnestus.'}
+function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'Sinu liitumine ootab treeneri kinnitust. E-posti kinnituskirja ei pea avama.';if(/email rate limit exceeded|over_email_send_rate_limit/i.test(s))return 'E-posti saatmise piirang on täis. Registreerumiseks ava eraldi liitumisleht või logi sisse parooliga.';if(/rate limit|too many requests/i.test(s))return 'Liiga palju päringuid. Palun proovi hiljem uuesti.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas. Proovi sisse logida parooliga.';return s||'Toiming ebaõnnestus.'}
 
 async function refreshSession(){if(!state.session?.refresh_token)return false;try{const data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:headers(),body:JSON.stringify({refresh_token:state.session.refresh_token})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));return true}catch(_){state.session=null;localStorage.removeItem('wod_session');return false}}
 async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
@@ -313,7 +313,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=83',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=84',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render()}catch(e){toast(e.message)}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -326,7 +326,7 @@ async function installApp(){return window.crossfitInstall?.request?.()}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.installPrompt=e});
 window.addEventListener('appinstalled',()=>{state.installPrompt=null;toast('CrossFit on paigaldatud')});
 
-async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=83',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
+async function setupServiceWorker(){if(!('serviceWorker'in navigator))return;try{const reg=await navigator.serviceWorker.register('./sw.js?v=84',{scope:'./',updateViaCache:'none'});state.swReg=reg;if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner()})});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload())}catch(e){console.warn('SW registration failed',e)}}
 function showUpdateBanner(){updateBanner.classList.remove('hidden')}
 updateNow.addEventListener('click',()=>{if(state.swReg?.waiting)state.swReg.waiting.postMessage({type:'SKIP_WAITING'});else location.reload()});
 

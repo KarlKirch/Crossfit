@@ -419,10 +419,10 @@ test('QR-pilt avaneb suurelt, seda saab printida või PNG-na salvestada',()=>{
   assert.equal(typeof qr.close,'function');
   assert.equal(typeof qr.print,'function');
   assert.equal(typeof qr.download,'function');
-  assert.equal(qr.url,'https://karlkirch.github.io/Crossfit/');
-  assert.equal(qr.matrixSize,37,'QR sisaldab nelja mooduli laiust valget serva');
+  assert.equal(qr.url,'https://karlkirch.github.io/Crossfit/liitu.html');
+  assert.equal(qr.matrixSize,41,'QR sisaldab nelja mooduli laiust valget serva');
   const svg=qr.svg('qr-verify');
-  assert(svg.includes('viewBox="0 0 37 37"'));
+  assert(svg.includes('viewBox="0 0 41 41"'));
   assert(svg.includes('shape-rendering="crispEdges"'));
   assert((svg.match(/<rect /g)||[]).length>200);
   const share=context.shareSheet();

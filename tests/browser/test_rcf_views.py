@@ -773,9 +773,9 @@ class RCFBrowserSmoke(unittest.TestCase):
         viewer.wait_for(state="visible")
         large=viewer.locator(".qr-large-svg")
         self.assertGreater(large.evaluate("svg => svg.getBoundingClientRect().width"),small_width)
-        self.assertEqual(large.get_attribute("viewBox"),"0 0 37 37")
+        self.assertEqual(large.get_attribute("viewBox"),"0 0 41 41")
         self.assertEqual(page.locator("#crossfitQRPrintSheet .qr-print-svg").count(),1)
-        self.assertIn("https://karlkirch.github.io/Crossfit/",
+        self.assertIn("https://karlkirch.github.io/Crossfit/liitu.html",
                       page.locator("#crossfitQRPrintSheet").inner_text())
         self.snapshot("qr-quick-preview-phone")
         page.evaluate("() => { window.__qrPrintCalls=0; window.print=() => window.__qrPrintCalls++ }")
@@ -925,6 +925,37 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertIn("Liiga palju liitumiskatseid",page.locator("#authMessage").inner_text())
         self.assertIn("bad",page.locator("#authMessage .notice").get_attribute("class"))
 
+
+
+    def test_invitation_signup_page_iphone_success_and_rate_limit(self):
+        page=self.open_app("client",390,844,browser=self.webkit)
+        page.goto(APP_URL+"liitu.html",wait_until="domcontentloaded")
+        page.locator("#join-name").fill("Test Kasutaja")
+        page.locator("#join-email").fill("liituja@example.invalid")
+        page.locator("#join-password").fill("testitudParool10")
+        page.locator("#join-reason").fill("Soovin treenida")
+        with page.expect_request(lambda r:"/functions/v1/rcf-signup" in r.url and r.method=="POST") as sent:
+            page.locator("#join-submit").click()
+        data=sent.value.post_data_json
+        self.assertEqual(data["email"],"liituja@example.invalid")
+        self.assertEqual(data["display_name"],"Test Kasutaja")
+        page.locator("#join-success").wait_for(state="visible")
+        self.assertIn("Liitumistaotlus saadetud",page.locator("#join-success").inner_text())
+        self.assertEqual(page.locator("#join-form").is_visible(),False)
+        self.assertEqual(page.locator("#join-password").input_value(),"")
+        self.assertEqual(page.get_by_role("button",name="Saada liitumistaotlus").count(),0)
+        self.snapshot("iphone-invitation-success")
+
+        page.goto(APP_URL+"liitu.html",wait_until="domcontentloaded")
+        page.locator("#join-name").fill("Teine Kasutaja")
+        page.locator("#join-email").fill("rate-limited@example.invalid")
+        page.locator("#join-password").fill("testitudParool11")
+        page.locator("#join-submit").click()
+        self.assertIn("Liiga palju liitumiskatseid",page.locator("#join-feedback").inner_text())
+        self.assertTrue(page.locator("#join-form").is_visible())
+        self.assertTrue(page.evaluate(
+            "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
+        self.snapshot("iphone-invitation-rate-limit")
 
 
 if __name__ == "__main__":
