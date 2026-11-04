@@ -215,8 +215,9 @@
       '<div class="cl-detail-stats">'+
       '<div><strong>'+countText(n)+'</strong><span>Krediiti alles</span></div>'+
       '<div><strong>'+stat.confirmedFuture+'</strong><span>Tulevasi treeninguid</span></div>'+
-      '<div><strong>'+stat.attended+'</strong><span>Osaletud</span></div>'+
+      '<div><strong>'+stat.attended+'</strong><span>Varasemaid broneeringuid</span></div>'+
       '<div><strong>'+stat.waiting+'</strong><span>Ootel</span></div></div>'+
+      (window.crossfitAttendance?.clientCard(uid)||'')+
       '<div class="cl-detail-actions">'+(removed?
         '<button type="button" class="cl-button cl-button-main" onclick="crossfitClientDirectory.restore('+"'"+uid+"'"+')">Taasta klient</button>':
         '<button type="button" class="cl-button cl-button-main" onclick="openAddCredits('+"'"+uid+"'"+')">Lisa krediiti</button>')+
