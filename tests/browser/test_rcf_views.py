@@ -953,7 +953,8 @@ class RCFBrowserSmoke(unittest.TestCase):
         page.locator("#join-submit").click()
         self.assertIn("Liiga palju liitumiskatseid",page.locator("#join-feedback").inner_text())
         self.assertTrue(page.locator("#join-form").is_visible())
-        self.verify_fit()
+        self.assertTrue(page.evaluate(
+            "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
         self.snapshot("iphone-invitation-rate-limit")
 
 
