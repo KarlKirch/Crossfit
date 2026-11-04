@@ -279,14 +279,14 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
   assert.match(js, /credentials:'omit',cache:'no-store'/);
   assert.match(css, /input:focus-visible/);
-  assert.match(index, /app\.js\?v=54/);
+  assert.match(index, /app\.js\?v=55/);
   assert.match(index, /pro-features\.js\?v=7/);
   assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Unustasid parooli\?/);
-  assert.match(sw, /crossfit-app-v85/);
+  assert.match(sw, /crossfit-app-v87/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
@@ -333,9 +333,67 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(read('liitu.html'),/href="\.\/taasta\.html"/);
   assert.match(index,/recovery-admin\.js\?v=1/);
   assert.match(index,/recovery\.css\?v=1/);
-  assert.match(sw,/crossfit-app-v85/);
+  assert.match(sw,/crossfit-app-v87/);
   assert.ok(sw.includes("'./taasta.js?v=1'"));
-  assert.ok(app.includes('sw.js?v=85'));
+  assert.ok(app.includes('sw.js?v=87'));
+});
+
+
+test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja klient näeb oma statistikat',()=>{
+  const sql=read('supabase/migrations/20261104_rcf_attendance_stats.sql');
+  const js=read('attendance-stats.js');
+  const styles=read('attendance.css');
+  const html=read('index.html');
+  const sw=read('sw.js');
+  const training=read('training-detail-redesign.js');
+  const mine=read('my-account-redesign.js');
+  const directory=read('client-directory.js');
+  assert.match(sql,/CREATE TABLE IF NOT EXISTS public\.wod_attendance/);
+  assert.match(sql,/ENABLE ROW LEVEL SECURITY/);
+  assert.match(sql,/REVOKE ALL ON TABLE public\.wod_attendance FROM PUBLIC, anon, authenticated/);
+  assert.match(sql,/GRANT SELECT ON TABLE public\.wod_attendance TO authenticated/);
+  assert.match(sql,/registration_id bigint PRIMARY KEY REFERENCES public\.wod_registrations/);
+  assert.match(sql,/r\.user_id=\(SELECT auth\.uid\(\)\) OR \(SELECT private\.wod_is_trainer\(\)\)/);
+  assert.match(sql,/NOT \(SELECT private\.wod_is_trainer\(\)\)/);
+  assert.match(sql,/REVOKE ALL ON FUNCTION public\.wod_mark_attendance\(bigint,text\) FROM PUBLIC,anon/);
+  assert.match(sql,/r\.status<>'confirmed'/);
+  assert.match(sql,/t\.starts_at \+ make_interval\(mins=>t\.duration_minutes\)>now\(\)/);
+  assert.match(sql,/p_status='unmarked'/);
+  assert.match(sql,/ON CONFLICT \(registration_id\) DO UPDATE/);
+  assert.match(sql,/RETURNS jsonb/);
+  assert.match(sql,/AT TIME ZONE 'Europe\/Tallinn'/);
+  assert.match(sql,/uid IS DISTINCT FROM \(SELECT auth\.uid\(\)\)/);
+  assert.match(sql,/generate_series\(0,51\)/);
+  assert.match(js,/window\.rpc\('wod_mark_attendance'/);
+  assert.match(js,/window\.rpc\('wod_attendance_summary'/);
+  assert.match(js,/window\.api\('wod_attendance\?select=/);
+  assert.match(js,/s\.clientPreview/);
+  assert.match(js,/aria-pressed/);
+  assert.match(js,/Kohalolek on eraldi arvestus ega muuda makseid ega krediite/);
+  assert.match(js,/Vanemad registreeringud|Varasemad registreeringud/);
+  assert.match(styles,/\.at-metrics/);
+  assert.match(styles,/\.at-action\.selected\.present/);
+  assert.match(mine,/crossfitAttendance\?\.statsCard/);
+  assert.match(training,/crossfitAttendance\?\.panel/);
+  assert.match(directory,/crossfitAttendance\?\.clientCard/);
+  assert.match(html,/attendance-stats\.js\?v=1/);
+  assert.match(html,/attendance\.css\?v=1/);
+  assert.match(html,/app\.js\?v=55/);
+  assert.match(sw,/crossfit-app-v87/);
+  assert.match(sw,/attendance-stats\.js\?v=1/);
+});
+
+test('Privaatsõnumi pooleli kirjutatud tekst säilib asünkroonse värskendamise ajal',()=>{
+  const chat=read('message-center.js');
+  const html=read('index.html');
+  const sw=read('sw.js');
+  assert.match(chat,/function redrawKeepingDraft\(\)/);
+  assert.match(chat,/document\.getElementById\('cmBody'\)\?\.value/);
+  assert.match(chat,/if\(input\)input\.value=draft/);
+  assert.match(chat,/if\(changed&&visible\(\)\)\{redrawKeepingDraft\(\)/);
+  assert.match(chat,/if\(s\.modal==='privateMessages'\)\{redrawKeepingDraft\(\)/);
+  assert.match(html,/message-center\.js\?v=3/);
+  assert.match(sw,/message-center\.js\?v=3/);
 });
 
 test('CrossFiti registreerimise ja paroolitaaste API kasutavad PostgREST tänapäevast JWT rollivälja', () => {

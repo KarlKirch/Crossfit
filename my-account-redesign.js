@@ -112,7 +112,7 @@
     const id=validTrainingId(t.id);
     if(id===null)return '';
     const [label,color]=status(r,t);
-    const description=history?(r.status==='confirmed'&&t.status!=='cancelled'?'Toimunud treening':'Registreeringu ajalugu'):
+    const description=history?(r.status==='confirmed'&&t.status!=='cancelled'?(window.crossfitAttendance?.label(r.id)||'Kohalolek märkimata'):'Registreeringu ajalugu'):
       (r.status==='waitlist'?(r.payment_method==='cash'?'Maksad kohapeal':'Krediit arvestatakse koha saamisel'):(r.payment_method==='cash'?'Sularaha – '+(r.payment_status==='paid'?'tasutud':'tasumata'):'Treeningukoht kinnitatud'));
     return '<button class="my-booking-row" type="button" onclick="openTraining('+id+')">'+
       '<span class="my-booking-icon">'+icons.calendar+'</span>'+
@@ -186,7 +186,8 @@
     if(window.isTrainer())return previousRenderMine();
     const amount=credits();
     const {future,past}=registrations();
-    return '<div class="my-account-page">'+topProfile()+creditCard(amount)+
+    return '<div class="my-account-page">'+topProfile()+
+      (window.crossfitAttendance?.statsCard()||'')+creditCard(amount)+
       bookingSection(future)+oldBookings(past)+transactionSection()+settings()+'</div>';
   }
   function showCreditHistory(){

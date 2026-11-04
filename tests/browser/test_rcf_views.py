@@ -46,7 +46,7 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertEqual(self.page_errors, [],
                          'Brauseris ilmnesid käsitlemata JavaScripti vead')
 
-    def open_app(self, role="client", width=390, height=844, browser=None, wods=None, messages=None, approval="approved", approval_after_check=False, join_requests=None):
+    def open_app(self, role="client", width=390, height=844, browser=None, wods=None, messages=None, approval="approved", approval_after_check=False, join_requests=None, past_attendance=False, attendance_records=None):
         uid = TRAINER if role == "trainer" else CLIENT
         profile = {"user_id": uid, "display_name": "Testtreener" if role == "trainer" else "Testklient",
                    "role": role, "avatar_path": None, "approval_status": approval}
@@ -64,6 +64,32 @@ class RCFBrowserSmoke(unittest.TestCase):
                           "status": "confirmed", "credit_charged": True,
                           "created_at": datetime.now(timezone.utc).isoformat(),
                           "payment_status": "unpaid"}]
+        if past_attendance:
+            yesterday = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+            trainings.append({
+                "id":202,"title":"Varasem CrossFit","starts_at":yesterday,
+                "status":"published","archived_at":None,"capacity":12,
+                "duration_minutes":60,"created_by":TRAINER,"workout":"SALAJANE WOD",
+                "cancellation_hours":2
+            })
+            registrations.append({
+                "id":2,"training_id":202,"user_id":CLIENT,
+                "status":"confirmed","payment_status":"paid",
+                "created_at":yesterday,"credit_charged":True
+            })
+        attendance = list(attendance_records or [])
+        def attendance_summary():
+            present = [x for x in attendance if x.get("status")=="present"]
+            absent = [x for x in attendance if x.get("status")=="absent"]
+            current = datetime.now(timezone.utc)
+            monday = current.date()-timedelta(days=current.weekday())
+            weeks = [{"week_start":(monday-timedelta(weeks=i)).isoformat(),
+                      "count":len(present) if i==0 else 0}
+                     for i in range(51,-1,-1)]
+            return {"total":len(present),"month":len(present),
+                    "absent":len(absent),"marked":len(attendance),
+                    "last_attended":(current-timedelta(days=2)).isoformat() if present else None,
+                    "weeks":weeks}
         session = {"access_token": "TEST_TOKEN_NO_NETWORK",
                    "refresh_token": "TEST_REFRESH_NO_NETWORK",
                    "user": {"id": uid, "email": "test@example.invalid",
@@ -120,6 +146,23 @@ class RCFBrowserSmoke(unittest.TestCase):
                         payload = [dict(t, workout=t.get("workout") if role == "trainer" else None) for t in trainings]
                     elif name == "wod_registrations":
                         payload = registrations
+                    elif name == "wod_attendance":
+                        payload = attendance
+                    elif name == "wod_attendance_summary":
+                        payload = attendance_summary()
+                    elif name == "wod_mark_attendance":
+                        args = request.post_data_json or {}
+                        reg_id = args.get("p_registration_id")
+                        status = args.get("p_status")
+                        if role != "trainer" or reg_id != 2 or status not in ("present","absent","unmarked"):
+                            route.fulfill(status=403,content_type="application/json",
+                                body=json.dumps({"message":"Kohaloleku märkimine keelatud"}))
+                            return
+                        attendance[:] = [x for x in attendance if x.get("registration_id")!=reg_id]
+                        if status != "unmarked":
+                            attendance.append({"registration_id":reg_id,"status":status,
+                                               "marked_at":datetime.now(timezone.utc).isoformat()})
+                        payload = True
                     elif name == "wod_wallets":
                         payload = [{"user_id": CLIENT, "credits": 3}]
                     elif name == "wod_bank_entries":
@@ -1018,6 +1061,58 @@ class RCFBrowserSmoke(unittest.TestCase):
         self.assertTrue(page.evaluate(
             "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
         self.snapshot("iphone-client-reset-invalid")
+
+    def test_trainer_marks_actual_attendance_after_training_on_iphone(self):
+        page=self.open_app("trainer",390,844,browser=self.webkit,past_attendance=True)
+        page.locator(".bottom-nav").get_by_role("button",name="Treeningud").click()
+        page.locator(".tl-page").wait_for(state="visible")
+        page.evaluate("() => window.openTraining(202)")
+        section=page.locator(".at-panel")
+        section.wait_for(state="visible")
+        self.assertIn("Märkimata: 1",section.inner_text())
+        with page.expect_request(lambda req:"/rpc/wod_mark_attendance" in req.url
+                                 and req.post_data_json.get("p_status")=="present") as request:
+            section.get_by_role("button",name="Kohal",exact=True).click()
+        self.assertEqual(request.value.post_data_json["p_registration_id"],2)
+        page.wait_for_function("() => document.querySelector('.at-panel')?.textContent?.includes('Kohal: 1')")
+        self.assertIn("Kohal: 1",page.locator(".at-panel").inner_text())
+        self.assertEqual(page.locator(".at-panel [aria-pressed='true']").count(),1)
+        self.snapshot("iphone-trainer-marks-attendance")
+        with page.expect_request(lambda req:"/rpc/wod_mark_attendance" in req.url
+                                 and req.post_data_json.get("p_status")=="unmarked") as request:
+            page.locator(".at-panel").get_by_role("button",name="Tühista märge").click()
+        page.wait_for_function("() => document.querySelector('.at-panel')?.textContent?.includes('Märkimata: 1')")
+        self.assertIn("Märkimata: 1",page.locator(".at-panel").inner_text())
+        self.verify_fit()
+
+    def test_personal_statistics_count_only_coach_confirmed_attendance(self):
+        sample=[{"registration_id":2,"status":"present",
+                 "marked_at":datetime.now(timezone.utc).isoformat()}]
+        page=self.open_app("client",390,844,browser=self.webkit,
+                           past_attendance=True,attendance_records=sample)
+        page.locator(".bottom-nav").get_by_role("button",name="Minu").click()
+        stats=page.locator(".at-stats")
+        stats.wait_for(state="visible")
+        self.assertIn("Minu treeningstatistika",stats.inner_text())
+        self.assertIn("Sel kuul kohal",stats.inner_text())
+        self.assertIn("Kokku kohal",stats.inner_text())
+        self.assertIn("Keskmiselt nädalas",stats.inner_text())
+        self.assertEqual(stats.locator(".at-bar-cell").count(),12)
+        self.assertIn("1",stats.locator(".at-metrics").inner_text())
+        page.locator("#myPastBookings summary").click()
+        self.assertIn("Kohal käidud",page.locator(".my-booking-list").last.inner_text())
+        self.verify_fit()
+        self.snapshot("iphone-personal-attendance-stats")
+
+    def test_old_bookings_not_automatically_credited_as_attendance(self):
+        page=self.open_app("client",390,844,browser=self.webkit,past_attendance=True)
+        page.locator(".bottom-nav").get_by_role("button",name="Minu").click()
+        stats=page.locator(".at-stats")
+        stats.wait_for(state="visible")
+        self.assertIn("0",stats.locator(".at-metrics").first.inner_text())
+        self.assertIn("Varasemad registreeringud ei muutu automaatselt osalemisteks",stats.inner_text())
+        page.locator("#myPastBookings summary").click()
+        self.assertIn("Kohalolek märkimata",page.locator(".my-booking-list").last.inner_text())
 
 
 if __name__ == "__main__":

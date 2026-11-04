@@ -1,0 +1,38 @@
+/* Rõuge CrossFiti kohalolek ja isiklik statistika: hele kiri tumedal taustal. */
+.at-stats,.at-panel,.at-client-card{
+  margin:16px 0;padding:20px;border:1px solid #596c73;border-radius:18px;
+  background:#273139;color:#f2f6f7
+}
+.at-stats h2,.at-panel h3,.at-client-card h3{color:#f4f7f7;margin:0 0 16px;font-size:19px}
+.at-stats h3{color:#f1f5f6;margin:18px 0 12px;font-size:16px}
+.at-stats p,.at-panel p,.at-client-card p{color:#d3dfe3;line-height:1.55}
+.at-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.at-metrics>div{border:1px solid #57656b;background:#1d272d;border-radius:13px;padding:14px;min-width:0}
+.at-metrics strong{display:block;font-size:28px;color:#c5ed96;font-variant-numeric:tabular-nums;line-height:1.2}
+.at-metrics span{display:block;margin-top:6px;font-size:12px;color:#e2ebec;line-height:1.35}
+.at-chart{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;align-items:end;overflow:hidden;min-height:122px}
+.at-bar-cell{display:flex;flex-direction:column;justify-content:end;align-items:center;gap:5px;min-width:0}
+.at-bar{display:block;width:min(100%,24px);border-radius:5px 5px 2px 2px;background:#b7e77e}
+.at-bar-week{display:block;color:#d9e4e8;font-size:9px;text-align:center;white-space:normal;overflow-wrap:anywhere;min-height:25px}
+.at-note{font-size:12px;margin:14px 0 0}
+.at-attendees{display:flex;flex-direction:column;gap:9px}
+.at-attendee{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #526169}
+.at-attendee-info{display:flex;flex-direction:column;gap:5px;min-width:0}
+.at-attendee-info strong{color:#f3f6f7;font-size:15px}
+.at-attendee-info small{color:#d5e1e4}
+.at-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.at-action{border:1px solid #91a1a8;border-radius:10px;background:#34414a;color:#f4f7f7;min-height:40px;padding:9px 11px;font-size:13px;font-weight:700;cursor:pointer}
+.at-action.selected.present{background:#bddf91;border-color:#bddf91;color:#182316}
+.at-action.selected.absent{background:#f4bdad;border-color:#f4bdad;color:#411d18}
+.at-action:focus-visible{outline:3px solid #bde889;outline-offset:2px}
+.at-client-metrics{display:flex;flex-wrap:wrap;gap:8px}
+.at-client-metrics span{background:#1d272d;border:1px solid #596c73;border-radius:10px;padding:10px;color:#e7f1f3;font-size:13px}
+.at-client-metrics strong{color:#c5ed96;font-size:19px}
+@media(max-width:530px){
+ .at-stats,.at-panel,.at-client-card{padding:16px 12px;margin:13px 0}
+ .at-metrics>div{padding:12px 10px}
+ .at-attendee{align-items:stretch;flex-direction:column}
+ .at-actions{justify-content:flex-start}
+ .at-action{flex:1 0 auto}
+ .at-bar-week{font-size:8px}
+}
