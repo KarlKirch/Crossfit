@@ -57,7 +57,7 @@ test('Broneering ei muutu ilma treeneri märketa osalemiseks',async()=>{
   await w.loadData();
   const card=w.crossfitAttendance.statsCard();
   assert.match(card,/<strong>0<\/strong><span>Kokku osalemisi<\/span>/);
-  assert.match(card,/Kohalolekut ei ole veel märgitud/);
+  assert.match(card,/Sinu kohalolekut ei ole veel märgitud/);
   assert.match(card,/Varasemad registreeringud ei muutu automaatselt osalemisteks/);
 });
 
