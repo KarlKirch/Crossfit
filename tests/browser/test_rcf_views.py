@@ -425,7 +425,7 @@ class RCFBrowserSmoke(unittest.TestCase):
                       page.locator(".panel").inner_text())
         page.locator("details summary").click()
         page.get_by_role("button", name="Paranda vahemälu ja ava äpp").wait_for(state="visible")
-        self.assertIn("Tõuketeavitused võib olla vaja uuesti lubada",
+        self.assertIn("Vajaduse korral tuleb tõuketeavitused uuesti lubada",
                       page.locator("details").inner_text())
         self.assertTrue(page.evaluate(
             "() => document.documentElement.scrollWidth <= window.innerWidth + 1"))
