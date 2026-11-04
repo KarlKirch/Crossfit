@@ -337,3 +337,24 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.ok(sw.includes("'./taasta.js?v=1'"));
   assert.ok(app.includes('sw.js?v=85'));
 });
+
+test('CrossFiti registreerimise ja paroolitaaste API kasutavad PostgREST tänapäevast JWT rollivälja', () => {
+  const sql = read('supabase/migrations/20261104_rcf_fix_jwt_claims.sql');
+  const functions = [
+    'rcf_signup_try_slot',
+    'rcf_password_recovery_issue',
+    'rcf_password_recovery_allow_attempt',
+    'rcf_password_recovery_claim'
+  ];
+  for (const name of functions) {
+    assert.ok(sql.includes('CREATE OR REPLACE FUNCTION public.'+name+'('),
+      name+' ei saanud parandust');
+    assert.ok(sql.includes('REVOKE ALL ON FUNCTION public.'+name+'('),
+      name+' õiguste piirang puudub');
+  }
+  assert.equal((sql.match(/current_setting\('request\.jwt\.claims', true\)/g)||[]).length,4);
+  assert.doesNotMatch(sql, /IF current_setting\('request\.jwt\.claim\.role'/);
+  assert.equal((sql.match(/IS DISTINCT FROM 'service_role'/g)||[]).length,4);
+  assert.equal((sql.match(/TO service_role;/g)||[]).length,4);
+  assert.match(read('supabase/functions/rcf-signup/index.ts'),/signup rate gate failed/);
+});
