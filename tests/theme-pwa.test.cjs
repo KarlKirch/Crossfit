@@ -286,7 +286,7 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Unustasid parooli\?/);
-  assert.match(sw, /crossfit-app-v86/);
+  assert.match(sw, /crossfit-app-v87/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
