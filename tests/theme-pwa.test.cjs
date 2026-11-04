@@ -432,7 +432,7 @@ test('Kasutaja aktiivsuses on käesolev nädal, viimase treeningu kuupäev ja va
   assert.match(js,/class="at-week-detail"/);
   assert.match(js,/role="group"/);
   assert.match(css,/\.at-bar-cell:focus-visible/);
-  assert.match(css,/\.at-chart\{[^}]*overflow-x:auto/);
+  assert.match(css,/\.at-chart\{[^}]*grid-template-columns:repeat\(12,minmax\(0,1fr\)\)/);
   assert.match(mine,/crossfitAttendance\?\.statsCard/);
   assert.match(directory,/crossfitAttendance\?\.clientCard/);
   assert.match(js,/Kliendi treeningaktiivsus/);
