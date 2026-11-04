@@ -8,6 +8,7 @@
   const originalOpenClient=window.openClient;
   s.attendanceRows=[];
   s.myAttendanceSummary=null;
+  s.attendanceLoadError=false;
   s.clientAttendanceSummaries={};
   const esc=v=>window.esc(v);
   const isoDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''))?s:'';
@@ -50,43 +51,69 @@
     return new Intl.DateTimeFormat('et-EE',{day:'numeric',month:'short',timeZone:'UTC'}).format(date);
   }
   function counts(summary){
+    const weekly=weeks(summary);
     const total=Math.max(0,Number(summary?.total)||0);
     const month=Math.max(0,Number(summary?.month)||0);
     const absent=Math.max(0,Number(summary?.absent)||0);
     const marked=Math.max(0,Number(summary?.marked)||0);
-    return {total,month,absent,marked,weekly:weeks(summary)};
+    return {
+      total,month,absent,marked,weekly,
+      week:weekly.length?weekly[weekly.length-1].count:0
+    };
   }
   function statsCard(){
     if(window.isTrainer())return '';
     const summary=s.myAttendanceSummary;
     if(!summary){
-      return '<section class="at-stats" aria-label="Minu treeningstatistika"><h2>Minu treeningstatistika</h2><p class="at-note">Laadin kohaloleku andmeid…</p></section>';
+      if(s.attendanceLoadError){
+        return '<section class="at-stats" aria-label="Minu treeningstatistika">'+
+          '<h2>Minu treeningstatistika</h2>'+
+          '<p class="at-note" role="alert">Statistikat ei õnnestunud laadida. Teisi äpi andmeid saad kasutada edasi.</p>'+
+          '<button type="button" class="at-retry" onclick="reloadData()">Proovi uuesti</button></section>';
+      }
+      return '<section class="at-stats" aria-label="Minu treeningstatistika">'+
+        '<h2>Minu treeningstatistika</h2><p class="at-note">Laadin kohaloleku andmeid…</p></section>';
     }
     const stat=counts(summary),last12=stat.weekly.slice(-12);
     const avg=(last12.reduce((n,w)=>n+w.count,0)/12).toLocaleString('et-EE',{
       minimumFractionDigits:1,maximumFractionDigits:1
     });
-    const sequence=streak(stat.weekly), max=Math.max(1,...last12.map(w=>w.count));
-    const chart=last12.map(w=>{
-      const h=Math.max(w.count?12:3,Math.round(w.count/max*88));
-      const title='Nädal '+dateLabel(w.start)+': '+w.count+' '+(w.count===1?'osalemine':'osalemist');
-      return '<div class="at-bar-cell" title="'+esc(title)+'">'+
-        '<span class="at-bar" style="height:'+h+'px" aria-hidden="true"></span>'+
+    const sequence=streak(stat.weekly);
+    const max=Math.max(1,...last12.map(w=>w.count));
+    const lastDate=fmt(summary.last_attended);
+    const chartText='Viimase 12 nädala treeningud. '+
+      last12.map(w=>'Nädal '+dateLabel(w.start)+': '+w.count).join('; ');
+    const chart=last12.map((w,i)=>{
+      const h=Math.max(w.count?12:3,Math.round(w.count/max*86));
+      const title='Nädal '+dateLabel(w.start)+': '+w.count+
+        (w.count===1?' osalemine':' osalemist');
+      return '<div class="at-bar-cell'+(i===last12.length-1?' at-bar-current':'')+
+        '" title="'+esc(title)+'" aria-hidden="true">'+
+        '<span class="at-bar-count">'+w.count+'</span>'+
+        '<span class="at-bar" style="height:'+h+'px"></span>'+
         '<span class="at-bar-week">'+esc(dateLabel(w.start))+'</span></div>';
     }).join('');
     return '<section class="at-stats" aria-label="Minu treeningstatistika">'+
-      '<h2>Minu treeningstatistika</h2>'+
+      '<div class="at-heading"><h2>Minu treeningstatistika</h2>'+
+      '<span class="at-verified">Treeneri kinnitatud</span></div>'+
       '<div class="at-metrics">'+
-        '<div><strong>'+stat.month+'</strong><span>Sel kuul kohal</span></div>'+
-        '<div><strong>'+stat.total+'</strong><span>Kokku kohal</span></div>'+
-        '<div><strong>'+avg+'</strong><span>Keskmiselt nädalas (12 nädalat)</span></div>'+
-        '<div><strong>'+sequence+'</strong><span>Aktiivset nädalat järjest</span></div>'+
+        '<div><strong>'+stat.week+'</strong><span>Sel nädalal</span></div>'+
+        '<div><strong>'+stat.month+'</strong><span>Sel kuul</span></div>'+
+        '<div><strong>'+stat.total+'</strong><span>Kokku osalemisi</span></div>'+
+        '<div><strong>'+avg+'</strong><span>Keskmiselt nädalas (12 näd)</span></div>'+
+        '<div><strong>'+sequence+'</strong><span>Aktiivseid nädalaid järjest</span></div>'+
+        '<div class="at-metric-date"><strong>'+esc(lastDate)+'</strong><span>Viimati kohal</span></div>'+
       '</div>'+
-      '<h3>Viimased 12 nädalat</h3>'+
-      '<div class="at-chart" role="img" aria-label="Viimase 12 nädala treeningud">'+chart+'</div>'+
-      '<p class="at-note">Viimati kohal: '+esc(fmt(summary.last_attended))+
-      (stat.marked?'. Treener on märkinud '+stat.marked+' korral kohaloleku, neist '+stat.absent+' puudumist.':'. Kohalolekumärked veel puuduvad.')+'</p>'+
-      '<p class="at-note">Arvesse lähevad ainult treeneri kinnitatud osalemised. Varasemad registreeringud ei muutu automaatselt osalemisteks.</p>'+
+      '<h3>Treeningud viimase 12 nädala jooksul</h3>'+
+      '<div class="at-chart" role="img" tabindex="0" aria-label="'+esc(chartText)+'">'+chart+'</div>'+
+      '<p class="at-chart-note">Iga tulp tähistab ühte nädalat. Viimane tulp on käesolev nädal.</p>'+
+      (stat.marked
+        ?'<p class="at-note">Kohalolek on märgitud '+stat.marked+' treeningul: '+
+          stat.total+' osalemist ja '+stat.absent+' puudumist.</p>'
+        :'<p class="at-empty" role="status">Sinu kohalolekut ei ole veel märgitud. '+
+          'Treener märgib toimunud treeningute osalemised ning seejärel kuvatakse siin sinu aktiivsus.</p>')+
+      '<p class="at-note">Arvesse lähevad ainult treeneri kinnitatud osalemised. '+
+        'Varasemad registreeringud ei muutu automaatselt osalemisteks.</p>'+
     '</section>';
   }
   function clientCard(uid){
@@ -122,14 +149,30 @@
   window.loadData=async function(){
     await originalLoad();
     if(!s.session?.access_token||s.clientPreview){
-      s.attendanceRows=[];s.myAttendanceSummary=null;s.clientAttendanceSummaries={};
+      s.attendanceRows=[];s.myAttendanceSummary=null;s.attendanceLoadError=false;
+      s.clientAttendanceSummaries={};
       return;
     }
+    const trainer=window.isTrainer();
     const requests=[window.api('wod_attendance?select=registration_id,status,marked_at&order=marked_at.desc')];
-    if(!window.isTrainer())requests.push(window.rpc('wod_attendance_summary',{p_user_id:null}));
-    const result=await Promise.all(requests);
-    s.attendanceRows=Array.isArray(result[0])?result[0]:[];
-    s.myAttendanceSummary=window.isTrainer()?null:result[1];
+    if(!trainer)requests.push(window.rpc('wod_attendance_summary',{p_user_id:null}));
+    // Kui statistika server on ajutiselt maas, jäävad treeningud ja muud lehed kasutatavaks.
+    const result=await Promise.allSettled(requests);
+    if(result[0].status==='rejected'){
+      console.warn('Kohaloleku andmete laadimine ebaõnnestus',result[0].reason);
+    }
+    s.attendanceRows=result[0].status==='fulfilled'&&Array.isArray(result[0].value)
+      ?result[0].value:[];
+    const summaryResult=trainer?null:result[1];
+    s.attendanceLoadError=Boolean(summaryResult&&
+      (summaryResult.status==='rejected'||!summaryResult.value||
+       typeof summaryResult.value!=='object'));
+    if(s.attendanceLoadError){
+      console.warn('Minu statistika laadimine ebaõnnestus',
+        summaryResult?.status==='rejected'?summaryResult.reason:'Vigane serveri vastus');
+    }
+    s.myAttendanceSummary=summaryResult?.status==='fulfilled'&&!s.attendanceLoadError
+      ?summaryResult.value:null;
     s.clientAttendanceSummaries={};
   };
 
