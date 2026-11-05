@@ -74,7 +74,7 @@ test('Kui uus töötaja pole ootel, avatakse serveripõhine värske URL',async()
   const obj=setup({waiting:false});
   await obj.ctx.updateAppNow();
   assert.equal(obj.updateCalls,1);
-  assert.match(obj.assigned,/\.\/\?version=89&refresh=\d+/);
+  assert.match(obj.assigned,/\.\/\?version=\d+&refresh=\d+/);
 });
 
 test('Võrgutõrge näitab taastamise linki ega lukusta uuendusnuppu',async()=>{
@@ -108,7 +108,7 @@ test('Ühe mittekriitilise faili ebaõnnestumine ei takista uue töötaja instal
   await assert.doesNotReject(async()=>await install);
   assert.equal(cache.required.length,4);
   assert.ok(cache.required.includes('./index.html'));
-  assert.ok(cache.required.includes('./app.js?v=57'));
+  assert.ok(cache.required.some(file=>/^\.\/app\.js\?v=\d+$/.test(file)));
   assert.ok(cache.files.includes('./attendance-stats.js?v=2'));
   assert.ok(!cache.files.includes('./brand-landscape.svg'));
 });

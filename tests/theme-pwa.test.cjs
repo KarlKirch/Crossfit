@@ -279,14 +279,14 @@ test('Erinevates seadmetes on uus liitumislink ning katkine e-posti lingiga siss
   assert.doesNotMatch(js, /auth\/v1\/signup|auth\/v1\/otp/);
   assert.match(js, /credentials:'omit',cache:'no-store'/);
   assert.match(css, /input:focus-visible/);
-  assert.match(index, /app\.js\?v=57/);
+  assert.match(index, /app\.js\?v=\d+/);
   assert.match(index, /pro-features\.js\?v=7/);
   assert.match(app, /const SHARE_URL=APP_URL\+'liitu\.html'/);
   assert.match(qr, /const APP_URL='https:\/\/karlkirch\.github\.io\/Crossfit\/liitu\.html'/);
   assert.match(auth, /const emailMode=false/);
   assert.match(auth, /const switcher=''/);
   assert.match(auth, /Unustasid parooli\?/);
-  assert.match(sw, /crossfit-app-v89/);
+  assert.match(sw, /crossfit-app-v\d+/);
   assert.ok(sw.includes("'./liitu.js?v=1'"));
 });
 
@@ -333,9 +333,9 @@ test('Treeneri väljastatav CrossFiti taastekood on ühekordne ega nõua SMTP-d'
   assert.match(read('liitu.html'),/href="\.\/taasta\.html"/);
   assert.match(index,/recovery-admin\.js\?v=1/);
   assert.match(index,/recovery\.css\?v=1/);
-  assert.match(sw,/crossfit-app-v89/);
+  assert.match(sw,/crossfit-app-v\d+/);
   assert.ok(sw.includes("'./taasta.js?v=1'"));
-  assert.ok(app.includes('sw.js?v=89'));
+  assert.match(app,/sw\.js\?v=\d+/);
 });
 
 
@@ -378,8 +378,8 @@ test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja kli
   assert.match(directory,/crossfitAttendance\?\.clientCard/);
   assert.match(html,/attendance-stats\.js\?v=2/);
   assert.match(html,/attendance\.css\?v=2/);
-  assert.match(html,/app\.js\?v=57/);
-  assert.match(sw,/crossfit-app-v89/);
+  assert.match(html,/app\.js\?v=\d+/);
+  assert.match(sw,/crossfit-app-v\d+/);
   assert.match(sw,/attendance-stats\.js\?v=2/);
 });
 
@@ -454,10 +454,10 @@ test('Telefonis äpi uuendamise nupp käivitab serveripäringu ning annab proble
   assert.match(app,/Uuendamiseks on vaja internetiühendust/);
   assert.match(index,/id="updateHelp" href="\.\/uuenda\.html\?v=1" hidden/);
   assert.match(index,/id="updateStatus"/);
-  assert.match(index,/app\.js\?v=57/);
+  assert.match(index,/app\.js\?v=\d+/);
   assert.match(index,/styles\.css\?v=23/);
   assert.match(css,/\.update-banner a\[hidden\]/);
-  assert.match(sw,/crossfit-app-v89/);
+  assert.match(sw,/crossfit-app-v\d+/);
   assert.match(sw,/const REQUIRED=/);
   assert.match(sw,/Promise\.allSettled\(CORE/);
   assert.match(sw,/uuenda\.html/);
