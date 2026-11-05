@@ -76,7 +76,7 @@
     if(!list.length)return '<div class="td-empty-attendees">Registreerunuid veel ei ole.</div>';
     return '<div class="td-attendee-list">'+list.map((r,i)=>{
       const nameFull=String(window.pname(r.user_id)||'Kasutaja');
-      const name=trainer?nameFull:nameFull.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toLocaleUpperCase('et')+'.').join(' ');
+      const name=nameFull.trim()||'Kasutaja';
       const photo=window.crossfitAvatars?.html(r.user_id,'medium')||'<span class="td-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toLocaleUpperCase('et'))+'</span>';
       const balance=trainer&&r.status==='confirmed'&&r.credit_charged?'<span class="td-person-credit">1 krediit kasutatud</span>':'';
       const cash=r.payment_method==='cash';

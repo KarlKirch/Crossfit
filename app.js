@@ -5,7 +5,7 @@ const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.1.9';
+const APP_VERSION='6.2.0';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -124,40 +124,81 @@ function renderShell(content){
       ${trainer?navButton('more','Haldus',icon.settings):''}
     </nav>
   </div>${window.renderModal()}`;
+  syncModalHistory();
   updatePushStateSoon();
 }
+
+let navigationHistoryReady=false;
+let handlingHistoryNavigation=false;
+const isWodNavigationModal=name=>name==='wodBank'||name==='wodDetail';
+
 function ensureViewHistory(){
-  if(!state.session) return;
+  if(!state.session)return;
   const current=history.state||{};
   if(!current.crossfitView){
-    history.replaceState({...current,crossfitView:state.view||'home'},'');
+    history.replaceState({...current,crossfitView:state.view||'home',
+      crossfitTrainingTab:state.trainingTab,crossfitModal:null,crossfitModalData:null},'');
+  }
+  // Avakuvale lisatud veebirakendusel peab olema sisemine ajalookirje.
+  // Muidu võib Androidi esimene tagasivajutus rakenduse kohe sulgeda.
+  if(!navigationHistoryReady){
+    navigationHistoryReady=true;
+    history.pushState({...history.state,crossfitRoot:true,
+      crossfitView:state.view||'home',crossfitTrainingTab:state.trainingTab,
+      crossfitModal:null,crossfitModalData:null},'');
   }
 }
+
+function syncModalHistory(){
+  if(!state.session||handlingHistoryNavigation)return;
+  const current=history.state||{};
+  const modal=state.modal||null;
+  // WOD-pangal on oma ajaloonavigatsioon (bank -> detail -> bank).
+  if(current.wodModal||isWodNavigationModal(modal))return;
+  const previous=current.crossfitModal||null;
+  if(!modal){
+    if(previous)history.replaceState({...current,crossfitModal:null,crossfitModalData:null},'');
+    return;
+  }
+  const data=state.modalData??null;
+  if(previous===modal&&JSON.stringify(current.crossfitModalData??null)===JSON.stringify(data))return;
+  history.pushState({...current,crossfitView:state.view,
+    crossfitTrainingTab:state.trainingTab,crossfitModal:modal,
+    crossfitModalData:data,wodModal:null,wodId:null},'');
+}
+
 function go(view){
+  if(view===state.view&&!state.modal)return;
   ensureViewHistory();
   if(view==='notifications'&&state.view!=='notifications')state.notificationsReturnView=state.view;
   state.view=view;state.modal=null;state.modalData=null;
-  history.pushState({...history.state,crossfitView:view,wodModal:null,wodId:null},'');
+  history.pushState({...history.state,crossfitView:view,
+    crossfitTrainingTab:state.trainingTab,crossfitModal:null,
+    crossfitModalData:null,wodModal:null,wodId:null},'');
   window.scrollTo({top:0,behavior:'instant'});
   render();
 }
 function backFromNotifications(){
-  if(history.state?.crossfitView==='notifications'&&history.length>1){
+  if(history.state?.crossfitView==='notifications'&&history.length>1&&
+     state.notificationsReturnView!==state.view){
     history.back();
     return;
   }
   go(state.notificationsReturnView||'home');
 }
 window.addEventListener('popstate',event=>{
-  if(!state.session||event.state?.wodModal) return;
+  if(!state.session||event.state?.wodModal)return;
   const view=event.state?.crossfitView;
-  if(view){
+  if(!view)return;
+  handlingHistoryNavigation=true;
+  try{
     state.view=view;
-    state.modal=null;
-    state.modalData=null;
+    state.trainingTab=event.state?.crossfitTrainingTab||state.trainingTab;
+    state.modal=event.state?.crossfitModal||null;
+    state.modalData=state.modal?(event.state?.crossfitModalData??null):null;
     window.scrollTo({top:0,behavior:'instant'});
     render();
-  }
+  }finally{handlingHistoryNavigation=false}
 });
 
 function render(){if(!state.session||!state.profile){renderAuth();return}if(isAwaitingApproval()){root.innerHTML=window.crossfitApprovals?.renderGate?.()||'<div class="auth"><div class="auth-box"><h1>Liitumine ootab kinnitust</h1></div></div>';return}ensureViewHistory();let content='';if(state.view==='home')content=window.renderHome();else if(state.view==='trainings')content=window.renderTrainings();else if(state.view==='people')content=isTrainer()?window.renderClients():window.renderMine();else if(state.view==='notifications')content=window.renderNotifications();else content=window.renderMore();renderShell(content)}
@@ -194,7 +235,15 @@ function trainingCard(t,trainer=isTrainer()){
 }
 
 function renderTrainings(){const list=state.trainingTab==='upcoming'?upcomingTrainings():pastTrainings();return `<div class="page-head"><div><h1 class="page-title">Treeningud</h1><div class="page-sub">Vaata treeninguid, registreeru või halda aegu.</div></div>${isTrainer()?'<button class="page-action" onclick="openTrainingForm()">+ Lisa</button>':''}</div><div class="segment"><button class="${state.trainingTab==='upcoming'?'on':''}" onclick="setTrainingTab('upcoming')">Tulevased</button><button class="${state.trainingTab==='past'?'on':''}" onclick="setTrainingTab('past')">Möödunud</button></div><div class="stack">${list.map(t=>trainingCard(t)).join('')||'<div class="empty">Selles vaates treeninguid ei ole.</div>'}</div>`}
-function setTrainingTab(tab){state.trainingTab=tab;render()}
+function setTrainingTab(tab){
+  if(!['upcoming','past'].includes(tab)||state.trainingTab===tab)return;
+  ensureViewHistory();
+  state.trainingTab=tab;
+  history.pushState({...history.state,crossfitView:state.view,
+    crossfitTrainingTab:tab,crossfitModal:null,crossfitModalData:null,
+    wodModal:null,wodId:null},'');
+  render();
+}
 
 function renderMine(){const uid=state.session.user.id;const myRegs=state.registrations.filter(r=>r.user_id===uid);const future=myRegs.filter(r=>['confirmed','waitlist'].includes(r.status)&&state.trainings.some(t=>t.id===r.training_id&&new Date(t.starts_at)>now())).sort((a,b)=>new Date(state.trainings.find(t=>t.id===a.training_id)?.starts_at)-new Date(state.trainings.find(t=>t.id===b.training_id)?.starts_at));const past=myRegs.filter(r=>state.trainings.some(t=>t.id===r.training_id&&new Date(t.starts_at)<=now())).sort((a,b)=>new Date(state.trainings.find(t=>t.id===b.training_id)?.starts_at)-new Date(state.trainings.find(t=>t.id===a.training_id)?.starts_at));const pkgs=state.userPackages.filter(p=>p.user_id===uid);return `<div class="page-head"><div><h1 class="page-title">Minu</h1><div class="page-sub">Sinu paketid, tulevased broneeringud ja treeninguajalugu.</div></div></div><div class="card"><div class="card-title-row"><div><div class="card-title">${esc(state.profile.display_name)}</div><div class="card-sub">${esc(state.session.user.email||'')}</div></div><button class="btn btn-soft btn-sm" onclick="openProfileEdit()">Muuda</button></div></div><div class="section"><h2>Minu paketid</h2></div><div class="stack">${pkgs.map(packageCard).join('')}${legacyCredits(uid)>0?`<div class="package-card"><div class="package-top"><div><div class="package-name">Varasemad treeningkorrad</div><div class="package-meta">Kehtivusajata krediidijääk</div></div><div class="package-balance">${legacyCredits(uid)}</div></div></div>`:''}${!pkgs.length&&!legacyCredits(uid)?'<div class="empty">Sul ei ole aktiivseid pakette.</div>':''}</div><div class="section"><h2>Tulevased registreeringud</h2></div><div class="stack">${future.map(r=>registrationRow(r)).join('')||'<div class="empty">Tulevasi registreeringuid ei ole.</div>'}</div><div class="section"><h2>Treeningute ajalugu</h2></div><div class="stack">${past.slice(0,20).map(r=>registrationRow(r,true)).join('')||'<div class="empty">Ajalugu on veel tühi.</div>'}</div>`}
 function packageCard(p){const s=packageStatus(p),balance=p.kind==='unlimited'?'∞':p.credits_remaining;return `<div class="package-card"><div class="package-top"><div><div class="package-name">${esc(p.package_name)}</div><div class="package-meta">${p.expires_at?'Kehtib kuni '+shortDate(p.expires_at):'Kehtivusajata'} · ${money(p.price_paid_cents)}</div></div><div class="package-balance">${balance}</div></div><div class="package-grid"><div class="package-chip"><b>${p.kind==='unlimited'?'Piiramatu':`${p.credits_remaining}/${p.credits_total}`}</b><span>${p.kind==='unlimited'?'Treeninguid':'Kordi alles'}</span></div><div class="package-chip"><b><span class="pill ${s[1]}">${s[0]}</span></b><span>Staatus</span></div></div></div>`}
@@ -223,7 +272,15 @@ function renderModal(){if(!state.modal)return'';const close=`<button class="shee
   else if(state.modal==='quick'){title='Kiirtoimingud';body=window.quickSheet()}
   return `<div class="sheet-backdrop" onclick="backdropClose(event)"><div class="sheet" onclick="event.stopPropagation()"><div class="sheet-head"><div class="sheet-title">${title}</div>${close}</div><div class="sheet-body">${body}</div></div></div>`
 }
-function closeModal(){state.modal=null;state.modalData=null;render()}
+function closeModal(){
+  if(state.modal&&!isWodNavigationModal(state.modal)&&
+     history.state?.crossfitModal===state.modal&&
+     typeof history.back==='function'&&history.length>1){
+    history.back();
+    return;
+  }
+  state.modal=null;state.modalData=null;render();
+}
 function backdropClose(e){if(e.target.classList.contains('sheet-backdrop'))closeModal()}
 
 function openTraining(id){state.modal='training';state.modalData=Number(id);render()}

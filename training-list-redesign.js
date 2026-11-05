@@ -45,7 +45,7 @@
     if(!list.length)return '<span class="tl-participants-none">Veel pole registreerunuid</span>';
     const top=list.slice(0,3).map(r=>{
       const realName=String(window.pname(r.user_id)||'Kasutaja');
-      const name=trainer?realName:realName.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toLocaleUpperCase('et')+'.').join(' ');
+      const name=realName.trim()||'Kasutaja';
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toLocaleUpperCase('et')||'?';
       return '<span class="tl-person">'+(window.crossfitAvatars?.html(r.user_id,'small')||'<span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span>')+'<span>'+esc(name)+'</span></span>';
     }).join('');
