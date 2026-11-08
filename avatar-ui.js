@@ -22,6 +22,9 @@
   const previousRenderModal=window.renderModal;
   let edit=null;
   let saving=false;
+  let preview=null;
+  let previewTrigger=null;
+  const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 
   const esc=v=>window.esc(v);
   function currentId(){return s.session?.user?.id||null}
@@ -87,10 +90,78 @@
     const letters=name.split(/\s+/).filter(Boolean).slice(0,2).map(v=>v[0]).join('').toLocaleUpperCase('et')||'?';
     const src=p?.avatar_path&&cache.get(p.avatar_path)?.url;
     const classes='cf-avatar cf-avatar-'+variant;
+    // Profiilipilt on suurendatav kõigis vaadetes; ilma pildita initsiaalid ei ole klikitavad.
+    // span role=button väldib pesastatud nuppe treeningukaartides.
+    const clickable=src&&UUID.test(String(id));
+    const action=clickable?
+      ' role="button" tabindex="0" title="Vaata suuremat profiilipilti" aria-label="Suurenda '+esc(name)+' profiilipilti"'+
+      ' onclick="event.stopPropagation();crossfitAvatars.open(\''+String(id)+'\',this)"'+
+      ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();crossfitAvatars.open(\''+String(id)+'\',this)}"':'';
     return src?
-      '<span class="'+classes+'"><img src="'+esc(src)+'" alt="'+esc(name)+' profiilipilt" referrerpolicy="no-referrer" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="cf-avatar-initials" hidden>'+esc(letters)+'</span></span>':
+      '<span class="'+classes+(clickable?' cf-avatar-expandable':'')+'"'+action+'><img src="'+esc(src)+'" alt="'+esc(name)+' profiilipilt" referrerpolicy="no-referrer" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="cf-avatar-initials" hidden>'+esc(letters)+'</span></span>':
       '<span class="'+classes+'"><span class="cf-avatar-initials">'+esc(letters)+'</span></span>';
   }
+  function dismissPreview(){
+    if(!preview)return;
+    const node=preview;
+    preview=null;
+    node.remove();
+    if(previewTrigger?.isConnected)previewTrigger.focus?.({preventScroll:true});
+    previewTrigger=null;
+  }
+  function closePreview(){
+    if(!preview)return;
+    // Androidi tagasi-nupp sulgeb esmalt suure pildi ja jätab äpi avatuks.
+    if(history.state?.crossfitAvatarPreview&&history.length>1){
+      dismissPreview();
+      history.back();
+    }else dismissPreview();
+  }
+  async function openPreview(id,trigger=null){
+    const uid=String(id||'');
+    if(!s.session?.access_token||!UUID.test(uid))return;
+    const p=profile(uid);
+    if(!p||!validPath(p.avatar_path,uid)||preview)return;
+    const path=p.avatar_path;
+    let src=null;
+    try{src=await signed(path)}catch(error){
+      window.toast?.('Profiilipildi avamine ebaõnnestus.');
+      return;
+    }
+    if(!src||!s.session?.access_token||profile(uid)?.avatar_path!==path||preview)return;
+    const name=String(p.display_name||'Kasutaja');
+    const overlay=document.createElement('div');
+    overlay.className='cf-avatar-preview';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label',name+' profiilipilt');
+    overlay.innerHTML='<div class="cf-avatar-preview-card">'+
+      '<button type="button" class="cf-avatar-preview-close" aria-label="Sulge suurendatud profiilipilt">×</button>'+
+      '<img src="'+esc(src)+'" alt="'+esc(name)+' profiilipilt" referrerpolicy="no-referrer">'+
+      '<div class="cf-avatar-preview-name">'+esc(name)+'</div></div>';
+    overlay.addEventListener('click',event=>{
+      if(event.target===overlay)closePreview();
+    });
+    overlay.querySelector('.cf-avatar-preview-close')?.addEventListener('click',closePreview);
+    overlay.querySelector('img')?.addEventListener('error',()=>{
+      window.toast?.('Profiilipildi laadimine ebaõnnestus.');
+      closePreview();
+    });
+    preview=overlay;
+    previewTrigger=trigger;
+    document.body.appendChild(overlay);
+    history.pushState({...history.state,crossfitAvatarPreview:true,crossfitAvatarId:uid},'');
+    overlay.querySelector('.cf-avatar-preview-close')?.focus?.({preventScroll:true});
+  }
+  window.addEventListener('popstate',()=>dismissPreview());
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&preview){
+      event.preventDefault();
+      event.stopImmediatePropagation?.();
+      closePreview();
+    }
+  },true);
+
   window.renderMine=function(){
     let current=previousMine();
     if(window.isTrainer())return current;
@@ -315,5 +386,5 @@
     }catch(error){window.toast(error.message||'Kustutamine ebaõnnestus')}
     finally{saving=false}
   }
-  window.crossfitAvatars={html,refresh,selectFile,zoom,cancel,save,remove};
+  window.crossfitAvatars={html,refresh,open:openPreview,close:closePreview,selectFile,zoom,cancel,save,remove};
 })();
