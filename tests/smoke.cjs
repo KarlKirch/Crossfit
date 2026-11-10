@@ -18,7 +18,9 @@ function test(name,fn){
 }
 test('Scripts included and in expected order',()=>{
   assert(jsFiles.length>=18,'Expected modular app scripts');
-  assert.equal(jsFiles.at(-1),'attendance-stats.js');
+  assert.equal(jsFiles.at(-1),'push-health.js');
+  assert(jsFiles.indexOf('push-health.js')>jsFiles.indexOf('attendance-stats.js'),
+    'Teavituste kontrollimoodul tuleb laadida pärast statistikafaili');
   assert(jsFiles.indexOf('attendance-stats.js')>jsFiles.indexOf('approval-system.js'));
   assert(jsFiles.indexOf('approval-system.js')>jsFiles.indexOf('client-preview.js'));
   assert(jsFiles.indexOf('client-preview.js')>jsFiles.indexOf('brand-home.js'));
