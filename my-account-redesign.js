@@ -168,8 +168,8 @@
       '<span><strong>'+label+'</strong><small>'+description+'</small></span>'+icons.chevron+'</button>';
   }
   function settings(){
-    const install=window.crossfitInstall?.installed?.()?'':
-      menuRow(icons.calendar,'Paigalda rakendus','Lisa CrossFit telefoni avakuvale','installApp()');
+    const install=menuRow(icons.calendar,'Lisa ikoon avakuvale',
+      'Paigalda või taasta CrossFiti ikoon','installApp()');
     return '<details class="my-collapsible my-settings" id="myAccountSettings"><summary>'+icons.edit+
       '<span><strong>Konto ja seaded</strong><small>Teavitused, jagamine ja rakenduse haldus</small></span>'+icons.chevron+'</summary>'+
       '<div class="my-details-inner">'+

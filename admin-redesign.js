@@ -70,8 +70,8 @@
   function render(){
     if(!window.isTrainer())return previousMore();
     const summary=metrics();
-    const install=window.crossfitInstall?.installed?.()?null:
-      item(ic.phone,'Paigalda rakendus','Lisa CrossFit telefoni või arvuti avakuvale','installApp()');
+    const install=item(ic.phone,'Lisa ikoon avakuvale',
+      'Paigalda või taasta CrossFiti avakuva ikoon','installApp()');
     return '<div class="ad-admin">'+
       '<header class="ad-heading"><span>JUHTIMINE JA SEADISTUS</span>'+
         '<h1>Haldus</h1><p>Treeningud, teavitused ja aruanded ühes kohas.</p></header>'+
@@ -92,7 +92,7 @@
       group('Konto ja rakendus','Sinu profiil ja rakenduse kasutamine.',[
         item(ic.avatar,'Minu profiil','Muuda nime ja profiilipilti','openProfileEdit()'),
         item(ic.share,'Kutsu sõber','Jaga CrossFiti linki või QR-koodi','openShare()'),
-        ...(install?[install]:[]),
+        install,
         item(ic.info,'Rakenduse info','Versioon ja kasutuspõhimõtted','openInfo()'),
         item(ic.logout,'Logi välja','Lõpeta selle seadme seanss','logout()','ad-entry-danger')
       ])+

@@ -53,10 +53,9 @@
   }
 
   function moreItem(){
-    if(installed())return '';
-    return '<button class="menu-item" onclick="installApp()"><div class="menu-main">' +
-      '<div class="menu-icon">'+downloadIcon+'</div><div><div class="menu-label">Paigalda rakendus</div>' +
-      '<div class="menu-desc">Lisa CrossFit telefoni avakuvale</div></div></div><span class="chev">›</span></button>';
+    return '<button class="menu-item" type="button" onclick="installApp()"><div class="menu-main">' +
+      '<div class="menu-icon">'+downloadIcon+'</div><div><div class="menu-label">Lisa ikoon avakuvale</div>' +
+      '<div class="menu-desc">Paigalda või taasta Rõuge CrossFiti ikoon</div></div></div><span class="chev">›</span></button>';
   }
 
   function guideContent(d){
@@ -64,7 +63,24 @@
     let intro='Paigaldamine toimub sinu seadme brauseri kaudu.';
     let steps=[];
     let openButton='';
-    if(d.android && d.inApp){
+    if(installed() && d.android){
+      title='Taasta CrossFiti avakuva ikoon';
+      intro='CrossFit on telefonis juba paigaldatud. Avakuva ikooni eemaldamine ei kustuta tavaliselt rakendust.';
+      steps=[
+        'Ava telefoni rakenduste loend (enamasti libista avakuval üles).',
+        'Otsi „Rõuge CrossFit“ või „RCF“. Hoia ikooni all ja vali „Lisa avakuvale“ või lohista see avakuvale.',
+        'Kui rakendust ei leia, ava CrossFit Chrome’is ja vaata kolme punkti (⋮) menüüst valikut „Installi rakendus“ või „Lisa avakuvale“. Kui Chrome ütleb, et rakendus on juba paigaldatud, otsi see rakenduste loendist.'
+      ];
+      openButton='<button class="btn btn-primary btn-block" type="button" onclick="crossfitInstall.copyLink()">Kopeeri CrossFiti link</button>';
+    }else if(installed() && d.ios){
+      title='Taasta CrossFiti avakuva ikoon';
+      intro='Kontrolli, kas CrossFit on endiselt telefoni rakenduste kogus.';
+      steps=[
+        'Ava iPhone’i rakenduste kogu (App Library) ja otsi „Rõuge CrossFit“.',
+        'Kui rakendus on seal olemas, hoia ikooni all ning lohista see avakuvale.',
+        'Kui rakendust ei leia, ava CrossFit Safaris ning vali Jaga → Lisa avakuvale ja kinnita veebirakendusena avamine.'
+      ];
+    }else if(d.android && d.inApp){
       title='Ava CrossFit Chrome’is';
       intro='Messenger, Facebook või muu rakendusesisene brauser ei pruugi lubada paigaldamist.';
       steps=[
@@ -118,11 +134,6 @@
   }
 
   function openGuide(){
-    if(installed()){
-      closeGuide();
-      window.toast?.('CrossFit on juba paigaldatud');
-      return;
-    }
     closeGuide();
     document.body.insertAdjacentHTML('beforeend',
       '<div id="'+GUIDE_ID+'" class="install-guide-overlay" role="presentation" onclick="if(event.target===this)crossfitInstall.closeGuide()">' +
@@ -134,7 +145,7 @@
 
   async function request(){
     if(installed()){
-      window.toast?.('CrossFit on juba paigaldatud');
+      openGuide();
       return;
     }
     const d=device();
