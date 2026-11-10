@@ -19,6 +19,15 @@ for size in (192, 512):
     surface.alpha_composite(fitted, ((size - fitted.width)//2, (size - fitted.height)//2))
     surface.convert("RGB").save(ROOT / f"icon-{size}.png", optimize=True)
 
+    # Android adaptive launcher: opaque dark background all the way to the
+    # icon edges, with the original approved badge inside the 80% safe circle.
+    # A 56% square fits entirely within that circle even with corner content.
+    adaptive = Image.new("RGBA", (size, size), DARK + (255,))
+    safe_side = round(size * .56)
+    safe_icon = ImageOps.contain(icon, (safe_side, safe_side), Image.Resampling.LANCZOS)
+    adaptive.alpha_composite(safe_icon, ((size - safe_icon.width)//2, (size - safe_icon.height)//2))
+    adaptive.convert("RGB").save(ROOT / f"icon-{size}-maskable.png", optimize=True)
+
 # The original user-selected RCF logo, not the old September icon.
 logo = Image.open(ROOT / "brand-rcf.webp").convert("RGBA")
 canvas = Image.new("RGB", (1200, 630), DARK)
@@ -39,4 +48,5 @@ target = ROOT / "social-preview-rcf.png"
 canvas.save(target, optimize=True)
 assert target.stat().st_size < 600_000, "Share preview must remain small enough for messaging apps"
 print("Generated:", *(f"{p.name} {p.stat().st_size} bytes" for p in
-    (ROOT / "icon-192.png", ROOT / "icon-512.png", target)))
+    (ROOT / "icon-192.png", ROOT / "icon-512.png",
+     ROOT / "icon-192-maskable.png", ROOT / "icon-512-maskable.png", target)))
