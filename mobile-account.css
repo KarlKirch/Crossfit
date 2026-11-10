@@ -1,0 +1,47 @@
+/* Klientide "Minu" vaade mahub ka kitsale PWA ekraanile. */
+.my-account-page{
+  width:100%;max-width:100%;min-width:0;
+  grid-template-columns:minmax(0,1fr);
+}
+.my-account-page>*,
+.my-account-page .my-section,
+.my-account-page .my-profile-card,
+.my-account-page .my-credit-card,
+.my-account-page .my-booking-list,
+.my-account-page .my-collapsible,
+.my-account-page .my-details-inner,
+.my-account-page .my-booking-main,
+.my-account-page .my-transaction-main{
+  min-width:0;max-width:100%;
+}
+.my-account-page .my-profile-main,
+.my-account-page .my-profile-identity,
+.my-account-page .my-credit-amount,
+.my-account-page .my-credit-amount>div{min-width:0}
+.my-account-page .my-profile-identity h1,
+.my-account-page .my-profile-identity p,
+.my-account-page .my-booking-main>*,
+.my-account-page .my-settings-row small,
+.my-account-page .my-transaction-main>*{
+  overflow-wrap:anywhere;
+}
+.my-account-page .my-booking-row{max-width:100%;min-width:0}
+.my-account-page .my-booking-side{min-width:0;max-width:40%}
+.my-account-page .my-pill{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.my-account-page .my-credit-top>span:first-child{min-width:0;overflow-wrap:anywhere}
+.my-account-page .my-credit-indicator{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:390px){
+  .my-account-page .my-profile-card,.my-account-page .my-credit-card{padding:12px}
+  .my-account-page .my-profile-main{gap:10px}
+  .my-account-page .my-profile-main>.cf-avatar{width:52px;height:52px}
+  .my-account-page .my-credit-amount{gap:9px}
+  .my-account-page .my-credit-amount strong{font-size:clamp(38px,12vw,52px)}
+  .my-account-page .my-credit-amount b{font-size:12px}
+  .my-account-page .my-booking-row{flex-wrap:wrap;align-items:flex-start;padding:10px}
+  .my-account-page .my-booking-side{
+    margin-left:0;max-width:100%;width:100%;
+    padding-left:calc(37px + 8px);
+  }
+  .my-account-page .my-booking-side .my-pill{max-width:100%}
+  .my-account-page .my-section-heading{flex-wrap:wrap}
+}

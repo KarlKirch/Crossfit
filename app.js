@@ -5,7 +5,7 @@ const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.2.3';
+const APP_VERSION='6.2.4';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -65,14 +65,87 @@ function cancellationRule(t){return `Tasuta tühistamine kuni ${t.cancellation_h
 function waitPosition(tid,uid=state.session?.user?.id){const w=waitlistFor(tid);const i=w.findIndex(r=>r.user_id===uid);return i<0?null:i+1}
 
 function headers(token){const h={'apikey':SUPABASE_KEY,'Content-Type':'application/json'};if(token)h.Authorization='Bearer '+token;return h}
-async function request(url,opt={}){const r=await fetch(url,opt);const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(_){data=text}if(!r.ok){const msg=(data&&typeof data==='object'&&(data.message||data.msg||data.error_description||data.error||data.hint))||text||`HTTP ${r.status}`;throw new Error(msg)}return data}
-async function api(path,opt={}){if(state.clientPreview)throw new Error('Kliendieelvaade on kirjutuskaitstud.');if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}})}
+async function request(url,opt={}){const r=await fetch(url,opt);const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(_){data=text}if(!r.ok){const msg=(data&&typeof data==='object'&&(data.message||data.msg||data.error_description||data.error||data.hint))||text||`HTTP ${r.status}`;const error=new Error(msg);error.status=r.status;throw error}return data}
+async function api(path,opt={}){
+  if(state.clientPreview)throw new Error('Kliendieelvaade on kirjutuskaitstud.');
+  if(!state.session?.access_token)throw new Error('Sessioon puudub');
+  if(state.session.refresh_token&&sessionExpiresSoon(state.session)){
+    if(!await refreshSession())throw new Error('Sisselogimisseanss on aegunud. Logi uuesti sisse.');
+  }
+  return request(`${SUPABASE_URL}/rest/v1/${path}`,{
+    ...opt,headers:{...headers(state.session.access_token),...(opt.headers||{})}
+  });
+}
 async function rpc(name,body={}){return api(`rpc/${name}`,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)})}
 async function approveJoinRequest(clientId){if(!state.session?.access_token)throw new Error('Sessioon puudub');return request(`${SUPABASE_URL}/functions/v1/rcf-approve-join`,{method:'POST',headers:headers(state.session.access_token),body:JSON.stringify({client_id:clientId})})}
 window.crossfitApproveJoin=approveJoinRequest;
 function authError(msg){const s=String(msg||'');if(/invalid login credentials/i.test(s))return 'E-post või parool on vale.';if(/email not confirmed/i.test(s))return 'Sinu liitumine ootab treeneri kinnitust. E-posti kinnituskirja ei pea avama.';if(/email rate limit exceeded|over_email_send_rate_limit/i.test(s))return 'E-posti saatmise piirang on täis. Registreerumiseks ava eraldi liitumisleht või logi sisse parooliga.';if(/rate limit|too many requests/i.test(s))return 'Liiga palju päringuid. Palun proovi hiljem uuesti.';if(/already registered|duplicate key|already exists/i.test(s))return 'Selle e-postiga konto on juba olemas. Proovi sisse logida parooliga.';return s||'Toiming ebaõnnestus.'}
 
-async function refreshSession(){if(!state.session?.refresh_token)return false;try{const data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:headers(),body:JSON.stringify({refresh_token:state.session.refresh_token})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));return true}catch(_){state.session=null;localStorage.removeItem('wod_session');return false}}
+// Säilitame sessiooni avakuva-PWA-s. Uuendame juurdepääsutokenit ainult
+// aegumise lähedal, mitte igal rakenduse avamisel.
+function sessionExpiry(session){
+  const known=Number(session?.expires_at);
+  if(Number.isFinite(known)&&known>0)return known;
+  const created=Number(session?._saved_at);
+  const duration=Number(session?.expires_in);
+  if(created>0&&duration>0)return created+duration;
+  try{
+    const part=String(session?.access_token||'').split('.')[1];
+    const decoded=JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/')));
+    return Number(decoded.exp)||0;
+  }catch(_){return 0}
+}
+function sessionExpiresSoon(session,seconds=90){
+  return !sessionExpiry(session)||sessionExpiry(session)<=Date.now()/1000+seconds;
+}
+function saveSession(session){
+  const nowSeconds=Math.floor(Date.now()/1000);
+  const normalized={...session,_saved_at:nowSeconds};
+  if(!Number(normalized.expires_at)&&Number(normalized.expires_in)>0)
+    normalized.expires_at=nowSeconds+Number(normalized.expires_in);
+  state.session=normalized;
+  localStorage.setItem('wod_session',JSON.stringify(normalized));
+  return normalized;
+}
+let refreshingSession=null;
+async function refreshSession(){
+  if(refreshingSession)return refreshingSession;
+  const existing=state.session;
+  if(!existing?.refresh_token)return false;
+  refreshingSession=(async()=>{
+    try{
+      const data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+        method:'POST',headers:headers(),
+        body:JSON.stringify({refresh_token:existing.refresh_token})
+      });
+      if(state.session!==existing)return false;
+      if(!data?.access_token||!data?.refresh_token)throw new Error('Puudulik seansi vastus.');
+      saveSession(data);
+      return true;
+    }catch(error){
+      if(error.status===400||error.status===401||error.status===403){
+        if(state.session===existing){
+          state.session=null;
+          localStorage.removeItem('wod_session');
+        }
+        return false;
+      }
+      // Võrgu- ja ajutised serverivead ei tohi kasutajat välja logida.
+      throw error;
+    }
+  })();
+  try{return await refreshingSession}finally{refreshingSession=null}
+}
+async function maintainSession(){
+  if(!state.session?.refresh_token||!sessionExpiresSoon(state.session,240))return;
+  try{
+    if(!await refreshSession()){
+      state.profile=null;
+      renderAuth();
+      authMessage('Sinu seanss on aegunud. Logi uuesti sisse.',true);
+    }
+  }catch(error){console.warn('Seansi automaatne uuendamine ebaõnnestus',error)}
+}
 async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
 window.ensureProfile=ensureProfile;
 function isAwaitingApproval(){return Boolean(state.profile?.approval_status)&&state.profile.approval_status!=='approved'}
@@ -206,7 +279,7 @@ function render(){if(!state.session||!state.profile){renderAuth();return}if(isAw
 function renderAuth(){root.innerHTML=window.crossfitAuth.render(state.mode,window.crossfitInstall?.authCard?.()||'')}
 function setAuthMode(mode){state.mode=mode;renderAuth()}
 function authMessage(text,bad=false){const e=document.getElementById('authMessage');if(e)e.innerHTML=text?`<div class="notice ${bad?'bad':''}">${esc(text)}</div>`:''}
-async function submitAuth(){const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value,name=document.getElementById('authName')?.value.trim(),reason=document.getElementById('authReason')?.value.trim()||'';if(!email||!password||(state.mode==='signup'&&!name)){authMessage('Täida kõik väljad.',true);return}const b=document.getElementById('authSubmitBtn');b.disabled=true;authMessage('Palun oota…');try{let data;if(state.mode==='signup'){data=await request(`${SUPABASE_URL}/functions/v1/rcf-signup`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,display_name:name,join_reason:reason.slice(0,300)})});authMessage(data?.message||'Konto loodud. Liitumistaotlus saadeti treenerile. Pärast kinnitamist logi sisse.');return}else data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:headers(),body:JSON.stringify({email,password})});state.session=data;localStorage.setItem('wod_session',JSON.stringify(data));await ensureProfile();if(!isAwaitingApproval())await window.loadData();state.view=viewFromPushLink();render()}catch(e){authMessage(authError(e.message),true)}finally{if(b)b.disabled=false}}
+async function submitAuth(){const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value,name=document.getElementById('authName')?.value.trim(),reason=document.getElementById('authReason')?.value.trim()||'';if(!email||!password||(state.mode==='signup'&&!name)){authMessage('Täida kõik väljad.',true);return}const b=document.getElementById('authSubmitBtn');b.disabled=true;authMessage('Palun oota…');try{let data;if(state.mode==='signup'){data=await request(`${SUPABASE_URL}/functions/v1/rcf-signup`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,display_name:name,join_reason:reason.slice(0,300)})});authMessage(data?.message||'Konto loodud. Liitumistaotlus saadeti treenerile. Pärast kinnitamist logi sisse.');return}else data=await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:headers(),body:JSON.stringify({email,password})});saveSession(data);await ensureProfile();if(!isAwaitingApproval())await window.loadData();state.view=viewFromPushLink();render()}catch(e){authMessage(authError(e.message),true)}finally{if(b)b.disabled=false}}
 
 function metric(value,label){return `<div class="metric"><b>${value}</b><span>${label}</span></div>`}
 function trainerAttention(){const future=upcomingTrainings();const unpaid=state.registrations.filter(r=>r.status==='confirmed'&&r.payment_status==='unpaid'&&future.some(t=>t.id===r.training_id)).length;const waiting=state.registrations.filter(r=>r.status==='waitlist'&&future.some(t=>t.id===r.training_id)).length;const clients=state.profiles.filter(p=>p.role==='client').length;return {unpaid,waiting,clients}}
@@ -370,7 +443,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=94',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=95',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render();return true}catch(e){toast(e.message);return false}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -420,7 +493,7 @@ function waitForInstalledWorker(reg,timeoutMs=16000){
 async function setupServiceWorker(){
   if(!('serviceWorker'in navigator))return;
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js?v=94',{
+    const reg=await navigator.serviceWorker.register('./sw.js?v=95',{
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
@@ -468,7 +541,7 @@ async function updateAppNow(){
   try{
     if(navigator.onLine===false)throw new Error('Uuendamiseks on vaja internetiühendust.');
     if(!('serviceWorker'in navigator)){
-      location.assign('./?version=94&refresh='+Date.now());
+      location.assign('./?version=95&refresh='+Date.now());
       return;
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
@@ -505,7 +578,7 @@ async function updateAppNow(){
       return;
     }
     // Kui worker on juba uus, võib brauseri HTML olla ikkagi vana.
-    location.assign('./?version=94&refresh='+Date.now());
+    location.assign('./?version=95&refresh='+Date.now());
   }catch(error){
     console.warn('PWA käsitsi uuendamine ebaõnnestus',error);
     updateHelp(error?.message||'Uuendamine ei õnnestunud. Ava parandamise juhis.');
@@ -521,7 +594,63 @@ async function logout(){try{if(state.session?.access_token)await fetch(`${SUPABA
 
 function parseAuthHash(){if(!location.hash)return null;const p=new URLSearchParams(location.hash.slice(1)),access=p.get('access_token'),refresh=p.get('refresh_token');if(!access||!refresh)return null;const expires=Number(p.get('expires_in')||3600);return {access_token:access,refresh_token:refresh,expires_in:expires,token_type:p.get('token_type')||'bearer',user:null}}
 async function fetchCurrentUser(){const r=await request(`${SUPABASE_URL}/auth/v1/user`,{headers:headers(state.session.access_token)});state.session.user=r;localStorage.setItem('wod_session',JSON.stringify(state.session))}
-async function boot(){setupServiceWorker();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal)closeModal()});try{const hash=parseAuthHash();if(hash){state.session=hash;await fetchCurrentUser();history.replaceState(null,'',location.pathname+location.search)}else{const raw=localStorage.getItem('wod_session');if(raw)state.session=JSON.parse(raw)}if(state.session){if(state.session.refresh_token){const ok=await refreshSession();if(!ok){renderAuth();return}}if(!state.session.user)await fetchCurrentUser();await ensureProfile();if(!isAwaitingApproval())await window.loadData();state.view=viewFromPushLink();render();return}}catch(e){console.warn(e);localStorage.removeItem('wod_session');state.session=null}renderAuth()}
+let booting=false;
+async function boot(){
+  if(booting)return;
+  booting=true;
+  setupServiceWorker();
+  try{
+    const hash=parseAuthHash();
+    if(hash){
+      saveSession(hash);
+      await fetchCurrentUser();
+      history.replaceState(null,'',location.pathname+location.search);
+    }else if(!state.session){
+      const raw=localStorage.getItem('wod_session');
+      if(raw){
+        try{state.session=JSON.parse(raw)}
+        catch(_){localStorage.removeItem('wod_session')}
+      }
+    }
+    if(state.session){
+      if(state.session.refresh_token&&sessionExpiresSoon(state.session)){
+        if(!await refreshSession()){
+          renderAuth();
+          authMessage('Salvestatud seanss on aegunud. Logi uuesti sisse.',true);
+          return;
+        }
+      }
+      if(!state.session.user)await fetchCurrentUser();
+      await ensureProfile();
+      if(!isAwaitingApproval())await window.loadData();
+      state.view=viewFromPushLink();
+      render();
+      return;
+    }
+    renderAuth();
+  }catch(error){
+    console.warn('Sisselogimise taastamine:',error);
+    if((error.status===401||error.status===403)&&state.session){
+      localStorage.removeItem('wod_session');state.session=null;state.profile=null;
+      renderAuth();authMessage('Seanss on aegunud. Logi uuesti sisse.',true);
+    }else if(state.session){
+      root.innerHTML='<div class="auth"><div class="auth-box"><div class="auth-card">'+
+        '<h1 style="color:var(--text);font-size:23px">Ühendus puudub</h1>'+
+        '<p>Oled selles seadmes sisse logitud, kuid hetkel ei õnnestu andmeid laadida. Sisselogimine on salvestatud.</p>'+
+        '<button type="button" class="btn btn-primary btn-block" onclick="boot()">Proovi uuesti</button>'+
+        '<button type="button" class="btn btn-soft btn-block" style="margin-top:9px" onclick="logout()">Logi välja</button>'+
+        '</div></div></div>';
+    }else renderAuth();
+  }finally{booting=false}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')void maintainSession();
+});
+window.addEventListener('focus',()=>{void maintainSession()});
+const sessionTimer=setInterval(()=>{
+  if(!document.visibilityState||document.visibilityState==='visible')void maintainSession();
+},60000);
+if(sessionTimer&&typeof sessionTimer.unref==='function')sessionTimer.unref();
 
 async function sendEmailSignInLink(email){
   return request(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(SHARE_URL)}`,{
@@ -535,8 +664,7 @@ async function verifyEmailSignInCode(email,token){
 }
 async function finishEmailSignIn(session){
   if(!session?.access_token||!session?.refresh_token)throw new Error('Sisselogimisseanss puudub');
-  state.session=session;
-  localStorage.setItem('wod_session',JSON.stringify(session));
+  saveSession(session);
   if(!state.session.user)await fetchCurrentUser();
   await ensureProfile();
   if(!isAwaitingApproval())await window.loadData();
