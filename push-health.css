@@ -1,0 +1,25 @@
+/* Püsiv teavituste olekuhoiatus avalehel */
+.rcf-push-alert{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:16px;
+  margin:0 0 18px;
+  border:1px solid #bb8a37;
+  border-radius:14px;
+  background:#332a1b;
+  color:#fff0d2;
+  box-shadow:0 3px 16px rgba(0,0,0,.12);
+}
+.rcf-push-alert-copy{flex:1 1 240px;min-width:0}
+.rcf-push-alert strong{display:block;font-size:1rem;color:#fff6df}
+.rcf-push-alert p{margin:6px 0 0;font-size:.9rem;line-height:1.45;color:#f1dfbd}
+.rcf-push-alert-button{
+  border:0;border-radius:10px;background:#eac16e;color:#231a0b;
+  font:inherit;font-weight:700;padding:11px 16px;cursor:pointer;
+  min-height:44px;
+}
+.rcf-push-alert-button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:480px){.rcf-push-alert-button{width:100%}}
