@@ -15,25 +15,25 @@
   ],
   "icons": [
     {
-      "src": "/Crossfit/icon-192.png",
+      "src": "/Crossfit/icon-192-rcf-v3.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Crossfit/icon-512.png",
+      "src": "/Crossfit/icon-512-rcf-v3.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Crossfit/icon-192-maskable.png",
+      "src": "/Crossfit/icon-192-rcf-maskable-v3.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/Crossfit/icon-512-maskable.png",
+      "src": "/Crossfit/icon-512-rcf-maskable-v3.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -21,11 +21,12 @@ test('Android gets dark full-bleed maskable launcher icons, while iOS retains st
 test('PWA references and precaches updated icons, and restores original RCF browser emblem',()=>{
   const manifest=JSON.parse(read('manifest.webmanifest'));
   const html=read('index.html'),sw=read('sw.js');
-  assert.match(html,/manifest\.webmanifest\?v=14/);
-  assert.match(html,/icon-512-rcf\.webp\?v=3/);
+  assert.match(html,/manifest\.webmanifest\?v=15/);
+  assert.match(html,/icon-512-rcf-v3\.png/);
   for(const icon of manifest.icons.filter(i=>i.purpose==='maskable')){
     const name=icon.src.split('/').pop();
     assert.ok(sw.includes("'./"+name+"'"),name+' not cached');
   }
   assert.match(read('scripts/generate-rcf-social-assets.py'),/safe_side = round\(size \* \.56\)/);
+  for(const icon of manifest.icons)assert.match(icon.src,/-rcf-(?:maskable-)?v3\.png$/);
 });

@@ -65,11 +65,12 @@
     let openButton='';
     if(installed() && d.android){
       title='Taasta CrossFiti avakuva ikoon';
-      intro='CrossFit on telefonis juba paigaldatud. Avakuva ikooni eemaldamine ei kustuta tavaliselt rakendust.';
+      intro='Rakendus on endiselt paigaldatud, kuigi avakuva ikoon eemaldati. Kui soovid lihtsalt ikooni taastada, ei pea rakendust uuesti installima.';
       steps=[
-        'Ava telefoni rakenduste loend (enamasti libista avakuval üles).',
-        'Otsi „Rõuge CrossFit“ või „RCF“. Hoia ikooni all ja vali „Lisa avakuvale“ või lohista see avakuvale.',
-        'Kui rakendust ei leia, ava CrossFit Chrome’is ja vaata kolme punkti (⋮) menüüst valikut „Installi rakendus“ või „Lisa avakuvale“. Kui Chrome ütleb, et rakendus on juba paigaldatud, otsi see rakenduste loendist.'
+        'Ava telefoni rakenduste loend (libista avakuval üles) ning otsi „Rõuge CrossFit“ või „RCF“.',
+        'Hoia leitud ikooni sõrmega all ja vali „Lisa avakuvale“ või lohista ikoon avakuvale.',
+        'Kui soovid vana ikooni asemel uut tumeda taustaga kujundust, eemalda rakendus täielikult: telefoni Seaded → Rakendused → Rõuge CrossFit → Desinstalli. Seejärel ava allolev CrossFiti aadress Chrome’is ning vali ⋮ → „Installi rakendus“.',
+        'Pärast täielikku desinstallimist võib olla vaja uuesti sisse logida ja teavitused lubada. Ära kustuta Chrome’i kõiki andmeid.'
       ];
       openButton='<button class="btn btn-primary btn-block" type="button" onclick="crossfitInstall.copyLink()">Kopeeri CrossFiti link</button>';
     }else if(installed() && d.ios){
@@ -126,7 +127,7 @@
       '<p>'+intro+'</p></div><ol class="install-steps">'+list+'</ol>' +
       '<div class="install-guide-actions">'+openButton+
       '<button class="btn btn-soft btn-block" type="button" onclick="crossfitInstall.copyLink()">Kopeeri CrossFiti link</button></div>' +
-      '<p class="install-guide-note">CrossFit ei ole praegu Google Play või App Store’i poeäpp. Avakuva ikoon luuakse veebirakendusele.</p>';
+      '<p class="install-guide-note">Avakuva ikooni eemaldamine ei pruugi rakendust kustutada. Kui avakuva ikoon on valge raamiga, kontrolli, kas paigaldatud on päris veebirakendus, mitte ainult brauseri otsetee. CrossFit ei ole Google Play või App Store’i poeäpp.</p>';
   }
 
   function closeGuide(){
