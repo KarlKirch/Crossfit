@@ -647,7 +647,7 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible')void maintainSession();
 });
 window.addEventListener('focus',()=>{void maintainSession()});
-const sessionTimer=setInterval(()=>{
+const sessionTimer=window.setInterval?.(()=>{
   if(!document.visibilityState||document.visibilityState==='visible')void maintainSession();
 },60000);
 if(sessionTimer&&typeof sessionTimer.unref==='function')sessionTimer.unref();
