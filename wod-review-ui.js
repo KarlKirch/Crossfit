@@ -272,7 +272,7 @@
         '<input type="file" id="wodGalleryInput" accept="image/*" class="wb-file" onchange="wodFilePicked(this)">'+
         '<input type="file" id="oldWodImagesInput" accept="image/*" multiple class="wb-file" onchange="oldWodImagesPicked(this)">'+
         '<p id="wodBatchOcrProgress" class="wb-upload-message" aria-live="polite">'+(s.wodBatchOcrRunning?'Tekstimustandite loomine käib…':'Tekstimustandid vajavad alati treeneri kontrolli.')+'</p>'+
-        '<p id="wodOcrProgress" class="wb-upload-message" aria-live="polite">Uue foto tekst loetakse automaatselt, kuid vajab enne kinnitamist kontrollimist.</p>'+
+        '<p id="wodOcrProgress" class="wb-upload-message" aria-live="polite">Fotot loetakse AI-ga, kui teenuse API-võti on seadistatud; muidu lihtsama OCR-iga. Kontrolli tulemus enne kinnitamist.</p>'+
       '</div>'+
       '<div class="wb-search-panel"><label for="wbSearch">Otsi WOD-i</label>'+
         '<div class="wb-search-input">'+svg.search+

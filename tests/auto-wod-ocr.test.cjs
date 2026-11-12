@@ -89,8 +89,8 @@ test('Uue foto lisamine käivitab OCR-i ning uuesti lugemise nupp on nähtav',()
   assert.match(bank,/await makeDraft\(saved,file,true,true\)/);
   assert.match(review,/retryWodDraft\('/);
   assert.match(review,/id="wodOcrProgress"/);
-  assert.match(read('index.html'),/wod-bank\.js\?v=12/);
-  assert.match(read('sw.js'),/wod-review-ui\.js\?v=9/);
+  assert.match(read('index.html'),/wod-bank\.js\?v=13/);
+  assert.match(read('sw.js'),/wod-review-ui\.js\?v=10/);
 });
 
 test('OCR-kaootilist teksti ei kanta WOD-i kavasse ka suure confidence puhul',async()=>{
@@ -105,4 +105,13 @@ test('OCR-kaootilist teksti ei kanta WOD-i kavasse ka suure confidence puhul',as
   assert.equal(h.entry.workout_text,null);
   assert.equal(h.entry.status,'pending');
   assert.match(h.status.textContent,/WOD-i tekst jäeti tühjaks/);
+});
+
+test('AI kutsutakse enne OCR-i ja edu korral OCR jääb vahele',()=>{
+ const bank=read('wod-bank.js');
+ assert.match(bank,/window\.crossfitWodVision\?\.read\?\.\(id\)/);
+ assert.match(bank,/recognitionSource='AI'/);
+ const begin=bank.indexOf('const vision=await window.crossfitWodVision');
+ const local=bank.indexOf('const T=await loadOcr()',begin);
+ assert.ok(begin>0&&local>begin);
 });

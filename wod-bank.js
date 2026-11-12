@@ -308,14 +308,31 @@
     updateProgress('Loen fotolt WOD-i teksti…');
     if(showToast)window.toast('Loen fotolt WOD-i teksti…');
     try{
-      const T=await loadOcr();
-      const source=fileOrBlob||await downloadOriginal(entry.image_path);
-      const logger=m=>{
+      let text='';
+      let recognitionSource='OCR';
+      try{
+        updateProgress('Proovin WOD-i tehisintellektiga lugeda…');
+        const vision=await window.crossfitWodVision?.read?.(id);
+        if(vision?.text){
+          text=vision.text;
+          recognitionSource='AI';
+          if(vision.warnings)updateProgress('AI hoiatus: '+vision.warnings);
+        }else if(vision?.reason==='not_configured'){
+          updateProgress('AI pildilugemine vajab API-võtit. Proovin lihtsamat OCR-i…');
+        }
+      }catch(aiError){
+        console.warn('WOD vision failed, trying local OCR',aiError);
+        updateProgress('AI ei vastanud. Proovin telefoni OCR-i…');
+      }
+      if(!text){
+        const T=await loadOcr();
+        const source=fileOrBlob||await downloadOriginal(entry.image_path);
+        const logger=m=>{
         if(m.status==='recognizing text'&&typeof m.progress==='number')
           updateProgress('Tekstituvastus '+Math.round(m.progress*100)+'%');
       };
-      let result=await T.recognize(await prepareOcrCanvas(source,true),'eng',{logger});
-      let text=cleanBatchOcrText(result?.data?.text||'');
+        let result=await T.recognize(await prepareOcrCanvas(source,true),'eng',{logger});
+        text=cleanBatchOcrText(result?.data?.text||'');
       if(!usefulOcrText(text,result?.data?.confidence)){
         updateProgress('Proovin teksti lugeda ka originaalvärvides…');
         const plain=await T.recognize(await prepareOcrCanvas(source,false),'eng',{logger});
@@ -326,8 +343,9 @@
           text=alternative;
         }
       }
-      if(!usefulOcrText(text,result?.data?.confidence))
-        throw new Error('Pildilt ei saanud usaldusväärset WOD-teksti lugeda.');
+        if(!usefulOcrText(text,result?.data?.confidence))
+          throw new Error('Pildilt ei saanud usaldusväärset WOD-teksti lugeda.');
+      }
 
       const current=(s.wodBank||[]).find(row=>Number(row.id)===id)||entry;
       const editor=document.getElementById('wodText');
@@ -358,8 +376,11 @@
       const currentEditor=document.getElementById('wodText');
       if(s.modal==='wodDetail'&&Number(s.modalData)===id&&currentEditor&&!currentEditor.value.trim())
         currentEditor.value=text;
-      updateProgress('Tekst lisatud WOD-i kavasse. Kontrolli harjutused ja kordused enne salvestamist.');
-      if(showToast)window.toast('Tekst lisatud WOD-i kavasse. Kontrolli enne kinnitamist.');
+      updateProgress((recognitionSource==='AI'?'AI luges':'OCR tuvastas')+
+        ' fotolt WOD-i teksti. Kontrolli harjutused, kordused ja raskused enne salvestamist.');
+      if(showToast)window.toast(recognitionSource==='AI'?
+        'AI luges foto WOD-i kavasse. Kontrolli enne kinnitamist.':
+        'OCR lisas WOD-i teksti. Kontrolli enne kinnitamist.');
       return true;
     }catch(error){
       console.warn('WOD OCR failed',error);
@@ -444,7 +465,7 @@
     const review=s.wodBank.filter(x=>x.status==='review').length;
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
-      <div class="card-sub">Pärast foto lisamist loeb äpp teksti automaatselt WOD-i kavasse. Kontrolli alati harjutused ja kordused originaalfotolt; pilt säilib.</div>
+      <div class="card-sub">Äpp proovib lugeda foto AI-ga (kui serveri API on seadistatud), muidu lihtsama OCR-iga. Ebatäpset teksti ei kinnitata automaatselt. Originaalfoto säilib.</div>
       <div class="training-actions" style="margin-top:12px">
         <button class="btn btn-primary" onclick="pickWodCamera()">Tee pilt</button>
         <button class="btn btn-soft" onclick="pickWodGallery()">Vali galeriist</button>
