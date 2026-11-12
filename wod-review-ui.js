@@ -272,7 +272,7 @@
         '<input type="file" id="wodGalleryInput" accept="image/*" class="wb-file" onchange="wodFilePicked(this)">'+
         '<input type="file" id="oldWodImagesInput" accept="image/*" multiple class="wb-file" onchange="oldWodImagesPicked(this)">'+
         '<p id="wodBatchOcrProgress" class="wb-upload-message" aria-live="polite">'+(s.wodBatchOcrRunning?'Tekstimustandite loomine käib…':'Tekstimustandid vajavad alati treeneri kontrolli.')+'</p>'+
-        '<p id="wodOcrProgress" class="wb-upload-message" aria-live="polite"></p>'+
+        '<p id="wodOcrProgress" class="wb-upload-message" aria-live="polite">Uue foto tekst loetakse automaatselt, kuid vajab enne kinnitamist kontrollimist.</p>'+
       '</div>'+
       '<div class="wb-search-panel"><label for="wbSearch">Otsi WOD-i</label>'+
         '<div class="wb-search-input">'+svg.search+
@@ -321,11 +321,14 @@
       '<input id="wodTitle" maxlength="120" value="'+esc(window.wodEditableTitle?.(entry.title)||'')+'"></div></div>'+
       '<div class="field"><label for="wodText">WOD-i kava</label>'+
       '<textarea id="wodText" placeholder="Kirjuta või paranda kava siin..." spellcheck="false">'+esc(text)+'</textarea>'+
-      '<p class="wb-editor-hint">Vajadusel võrdle teksti originaalfotoga. Kõiki vanu kavasid pole fotolt käsitsi kontrollitud.</p>'+
+      '<p id="wodOcrProgress" class="wb-editor-hint" role="status" aria-live="polite">'+
+         (entry.status==='pending'&&!text?'Fotolt teksti lugemine võib veidi aega võtta. Kui lugemine ebaõnnestub, kasuta allolevat nuppu.':
+          'Kontrolli tuvastatud harjutused, kordused ja raskused originaalfotolt enne salvestamist.')+'</p>'+
       '</div>'+
       '<div class="wb-simple-actions">'+
         '<button type="button" class="wb-secondary" onclick="crossfitWodUI.saveText()">Salvesta WOD</button>'+
         '<button type="button" class="wb-secondary" onclick="copyWodText('+id+')">Kopeeri tekst</button>'+
+         (entry.image_path?'<button type="button" class="wb-secondary" onclick="retryWodDraft('+id+')">Loe fotolt tekst uuesti</button>':'')+
       '</div>'+choose+
       '<div class="wb-new-session"><button type="button" class="wb-secondary" onclick="crossfitWodUI.useNew()">Loo selle WOD-iga uus treening</button></div>'+
       '<details class="wb-advanced-actions"><summary>Muud toimingud</summary>'+
