@@ -1,0 +1,27 @@
+name: WOD AI teenuse olek
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/wod-ai-service-check.yml'
+      - 'wod-vision.js'
+      - 'supabase/functions/rcf-wod-vision/index.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Kontrolli AI teenuse seadistust
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kontrolli ainult teenuse olekut, mitte API võtit
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(curl --fail --silent --show-error --max-time 15 \
+            'https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rcf-wod-vision')
+          echo "$response" | jq '{service, configured, model}'
+          echo "$response" | jq -e '.configured == true or .configured == false' >/dev/null
