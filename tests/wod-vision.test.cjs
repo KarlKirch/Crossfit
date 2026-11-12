@@ -14,7 +14,7 @@ test('AI only sends saved WOD ID and keeps API key on server',()=>{
 });
 test('WOD AI script loads before WOD bank script and is cached',()=>{
  const html=read('index.html'),sw=read('sw.js');
- assert.ok(html.indexOf('wod-vision.js?v=1')<html.indexOf('wod-bank.js?v=13'));
+ assert.ok(html.indexOf('wod-vision.js?v=1')<html.indexOf('wod-bank.js?v=14'));
  assert.match(sw,/wod-vision\.js\?v=1/);
- assert.match(read('app.js'),/const APP_VERSION='6\.3\.0'/);
+ assert.match(read('app.js'),/const APP_VERSION='6\.3\.1'/);
 });

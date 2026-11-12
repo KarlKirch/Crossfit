@@ -310,6 +310,7 @@
     try{
       let text='';
       let recognitionSource='OCR';
+      let aiNotConfigured=false;
       try{
         updateProgress('Proovin WOD-i tehisintellektiga lugeda…');
         const vision=await window.crossfitWodVision?.read?.(id);
@@ -318,7 +319,8 @@
           recognitionSource='AI';
           if(vision.warnings)updateProgress('AI hoiatus: '+vision.warnings);
         }else if(vision?.reason==='not_configured'){
-          updateProgress('AI pildilugemine vajab API-võtit. Proovin lihtsamat OCR-i…');
+          aiNotConfigured=true;
+          updateProgress('AI pildilugemine ei ole veel aktiveeritud (OPENAI_API_KEY puudub). Proovin lihtsamat OCR-i…');
         }
       }catch(aiError){
         console.warn('WOD vision failed, trying local OCR',aiError);
@@ -385,10 +387,14 @@
     }catch(error){
       console.warn('WOD OCR failed',error);
       const lowQuality=/usaldusväärset/.test(String(error?.message||''));
-      updateProgress(lowQuality?
+      updateProgress(aiNotConfigured?
+        'AI pildilugemine pole veel aktiveeritud: serveris puudub OPENAI_API_KEY. Lihtne OCR ei suutnud fotot lugeda. Originaalfoto säilis.':
+        lowQuality?
         'Foto säilis, kuid käsikirja ei õnnestunud usaldusväärselt lugeda. WOD-i tekst jäeti tühjaks. Sisesta vajadusel käsitsi.':
         'Teksti lugemine ei õnnestunud. Originaalfoto säilis; proovi uuesti või sisesta kava käsitsi.');
-      if(showToast)window.toast(lowQuality?
+      if(showToast)window.toast(aiNotConfigured?
+        'AI lugemine vajab serveris API-võtit; lihtne OCR ei suutnud käsikirja lugeda.':
+        lowQuality?
         'OCR-i tulemus oli ebatäpne – seda ei lisatud WOD-i kavasse.':
         'Foto salvestatud, kuid teksti ei õnnestunud lugeda. Proovi uuesti.');
       return false;

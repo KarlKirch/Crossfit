@@ -89,7 +89,7 @@ test('Uue foto lisamine käivitab OCR-i ning uuesti lugemise nupp on nähtav',()
   assert.match(bank,/await makeDraft\(saved,file,true,true\)/);
   assert.match(review,/retryWodDraft\('/);
   assert.match(review,/id="wodOcrProgress"/);
-  assert.match(read('index.html'),/wod-bank\.js\?v=13/);
+  assert.match(read('index.html'),/wod-bank\.js\?v=14/);
   assert.match(read('sw.js'),/wod-review-ui\.js\?v=10/);
 });
 
