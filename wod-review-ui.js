@@ -323,7 +323,7 @@
       '<textarea id="wodText" placeholder="Kirjuta või paranda kava siin..." spellcheck="false">'+esc(text)+'</textarea>'+
       '<p id="wodOcrProgress" class="wb-editor-hint" role="status" aria-live="polite">'+
          (entry.status==='pending'&&!text?'Fotolt teksti lugemine võib veidi aega võtta. Kui lugemine ebaõnnestub, kasuta allolevat nuppu.':
-          'Kontrolli tuvastatud harjutused, kordused ja raskused originaalfotolt enne salvestamist.')+'</p>'+
+          'Kontrolli tuvastatud harjutused, kordused ja raskused originaalfotolt enne salvestamist. Käsikirjalise tahvli puhul võib OCR eksida.')+'</p>'+
       '</div>'+
       '<div class="wb-simple-actions">'+
         '<button type="button" class="wb-secondary" onclick="crossfitWodUI.saveText()">Salvesta WOD</button>'+

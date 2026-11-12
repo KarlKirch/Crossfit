@@ -256,10 +256,19 @@
     if(enhance){
       const img=ctx.getImageData(0,0,outW,outH);
       const d=img.data;
-      const contrast=1.55;
+      // Tesseract loeb tumedat kirja heledal pinnal paremini.
+      // Tumeda tahvli valge kriidikiri pööratakse vajadusel ümber.
+      let sum=0,samples=0;
+      for(let i=0;i<d.length;i+=64){
+        sum+=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        samples++;
+      }
+      const darkBoard=samples>0&&sum/samples<120;
+      const contrast=1.42;
       for(let i=0;i<d.length;i+=4){
         const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        const v=Math.max(0,Math.min(255,(gray-128)*contrast+150));
+        const adjusted=darkBoard?255-gray:gray;
+        const v=Math.max(0,Math.min(255,(adjusted-128)*contrast+150));
         d[i]=d[i+1]=d[i+2]=v;
       }
       ctx.putImageData(img,0,0);
@@ -268,10 +277,7 @@
   }
 
   function usefulOcrText(text,confidence){
-    const clean=String(text||'').trim();
-    const letters=(clean.match(/[A-Za-zÀ-ž0-9]/g)||[]).length;
-    const words=(clean.match(/[A-Za-zÀ-ž]{2,}/g)||[]).length;
-    return clean.length>=12&&letters>=8&&words>=2&&(Number(confidence)||0)>=18;
+    return window.crossfitWodOcrQuality?.evaluate(text,confidence).ok===true;
   }
 
   function loadOcr(){
@@ -321,7 +327,7 @@
         }
       }
       if(!usefulOcrText(text,result?.data?.confidence))
-        throw new Error('Pildilt ei saanud piisavalt usaldusväärset teksti lugeda.');
+        throw new Error('Pildilt ei saanud usaldusväärset WOD-teksti lugeda.');
 
       const current=(s.wodBank||[]).find(row=>Number(row.id)===id)||entry;
       const editor=document.getElementById('wodText');
@@ -357,8 +363,13 @@
       return true;
     }catch(error){
       console.warn('WOD OCR failed',error);
-      updateProgress('Teksti lugemine ei õnnestunud. Originaalfoto säilis; proovi uuesti või sisesta kava käsitsi.');
-      if(showToast)window.toast('Foto salvestatud, kuid teksti ei õnnestunud lugeda. Proovi uuesti.');
+      const lowQuality=/usaldusväärset/.test(String(error?.message||''));
+      updateProgress(lowQuality?
+        'Foto säilis, kuid käsikirja ei õnnestunud usaldusväärselt lugeda. WOD-i tekst jäeti tühjaks. Sisesta vajadusel käsitsi.':
+        'Teksti lugemine ei õnnestunud. Originaalfoto säilis; proovi uuesti või sisesta kava käsitsi.');
+      if(showToast)window.toast(lowQuality?
+        'OCR-i tulemus oli ebatäpne – seda ei lisatud WOD-i kavasse.':
+        'Foto salvestatud, kuid teksti ei õnnestunud lugeda. Proovi uuesti.');
       return false;
     }finally{
       s.wodOcrBusy=false;

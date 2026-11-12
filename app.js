@@ -5,7 +5,7 @@ const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.2.8';
+const APP_VERSION='6.2.9';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -443,7 +443,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=99',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=100',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render();return true}catch(e){toast(e.message);return false}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -493,7 +493,7 @@ function waitForInstalledWorker(reg,timeoutMs=16000){
 async function setupServiceWorker(){
   if(!('serviceWorker'in navigator))return;
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js?v=99',{
+    const reg=await navigator.serviceWorker.register('./sw.js?v=100',{
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
@@ -541,7 +541,7 @@ async function updateAppNow(){
   try{
     if(navigator.onLine===false)throw new Error('Uuendamiseks on vaja internetiühendust.');
     if(!('serviceWorker'in navigator)){
-      location.assign('./?version=99&refresh='+Date.now());
+      location.assign('./?version=100&refresh='+Date.now());
       return;
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
@@ -578,7 +578,7 @@ async function updateAppNow(){
       return;
     }
     // Kui worker on juba uus, võib brauseri HTML olla ikkagi vana.
-    location.assign('./?version=99&refresh='+Date.now());
+    location.assign('./?version=100&refresh='+Date.now());
   }catch(error){
     console.warn('PWA käsitsi uuendamine ebaõnnestus',error);
     updateHelp(error?.message||'Uuendamine ei õnnestunud. Ava parandamise juhis.');

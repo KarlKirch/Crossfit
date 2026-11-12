@@ -31,11 +31,12 @@ function setup(opts={}){
     prepareOcrCanvas:async()=>({}),
     downloadOriginal:async()=>({}),
     cleanBatchOcrText:raw=>String(raw||'').trim(),
-    usefulOcrText:(text,confidence)=>text.length>=12&&confidence>=18,
+    usefulOcrText:(text,confidence)=>context.window.crossfitWodOcrQuality.evaluate(text,confidence).ok,
     console:{warn(){}},
     Date,Number
   };
   vm.createContext(context);
+  vm.runInContext(read('wod-ocr-quality.js'),context);
   vm.runInContext(fn+'\nthis.makeDraft=makeDraft;',context);
   return {entry,s,editor,status,calls,notices,run:context.makeDraft,
     setRecognition:fn=>{recognition=fn}};
@@ -88,6 +89,20 @@ test('Uue foto lisamine käivitab OCR-i ning uuesti lugemise nupp on nähtav',()
   assert.match(bank,/await makeDraft\(saved,file,true,true\)/);
   assert.match(review,/retryWodDraft\('/);
   assert.match(review,/id="wodOcrProgress"/);
-  assert.match(read('index.html'),/wod-bank\.js\?v=11/);
-  assert.match(read('sw.js'),/wod-review-ui\.js\?v=8/);
+  assert.match(read('index.html'),/wod-bank\.js\?v=12/);
+  assert.match(read('sw.js'),/wod-review-ui\.js\?v=9/);
+});
+
+test('OCR-kaootilist teksti ei kanta WOD-i kavasse ka suure confidence puhul',async()=>{
+  const h=setup();
+  h.setRecognition(async()=>({data:{
+    text:'i ie 2 35355 3 : i\\ni 4 ol 8 Oy | ¢ 5 Jee\\n1 : PRX |S = 5 Ga po\\nHi | $33 © © oo wr',
+    confidence:93
+  }}));
+  const ok=await h.run(h.entry,{},true,true);
+  assert.equal(ok,false);
+  assert.equal(h.calls.length,0);
+  assert.equal(h.entry.workout_text,null);
+  assert.equal(h.entry.status,'pending');
+  assert.match(h.status.textContent,/WOD-i tekst jäeti tühjaks/);
 });
