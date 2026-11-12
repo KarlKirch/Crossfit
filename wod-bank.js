@@ -301,6 +301,7 @@
     const id=Number(entry.id);
     if(!Number.isSafeInteger(id)||id<1)return false;
     s.wodOcrBusy=true;
+    let aiNotConfigured=false;
     const updateProgress=message=>{
       const element=document.getElementById('wodOcrProgress');
       if(element)element.textContent=message;
@@ -310,7 +311,6 @@
     try{
       let text='';
       let recognitionSource='OCR';
-      let aiNotConfigured=false;
       try{
         updateProgress('Proovin WOD-i tehisintellektiga lugeda…');
         const vision=await window.crossfitWodVision?.read?.(id);
