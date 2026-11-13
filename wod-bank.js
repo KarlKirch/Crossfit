@@ -7,7 +7,6 @@
   const SB_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
   const SB_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
   const BUCKET='wod-bank';
-  const OCR_SRC='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
   const baseLoadData=window.loadData;
   const baseRenderMore=window.renderMore;
@@ -17,14 +16,9 @@
   const baseBackdropClose=window.backdropClose;
 
   s.wodBank=s.wodBank||[];
-  s.wodOcrBusy=false;
-  s.wodBatchOcrRunning=false;
-  s.wodBatchOcrDone=0;
-  s.wodBatchOcrTotal=0;
   s.wodBankScrollTop=s.wodBankScrollTop||0;
 
   const imageUrlCache=new Map();
-  let ocrLoadPromise=null;
 
   const bankIcon='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>';
   const cameraIcon='<svg viewBox="0 0 24 24"><path d="M4 7h4l1.5-2h5L16 7h4v12H4V7Z"/><circle cx="12" cy="13" r="4"/></svg>';
@@ -134,40 +128,6 @@
     return blob;
   }
 
-  async function downloadOriginalUncached(path){
-    const r=await storageRequest(`${SB_URL}/storage/v1/object/authenticated/${BUCKET}/${encPath(path)}`,{
-      headers:authHeaders()
-    });
-    return await r.blob();
-  }
-
-  function cleanBatchOcrText(raw){
-    const exerciseWords=/\b(warm|strength|metcon|amrap|emom|round|rounds|reps|rep|for time|time cap|deadlift|squat|press|push|pull|burpee|swing|snatch|clean|thruster|lunge|sit|box|wall|run|row|bike|ski|jump|plank|carry|kettlebell|kb|db|barbell|front|back|overhead|ohs|toes|t2b|v-up|muscle|crawl|shuttle|cal|meter|metre|min|sec|rest|partner|team)\b/i;
-    const resultLine=/^[A-Za-zÀ-ž][A-Za-zÀ-ž .'-]{1,22}\s*[-–:]\s*\d+(?:[.,:]\d+)?(?:\s*[/x]\s*\d+(?:[.,]\d+)?)?(?:\s*(?:kg|pb|ob))?\s*$/i;
-    return String(raw||'')
-      .replace(/\r/g,'')
-      .split('\n')
-      .map(x=>x.replace(/[ \t]+$/,'').trimEnd())
-      .filter(line=>{
-        const t=line.trim();
-        if(!t) return true;
-        if(resultLine.test(t)&&!exerciseWords.test(t)) return false;
-        return true;
-      })
-      .join('\n')
-      .replace(/\n{3,}/g,'\n\n')
-      .trim();
-  }
-
-  function updateBatchOcrProgress(message){
-    const el=document.getElementById('wodBatchOcrProgress');
-    if(el) el.textContent=message||'';
-  }
-
-  function hasMeaningfulDraft(value){
-    return String(value||'').replace(/[\u200B-\u200D\uFEFF]/g,'').trim().length>0;
-  }
-
   async function getImageUrl(path){
     const cached=imageUrlCache.get(path);
     if(cached?.url) return cached.url;
@@ -184,223 +144,6 @@
     const cached=imageUrlCache.get(path);
     if(cached?.url) URL.revokeObjectURL(cached.url);
     imageUrlCache.delete(path);
-  }
-
-  async function readExifOrientation(blob){
-    try{
-      const buf=await blob.slice(0,128*1024).arrayBuffer();
-      const v=new DataView(buf);
-      if(v.getUint16(0,false)!==0xFFD8) return 1;
-      let offset=2;
-      while(offset+4<v.byteLength){
-        if(v.getUint8(offset)!==0xFF){offset++;continue}
-        const marker=v.getUint8(offset+1);
-        if(marker===0xDA||marker===0xD9) break;
-        const len=v.getUint16(offset+2,false);
-        if(marker===0xE1&&offset+2+len<=v.byteLength){
-          const exif=offset+4;
-          if(v.getUint32(exif,false)===0x45786966){
-            const tiff=exif+6;
-            const little=v.getUint16(tiff,false)===0x4949;
-            const firstIfd=tiff+v.getUint32(tiff+4,little);
-            const count=v.getUint16(firstIfd,little);
-            for(let i=0;i<count;i++){
-              const e=firstIfd+2+i*12;
-              if(e+12>v.byteLength) break;
-              if(v.getUint16(e,little)===0x0112){
-                const o=v.getUint16(e+8,little);
-                return [1,3,6,8].includes(o)?o:1;
-              }
-            }
-          }
-        }
-        offset+=2+len;
-      }
-    }catch(_){}
-    return 1;
-  }
-
-  async function prepareOcrCanvas(blob,enhance=true){
-    const orientation=await readExifOrientation(blob);
-    let bitmap;
-    try{
-      bitmap=await createImageBitmap(blob,{imageOrientation:'none'});
-    }catch(_){
-      bitmap=await createImageBitmap(blob);
-    }
-    const rawW=bitmap.width, rawH=bitmap.height;
-    const swap=orientation===6||orientation===8;
-    const orientedW=swap?rawH:rawW;
-    const orientedH=swap?rawW:rawH;
-    const scale=Math.min(1,2200/Math.max(orientedW,orientedH));
-    const outW=Math.max(1,Math.round(orientedW*scale));
-    const outH=Math.max(1,Math.round(orientedH*scale));
-    const canvas=document.createElement('canvas');
-    canvas.width=outW;canvas.height=outH;
-    const ctx=canvas.getContext('2d',{willReadFrequently:enhance});
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH);
-    ctx.save();
-    if(orientation===6){
-      ctx.translate(outW,0);ctx.rotate(Math.PI/2);ctx.scale(scale,scale);
-    }else if(orientation===8){
-      ctx.translate(0,outH);ctx.rotate(-Math.PI/2);ctx.scale(scale,scale);
-    }else if(orientation===3){
-      ctx.translate(outW,outH);ctx.rotate(Math.PI);ctx.scale(scale,scale);
-    }else{
-      ctx.scale(scale,scale);
-    }
-    ctx.drawImage(bitmap,0,0);
-    ctx.restore();
-    bitmap.close?.();
-
-    if(enhance){
-      const img=ctx.getImageData(0,0,outW,outH);
-      const d=img.data;
-      // Tesseract loeb tumedat kirja heledal pinnal paremini.
-      // Tumeda tahvli valge kriidikiri pööratakse vajadusel ümber.
-      let sum=0,samples=0;
-      for(let i=0;i<d.length;i+=64){
-        sum+=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        samples++;
-      }
-      const darkBoard=samples>0&&sum/samples<120;
-      const contrast=1.42;
-      for(let i=0;i<d.length;i+=4){
-        const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        const adjusted=darkBoard?255-gray:gray;
-        const v=Math.max(0,Math.min(255,(adjusted-128)*contrast+150));
-        d[i]=d[i+1]=d[i+2]=v;
-      }
-      ctx.putImageData(img,0,0);
-    }
-    return canvas;
-  }
-
-  function usefulOcrText(text,confidence){
-    return window.crossfitWodOcrQuality?.evaluate(text,confidence).ok===true;
-  }
-
-  function loadOcr(){
-    if(window.Tesseract) return Promise.resolve(window.Tesseract);
-    if(ocrLoadPromise) return ocrLoadPromise;
-    ocrLoadPromise=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');
-      script.src=OCR_SRC;
-      script.async=true;
-      script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Tekstituvastuse moodul ei käivitunud'));
-      script.onerror=()=>reject(new Error('Tekstituvastuse moodulit ei saanud laadida'));
-      document.head.appendChild(script);
-    }).catch(e=>{ocrLoadPromise=null;throw e});
-    return ocrLoadPromise;
-  }
-
-  // Automaatne lugemine on ainult mustand. Ei kinnita ega kirjuta üle
-  // vahepeal käsitsi muudetud WOD-i; tingimus kontrollitakse ka andmebaasis.
-  async function makeDraft(entry,fileOrBlob=null,showToast=true,automatic=false){
-    if(!entry||s.wodOcrBusy)return false;
-    const id=Number(entry.id);
-    if(!Number.isSafeInteger(id)||id<1)return false;
-    s.wodOcrBusy=true;
-    let aiNotConfigured=false;
-    const updateProgress=message=>{
-      const element=document.getElementById('wodOcrProgress');
-      if(element)element.textContent=message;
-    };
-    updateProgress('Loen fotolt WOD-i teksti…');
-    if(showToast)window.toast('Loen fotolt WOD-i teksti…');
-    try{
-      let text='';
-      let recognitionSource='OCR';
-      try{
-        updateProgress('Proovin WOD-i tehisintellektiga lugeda…');
-        const vision=await window.crossfitWodVision?.read?.(id);
-        if(vision?.text){
-          text=vision.text;
-          recognitionSource='AI';
-          if(vision.warnings)updateProgress('AI hoiatus: '+vision.warnings);
-        }else if(vision?.reason==='not_configured'){
-          aiNotConfigured=true;
-          updateProgress('AI pildilugemine ei ole veel aktiveeritud (OPENAI_API_KEY puudub). Proovin lihtsamat OCR-i…');
-        }
-      }catch(aiError){
-        console.warn('WOD vision failed, trying local OCR',aiError);
-        updateProgress('AI ei vastanud. Proovin telefoni OCR-i…');
-      }
-      if(!text){
-        const T=await loadOcr();
-        const source=fileOrBlob||await downloadOriginal(entry.image_path);
-        const logger=m=>{
-        if(m.status==='recognizing text'&&typeof m.progress==='number')
-          updateProgress('Tekstituvastus '+Math.round(m.progress*100)+'%');
-      };
-        let result=await T.recognize(await prepareOcrCanvas(source,true),'eng',{logger});
-        text=cleanBatchOcrText(result?.data?.text||'');
-      if(!usefulOcrText(text,result?.data?.confidence)){
-        updateProgress('Proovin teksti lugeda ka originaalvärvides…');
-        const plain=await T.recognize(await prepareOcrCanvas(source,false),'eng',{logger});
-        const alternative=cleanBatchOcrText(plain?.data?.text||'');
-        if(usefulOcrText(alternative,plain?.data?.confidence)||
-           Number(plain?.data?.confidence||0)>Number(result?.data?.confidence||0)){
-          result=plain;
-          text=alternative;
-        }
-      }
-        if(!usefulOcrText(text,result?.data?.confidence))
-          throw new Error('Pildilt ei saanud usaldusväärset WOD-teksti lugeda.');
-      }
-
-      const current=(s.wodBank||[]).find(row=>Number(row.id)===id)||entry;
-      const editor=document.getElementById('wodText');
-      const editorInUse=s.modal==='wodDetail'&&Number(s.modalData)===id;
-      const hasEditedText=editorInUse&&Boolean(editor?.value?.trim());
-      const patch={draft_text:text,updated_at:new Date().toISOString()};
-      if(automatic){
-        patch.workout_text=text;
-        patch.status='review';
-      }else{
-        // Uuesti lugedes säilib kinnitatud või käsitsi parandatud kava.
-        if(!String(current.workout_text||'').trim()&&!hasEditedText&&current.status!=='ready')
-          patch.workout_text=text;
-        if(current.status!=='ready')patch.status='review';
-      }
-      const guard=automatic?'&status=eq.pending&workout_text=is.null&draft_text=is.null':'';
-      const rows=await window.api('wod_bank_entries?id=eq.'+id+guard,{
-        method:'PATCH',
-        headers:{Prefer:'return=representation'},
-        body:JSON.stringify(patch)
-      });
-      if(automatic&&Array.isArray(rows)&&!rows.length){
-        updateProgress('WOD-i on juba muudetud. Olemasolevat kava ei asendatud.');
-        return false;
-      }
-      Object.assign(current,patch);
-      if(current!==entry)Object.assign(entry,patch);
-      const currentEditor=document.getElementById('wodText');
-      if(s.modal==='wodDetail'&&Number(s.modalData)===id&&currentEditor&&!currentEditor.value.trim())
-        currentEditor.value=text;
-      updateProgress((recognitionSource==='AI'?'AI luges':'OCR tuvastas')+
-        ' fotolt WOD-i teksti. Kontrolli harjutused, kordused ja raskused enne salvestamist.');
-      if(showToast)window.toast(recognitionSource==='AI'?
-        'AI luges foto WOD-i kavasse. Kontrolli enne kinnitamist.':
-        'OCR lisas WOD-i teksti. Kontrolli enne kinnitamist.');
-      return true;
-    }catch(error){
-      console.warn('WOD OCR failed',error);
-      const lowQuality=/usaldusväärset/.test(String(error?.message||''));
-      updateProgress(aiNotConfigured?
-        'AI pildilugemine pole veel aktiveeritud: serveris puudub OPENAI_API_KEY. Lihtne OCR ei suutnud fotot lugeda. Originaalfoto säilis.':
-        lowQuality?
-        'Foto säilis, kuid käsikirja ei õnnestunud usaldusväärselt lugeda. WOD-i tekst jäeti tühjaks. Sisesta vajadusel käsitsi.':
-        'Teksti lugemine ei õnnestunud. Originaalfoto säilis; proovi uuesti või sisesta kava käsitsi.');
-      if(showToast)window.toast(aiNotConfigured?
-        'AI lugemine vajab serveris API-võtit; lihtne OCR ei suutnud käsikirja lugeda.':
-        lowQuality?
-        'OCR-i tulemus oli ebatäpne – seda ei lisatud WOD-i kavasse.':
-        'Foto salvestatud, kuid teksti ei õnnestunud lugeda. Proovi uuesti.');
-      return false;
-    }finally{
-      s.wodOcrBusy=false;
-    }
   }
 
   window.loadData=async function(){
@@ -471,18 +214,18 @@
     const review=s.wodBank.filter(x=>x.status==='review').length;
     return `<div class="card">
       <div class="card-title">Privaatne WOD-pank</div>
-      <div class="card-sub">Äpp proovib lugeda foto AI-ga (kui serveri API on seadistatud), muidu lihtsama OCR-iga. Ebatäpset teksti ei kinnitata automaatselt. Originaalfoto säilib.</div>
+      <div class="card-sub">Lisa foto galeriist või pildista tahvlit. Foto salvestatakse ka tühja WOD-i kavaga ning teksti võid hiljem käsitsi juurde kirjutada.</div>
       <div class="training-actions" style="margin-top:12px">
         <button class="btn btn-primary" onclick="pickWodCamera()">Tee pilt</button>
         <button class="btn btn-soft" onclick="pickWodGallery()">Vali galeriist</button>
       </div>
       <input id="wodCameraInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="wodFilePicked(this)">
       <input id="wodGalleryInput" type="file" accept="image/*" style="display:none" onchange="wodFilePicked(this)">
-      <div id="wodOcrProgress" class="card-sub" style="margin-top:8px"></div>
+      <div class="card-sub" style="margin-top:8px">Teksti lisamine on vabatahtlik. Automaatset pildilugemist ei kasutata.</div>
     </div>
     <div class="metric-grid" style="margin-top:12px">
       ${window.metric(s.wodBank.length,'WOD-i')}
-      ${window.metric(pending,'Töötlemata')}
+      ${window.metric(pending,'Tekstita fotot')}
       ${window.metric(review,'Vajab ülevaatust')}
     </div>
     <div class="section"><h2>Treeningud</h2><small>${s.wodBank.length}</small></div>
@@ -506,15 +249,13 @@
           <div class="field"><label>Pealkiri</label><input id="wodTitle" maxlength="120" value="${window.esc(wodEditableTitle(e.title))}"></div>
         </div>
         <div class="field">
-          <label>Lõplik WOD-tekst</label>
-          <textarea id="wodText" style="min-height:260px" placeholder="Paranda või täienda teksti siin...">${window.esc(e.workout_text||e.draft_text||'')}</textarea>
+          <label>WOD-i kava (valikuline)</label>
+          <textarea id="wodText" style="min-height:260px" placeholder="Lisa soovi korral kava käsitsi. Võid jätta tühjaks.">${window.esc(e.workout_text||e.draft_text||'')}</textarea>
         </div>
-        ${e.draft_text?`<details class="card" style="box-shadow:none"><summary style="cursor:pointer;font-weight:700">Vaata automaatset algmustandit</summary><div class="card-sub" style="white-space:pre-wrap;margin-top:10px">${window.esc(e.draft_text)}</div></details>`:''}
-        <div id="wodOcrProgress" class="card-sub"></div>
+        <p class="card-sub">Originaalfoto säilib ka siis, kui jätad tekstivälja tühjaks.</p>
         <div class="form-actions">
           <button class="btn btn-dark" onclick="copyWodText(${e.id})">Kopeeri kogu WOD</button>\n          <button class="btn btn-primary" onclick="saveWodEntry(${e.id},true)">Kinnita valmis</button>
-          <button class="btn btn-soft" onclick="saveWodEntry(${e.id},false)">Salvesta mustand</button>
-          <button class="btn btn-soft" onclick="retryWodDraft(${e.id})">Loo tekstimustand uuesti</button>
+          <button class="btn btn-soft" onclick="saveWodEntry(${e.id},false)">Salvesta foto / mustand</button>
         </div>
         <div class="training-actions">
           <button class="btn btn-dark" onclick="useWodInTraining(${e.id})" ${(e.workout_text||e.draft_text||'').trim()?'':'disabled'}>Kasuta treeningus</button>
@@ -541,100 +282,6 @@
       }
     }));
   }
-
-  window.buildAllWodDrafts=async function(){
-    if(!window.isTrainer()||s.wodBatchOcrRunning) return;
-    const queue=s.wodBank.filter(e=>e.image_path&&!hasMeaningfulDraft(e.draft_text));
-    if(!queue.length){
-      updateBatchOcrProgress('Kõigil piltidel on tekstimustand olemas.');
-      return;
-    }
-
-    s.wodBatchOcrRunning=true;
-    s.wodBatchOcrDone=0;
-    s.wodBatchOcrTotal=queue.length;
-    updateBatchOcrProgress(`Valmistan tekstimustandeid: 0 / ${queue.length}`);
-
-    let worker=null;
-    let wakeLock=null;
-    try{
-      try{wakeLock=await navigator.wakeLock?.request('screen')}catch(_){}
-      const T=await loadOcr();
-      worker=await T.createWorker('eng',1,{
-        logger:m=>{
-          if(m.status==='recognizing text'&&typeof m.progress==='number'){
-            const pct=Math.round(m.progress*100);
-            updateBatchOcrProgress(`Tekstimustandid ${s.wodBatchOcrDone} / ${s.wodBatchOcrTotal} · praegune pilt ${pct}%`);
-          }
-        }
-      });
-      await worker.setParameters({
-        tessedit_pageseg_mode:'11',
-        preserve_interword_spaces:'1'
-      });
-
-      for(const entry of queue){
-        try{
-          const blob=await downloadOriginalUncached(entry.image_path);
-          const canvas=await prepareOcrCanvas(blob,true);
-          let result=await worker.recognize(canvas);
-          let text=cleanBatchOcrText(result?.data?.text||'');
-
-          if(!usefulOcrText(text,result?.data?.confidence)){
-            const plain=await prepareOcrCanvas(blob,false);
-            const retry=await worker.recognize(plain);
-            if((Number(retry?.data?.confidence)||0)>(Number(result?.data?.confidence)||0)){
-              result=retry;
-              text=cleanBatchOcrText(retry?.data?.text||'');
-            }
-          }
-          if(!usefulOcrText(text,result?.data?.confidence)){
-            throw new Error('OCR confidence too low');
-          }
-
-          const keepWorkout=String(entry.workout_text||'').trim();
-          await window.api(`wod_bank_entries?id=eq.${entry.id}`,{
-            method:'PATCH',
-            headers:{Prefer:'return=minimal'},
-            body:JSON.stringify({
-              draft_text:text,
-              workout_text:keepWorkout||text,
-              status:entry.status==='ready'?'ready':'review',
-              updated_at:new Date().toISOString()
-            })
-          });
-
-          entry.draft_text=text;
-          if(!keepWorkout) entry.workout_text=text;
-          if(entry.status!=='ready') entry.status='review';
-        }catch(err){
-          console.warn('WOD batch OCR failed',entry?.id,err);
-          // Madala kvaliteediga OCR-i ei salvestata prügitekstina.
-          // Kirje jääb töötlemata ja järgmine käivitus võib uuesti proovida.
-          entry._ocrFailed=true;
-        }
-
-        s.wodBatchOcrDone++;
-        updateBatchOcrProgress(`Valmistan tekstimustandeid: ${s.wodBatchOcrDone} / ${s.wodBatchOcrTotal}`);
-        await new Promise(resolve=>setTimeout(resolve,20));
-      }
-
-      await window.reloadData('Kõik WOD-i tekstimustandid on loodud');
-      if(s.modal==='wodBank'){
-        window.render();
-        queueHydrate();
-        restoreWodBankScroll();
-      }
-    }catch(err){
-      console.warn('WOD batch OCR stopped',err);
-      updateBatchOcrProgress('Tekstimustandite loomine peatus. Ava WOD-pank uuesti, et jätkata.');
-      window.toast('Tekstimustandite loomine peatus. Jätkame järgmisel avamisel.');
-    }finally{
-      if(worker) await worker.terminate().catch(()=>{});
-      try{await wakeLock?.release()}catch(_){}
-      s.wodBatchOcrRunning=false;
-    }
-  };
 
   function pushWodHistory(kind,id=null){
     const current=history.state||{};
@@ -785,9 +432,7 @@
       window.render();
       queueHydrate();
 
-      // Originaalfoto säilib, OCR täidab WOD-i kava kontrollitava mustandina.
-      const saved=s.wodBank.find(row=>Number(row.id)===Number(s.modalData));
-      if(saved)await makeDraft(saved,file,true,true);
+      // Originaalfoto jääb alles, WOD-i teksti võib lisada hiljem käsitsi.
     }catch(e){
       window.toast(e.message||'Pildi salvestamine ebaõnnestus');
       console.warn(e);
@@ -819,24 +464,20 @@
     const title=document.getElementById('wodTitle')?.value.trim()||'WOD';
     const workout=document.getElementById('wodText')?.value.trim()||null;
     if(ready&&!workout){window.toast('Kinnitamiseks lisa WOD-i tekst või paranda see originaalpildi põhjal.');return}
-    const status=ready?'ready':'review';
+    const status=ready?'ready':(workout?'review':'pending');
     try{
       await window.api(`wod_bank_entries?id=eq.${id}`,{
         method:'PATCH',
         headers:{Prefer:'return=minimal'},
         body:JSON.stringify({
           source_date:sourceDate,title,workout_text:workout,status,
+          ...(workout?{}:{draft_text:null}),
           updated_at:new Date().toISOString()
         })
       });
-      await window.reloadData(ready?'WOD kinnitatud':'WOD salvestatud');
+      await window.reloadData(ready?'WOD kinnitatud':(workout?'WOD salvestatud':'Foto salvestatud – saad teksti hiljem lisada'));
       s.modal='wodDetail';s.modalData=id;window.render();queueHydrate();
     }catch(err){window.toast(err.message||'Salvestamine ebaõnnestus')}
-  };
-
-  window.retryWodDraft=async function(id){
-    const e=s.wodBank.find(x=>x.id===id);
-    if(e) await makeDraft(e,null,true);
   };
 
   window.useWodInTraining=function(id){
@@ -880,7 +521,7 @@
 
   Object.assign(window,{
     openWodBank,openWodEntry,pickWodCamera,pickWodGallery,wodFilePicked,
-    saveWodEntry,retryWodDraft,useWodInTraining,deleteWodEntry,buildAllWodDrafts,openWodImage,copyWodText
+    saveWodEntry,useWodInTraining,deleteWodEntry,openWodImage,copyWodText
   });
 
   setTimeout(()=>{
