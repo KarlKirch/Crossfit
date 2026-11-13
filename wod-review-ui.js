@@ -31,7 +31,7 @@
   function statusName(status){
     if(status==='ready')return ['Valmis','ready'];
     if(status==='review')return ['Kinnitamata','review'];
-    return ['Töötlemata','pending'];
+    return ['Ainult foto','pending'];
   }
   function textOf(entry){return String(entry.workout_text||entry.draft_text||'').trim()}
   // Vanades fotodes kasuta tahvlile märgitud kuupäeva, kui tekst seda selgelt sisaldab.
@@ -221,7 +221,7 @@
   function filters(){
     const n=counts(),selected=settings().filter;
     return '<div class="wb-filters" role="group" aria-label="WOD olekufilter">'+
-      [['all','Kõik'],['review','Ülevaatamisel'],['pending','Töötlemata'],['ready','Valmis'],['missing','Pilti puudu']].map(([key,label])=>
+      [['all','Kõik'],['review','Ülevaatamisel'],['pending','Ainult foto'],['ready','Valmis'],['missing','Pilti puudu']].map(([key,label])=>
         '<button type="button" class="wb-filter '+(selected===key?'on':'')+'" aria-pressed="'+(selected===key)+'" onclick="crossfitWodUI.setFilter('+"'"+key+"'"+')">'+
           label+' <span>'+n[key]+'</span></button>').join('')+
     '</div>';
@@ -246,7 +246,7 @@
       '<div class="wb-list">'+content+'</div>'+navigation;
   }
   function renderBank(){
-    // Käivitab olemasoleva privaatfoto laadija, jättes fotoandmed ja OCR-i puutumata.
+    // Näitab originaalfotosid ilma automaatse pildilugemiseta.
     beforeModal();
     const n=counts(),state=settings();
     return '<div class="sheet-backdrop" onclick="backdropClose(event)">'+
@@ -258,7 +258,7 @@
         '<h2>Leia ja kasuta WOD-i</h2>'+
         '<p>Ava kava, paranda vajadusel ühes tekstikastis ning määra see treeningule. Fotod jäävad alles.</p></div>'+
       '<div class="wb-counts">'+
-        [['all','Kõik WOD-id'],['review','Vajab kontrolli'],['pending','Töötlemata'],['ready','Valmis']].map(([key,label])=>
+        [['all','Kõik WOD-id'],['review','Vajab kontrolli'],['pending','Ainult foto'],['ready','Valmis']].map(([key,label])=>
           '<button type="button" onclick="crossfitWodUI.setFilter('+"'"+(key==='all'?'all':key)+"'"+')"><strong>'+n[key]+
           '</strong><span>'+label+'</span></button>').join('')+'</div>'+
       '<div class="wb-upload"><h3>Lisa uusi fotosid</h3>'+
@@ -266,13 +266,11 @@
           '<button type="button" class="wb-primary" onclick="pickWodCamera()">'+svg.camera+' Tee pilt</button>'+
           '<button type="button" class="wb-secondary" onclick="pickWodGallery()">Vali galeriist</button>'+
           (n.missing?'<button type="button" class="wb-secondary" onclick="pickOldWodImages()">Lisa '+n.missing+' vana fotot</button>':'')+
-          (n.noDraft?'<button type="button" class="wb-secondary" onclick="buildAllWodDrafts()">Loo tekstimustandid ('+n.noDraft+')</button>':'')+
         '</div>'+
         '<input type="file" id="wodCameraInput" accept="image/*" capture="environment" class="wb-file" onchange="wodFilePicked(this)">'+
         '<input type="file" id="wodGalleryInput" accept="image/*" class="wb-file" onchange="wodFilePicked(this)">'+
         '<input type="file" id="oldWodImagesInput" accept="image/*" multiple class="wb-file" onchange="oldWodImagesPicked(this)">'+
-        '<p id="wodBatchOcrProgress" class="wb-upload-message" aria-live="polite">'+(s.wodBatchOcrRunning?'Tekstimustandite loomine käib…':'Tekstimustandid vajavad alati treeneri kontrolli.')+'</p>'+
-        '<p id="wodOcrProgress" class="wb-upload-message" aria-live="polite">Fotot loetakse AI-ga, kui teenuse API-võti on seadistatud; muidu lihtsama OCR-iga. Kontrolli tulemus enne kinnitamist.</p>'+
+        '<p class="wb-upload-message">Foto salvestatakse kohe. WOD-i kava võib jääda tühjaks; teksti saad hiljem käsitsi lisada.</p>'+
       '</div>'+
       '<div class="wb-search-panel"><label for="wbSearch">Otsi WOD-i</label>'+
         '<div class="wb-search-input">'+svg.search+
@@ -319,16 +317,13 @@
       '<input id="wodDate" type="date" value="'+esc(recorded)+'"></div>'+
       '<div class="field"><label for="wodTitle">Pealkiri (valikuline)</label>'+
       '<input id="wodTitle" maxlength="120" value="'+esc(window.wodEditableTitle?.(entry.title)||'')+'"></div></div>'+
-      '<div class="field"><label for="wodText">WOD-i kava</label>'+
-      '<textarea id="wodText" placeholder="Kirjuta või paranda kava siin..." spellcheck="false">'+esc(text)+'</textarea>'+
-      '<p id="wodOcrProgress" class="wb-editor-hint" role="status" aria-live="polite">'+
-         (entry.status==='pending'&&!text?'Fotolt teksti lugemine võib veidi aega võtta. Kui lugemine ebaõnnestub, kasuta allolevat nuppu.':
-          'Kontrolli tuvastatud harjutused, kordused ja raskused originaalfotolt enne salvestamist. Käsikirjalise tahvli puhul võib OCR eksida.')+'</p>'+
+      '<div class="field"><label for="wodText">WOD-i kava (valikuline)</label>'+
+      '<textarea id="wodText" placeholder="Võid kirjutada kava käsitsi või jätta selle tühjaks." spellcheck="false">'+esc(text)+'</textarea>'+
+      '<p class="wb-editor-hint">WOD-i teksti lisamine pole kohustuslik. Foto jääb alati alles.</p>'+
       '</div>'+
       '<div class="wb-simple-actions">'+
         '<button type="button" class="wb-secondary" onclick="crossfitWodUI.saveText()">Salvesta WOD</button>'+
         '<button type="button" class="wb-secondary" onclick="copyWodText('+id+')">Kopeeri tekst</button>'+
-         (entry.image_path?'<button type="button" class="wb-secondary" onclick="retryWodDraft('+id+')">Loe fotolt tekst uuesti</button>':'')+
       '</div>'+choose+
       '<div class="wb-new-session"><button type="button" class="wb-secondary" onclick="crossfitWodUI.useNew()">Loo selle WOD-iga uus treening</button></div>'+
       '<details class="wb-advanced-actions"><summary>Muud toimingud</summary>'+
@@ -443,17 +438,21 @@
   function currentEntry(){
     return (s.wodBank||[]).find(x=>Number(x.id)===Number(s.modalData));
   }
-  function editorData(entry){
+  function editorData(entry,requireWorkout=false){
     const workout=String(document.getElementById('wodText')?.value||'').trim();
-    if(!workout)throw new Error('Kirjuta WOD-i kava enne salvestamist.');
+    if(requireWorkout&&!workout)throw new Error('Treeningus kasutamiseks lisa WOD-i tekst.');
+    if(!workout&&!entry?.image_path&&!entry?.source_drive_file_id)
+      throw new Error('Lisa foto või WOD-i tekst enne salvestamist.');
     const title=String(document.getElementById('wodTitle')?.value||'').trim()||'WOD';
     const source_date=validDate(document.getElementById('wodDate')?.value)||null;
-    return {workout_text:workout,title,source_date,status:'ready'};
+    return {workout_text:workout||null,title,source_date,status:workout?'ready':'pending',
+      ...(workout?{}:{draft_text:null})};
   }
-  async function persistEntry(entry){
-    const data=editorData(entry);
-    const changed=entry.status!=='ready'||String(entry.workout_text||'').trim()!==data.workout_text||
-      String(entry.title||'WOD')!==data.title||validDate(entry.source_date)!==(data.source_date||'');
+  async function persistEntry(entry,requireWorkout=false){
+    const data=editorData(entry,requireWorkout);
+    const changed=entry.status!==data.status||String(entry.workout_text||'').trim()!==(data.workout_text||'')||
+      String(entry.title||'WOD')!==data.title||validDate(entry.source_date)!==(data.source_date||'')||
+      (!data.workout_text&&Boolean(String(entry.draft_text||'').trim()));
     if(changed){
       await window.api('wod_bank_entries?id=eq.'+numberId(entry.id),{
         method:'PATCH',headers:{Prefer:'return=minimal'},
@@ -461,15 +460,15 @@
       });
       Object.assign(entry,data);
     }
-    return data.workout_text;
+    return data.workout_text||'';
   }
   async function saveText(){
     if(savingWod||!window.isTrainer()||s.modal!=='wodDetail')return false;
     const entry=currentEntry();if(!entry)return false;
     savingWod=true;
     try{
-      await persistEntry(entry);
-      await window.reloadData('WOD salvestatud ja kasutusvalmis');
+      const saved=await persistEntry(entry);
+      await window.reloadData(saved?'WOD salvestatud ja kasutusvalmis':'Foto salvestatud – WOD-i kava saad hiljem lisada');
       s.modal='wodDetail';s.modalData=entry.id;window.render();
       return true;
     }catch(error){window.toast(error.message||'WOD-i salvestamine ebaõnnestus');return false}
@@ -480,7 +479,7 @@
     const entry=currentEntry();if(!entry)return false;
     savingWod=true;
     try{
-      const workout=await persistEntry(entry);
+      const workout=await persistEntry(entry,true);
       window.openTrainingForm({
         title:'CrossFit',workout,duration_minutes:90,price_cents:800,
         cancellation_hours:2,note:''
@@ -497,7 +496,7 @@
       t.status==='published'&&!t.archived_at&&Date.parse(t.starts_at)>Date.now());
     if(!training){window.toast('Vali tulevane treening.');return false}
     let workout;
-    try{workout=editorData(entry).workout_text}
+    try{workout=editorData(entry,true).workout_text}
     catch(error){window.toast(error.message);return false}
     if(String(training.workout||'').trim()&&String(training.workout).trim()!==workout){
       if(!window.confirm('Valitud treeningul on juba WOD. Kas soovid selle asendada?'))return false;
