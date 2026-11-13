@@ -59,9 +59,9 @@ test('Nii kliendi kui treeneri menüüs on ikooni taastamise valik',()=>{
 });
 test('Kõik muudetud failid on uue PWA versiooniga',()=>{
   const html=read('index.html'),sw=read('sw.js');
-  for(const file of ['install-guide.js?v=4','app.js?v=69','my-account-redesign.js?v=6','admin-redesign.js?v=3']){
+  for(const file of ['install-guide.js?v=4','app.js?v=70','my-account-redesign.js?v=6','admin-redesign.js?v=3']){
     assert.ok(html.includes('./'+file),file+' missing in HTML');
     assert.ok(sw.includes("'./"+file+"'"),file+' missing in worker cache');
   }
-  assert.match(read('app.js'),/const APP_VERSION='6.3.1'/);
+  assert.match(read('app.js'),/const APP_VERSION='6.3.2'/);
 });

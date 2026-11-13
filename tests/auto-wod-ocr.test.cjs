@@ -1,117 +1,89 @@
 'use strict';
-const test=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
-const root=path.resolve(__dirname,'..');
-const read=name=>fs.readFileSync(path.join(root,name),'utf8');
-const code=read('wod-bank.js');
-const start=code.indexOf('  async function makeDraft(');
-const end=code.indexOf('\n  window.loadData=async function()',start);
-assert.ok(start>=0&&end>start);
-const fn=code.slice(start,end);
-function setup(opts={}){
-  const entry={id:9,status:opts.status||'pending',workout_text:opts.workout??null,
-    draft_text:null,image_path:'demo/test.jpg'};
-  const s={wodBank:[entry],modal:'wodDetail',modalData:9,wodOcrBusy:false};
-  const editor={value:opts.editor||''},status={textContent:''},calls=[],notices=[];
-  let recognition=async()=>({data:{text:'5 rounds\n10 burpees\n20 squats',confidence:88}});
-  const context={
-    s,
-    document:{getElementById:id=>id==='wodText'?editor:id==='wodOcrProgress'?status:null},
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const bank=read('wod-bank.js'),ui=read('wod-review-ui.js');
+
+test('Pildi üleslaadimisel salvestub ka tühja WOD-tekstiga kirje',async()=>{
+  const begin=bank.indexOf('  window.wodFilePicked=async function(input){');
+  const end=bank.indexOf('\n  window.copyWodText=',begin);
+  assert.ok(begin>0&&end>begin);
+  const s={session:{user:{id:'trainer-1'}},wodBank:[],modal:null,modalData:null};
+  const calls=[],actions=[];
+  const context={s,
     window:{
-      toast:text=>notices.push(text),
+      toast:message=>actions.push(['toast',message]),
       api:async(url,opt)=>{
-        calls.push({url,body:JSON.parse(opt.body),method:opt.method,prefer:opt.headers.Prefer});
-        return opts.blocked?[]:[{id:9}];
-      }
+        calls.push({url,method:opt.method,body:JSON.parse(opt.body)});
+        return [{id:123,image_path:'trainer-1/demo.jpg',status:'pending'}];
+      },
+      reloadData:async()=>{s.wodBank=[{id:123,image_path:'trainer-1/demo.jpg',status:'pending'}]},
+      render:()=>actions.push(['render'])
     },
-    loadOcr:async()=>({recognize:(...args)=>recognition(...args)}),
-    prepareOcrCanvas:async()=>({}),
-    downloadOriginal:async()=>({}),
-    cleanBatchOcrText:raw=>String(raw||'').trim(),
-    usefulOcrText:(text,confidence)=>context.window.crossfitWodOcrQuality.evaluate(text,confidence).ok,
-    console:{warn(){}},
-    Date,Number
+    storagePath:()=> 'trainer-1/demo.jpg',
+    today:()=> '2026-11-13',
+    dateFromFile:()=> '2026-11-13',
+    uploadOriginal:async()=>actions.push(['upload']),
+    queueHydrate:()=>{},console
   };
   vm.createContext(context);
-  vm.runInContext(read('wod-ocr-quality.js'),context);
-  vm.runInContext(fn+'\nthis.makeDraft=makeDraft;',context);
-  return {entry,s,editor,status,calls,notices,run:context.makeDraft,
-    setRecognition:fn=>{recognition=fn}};
-}
-test('Foto üleslaadimise OCR täidab WOD-i kava, kuid jätab selle kontrollimiseks',async()=>{
-  const h=setup();
-  const ok=await h.run(h.entry,{},true,true);
-  assert.equal(ok,true);
-  assert.equal(h.calls.length,1);
-  assert.match(h.calls[0].url,/status=eq.pending&workout_text=is.null&draft_text=is.null/);
-  assert.equal(h.calls[0].body.status,'review');
-  assert.equal(h.calls[0].body.workout_text,'5 rounds\n10 burpees\n20 squats');
-  assert.equal(h.calls[0].body.draft_text,h.entry.workout_text);
-  assert.equal(h.editor.value,h.entry.workout_text);
-  assert.equal(h.entry.status,'review');
-  assert.match(h.status.textContent,/Kontrolli/);
-  assert.equal(h.s.wodOcrBusy,false);
+  vm.runInContext(bank.slice(begin,end),context);
+  const input={id:'wodGalleryInput',files:[{name:'test.jpg',type:'image/jpeg',size:1024}],value:'test.jpg'};
+  await context.window.wodFilePicked(input);
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].method,'POST');
+  assert.equal(calls[0].body.image_path,'trainer-1/demo.jpg');
+  assert.equal(calls[0].body.workout_text,null);
+  assert.equal(calls[0].body.draft_text,null);
+  assert.equal(calls[0].body.status,'pending');
+  assert.equal(s.modal,'wodDetail');
+  assert.equal(s.modalData,123);
+  assert.equal(input.value,'');
+  assert.equal(actions.some(x=>x[0]==='upload'),true);
 });
-test('Kui WOD-i vahepeal muudeti, OCR ei kirjuta seda üle',async()=>{
-  const h=setup({blocked:true});
-  const ok=await h.run(h.entry,{},false,true);
-  assert.equal(ok,false);
-  assert.equal(h.entry.workout_text,null);
-  assert.equal(h.entry.status,'pending');
-  assert.equal(h.editor.value,'');
-  assert.match(h.status.textContent,/ei asendatud/);
+test('WOD-pank ei käivita tasulist AI-d ega tasuta OCR-i',()=>{
+  assert.doesNotMatch(bank,/Tesseract|OCR_SRC|makeDraft|buildAllWodDrafts|retryWodDraft|crossfitWodVision/);
+  assert.doesNotMatch(ui,/buildAllWodDrafts|retryWodDraft|Loe fotolt tekst uuesti/);
+  assert.doesNotMatch(read('index.html'),/src="\.\/wod-vision\.js|src="\.\/wod-ocr-quality\.js/);
+  assert.doesNotMatch(read('sw.js'),/wod-vision\.js|wod-ocr-quality\.js/);
+  assert.match(read('index.html'),/wod-bank\.js\?v=15/);
+  assert.match(read('sw.js'),/wod-review-ui\.js\?v=11/);
 });
-test('Korduslugemine säilitab olemasoleva kinnitatud WOD-kava',async()=>{
-  const h=setup({status:'ready',workout:'Minu parandatud WOD'});
-  const ok=await h.run(h.entry,{},false,false);
-  assert.equal(ok,true);
-  assert.equal(h.calls.length,1);
-  assert.equal(h.calls[0].body.workout_text,undefined);
-  assert.equal(h.calls[0].body.status,undefined);
-  assert.equal(h.entry.workout_text,'Minu parandatud WOD');
+test('Tühja tekstiga foto saab käsitsi salvestada ja varasema OCR-mustandi eemaldada',async()=>{
+  const begin=ui.indexOf('  function editorData(entry,requireWorkout=false){');
+  const end=ui.indexOf('\n  async function saveText()',begin);
+  assert.ok(begin>0&&end>begin);
+  const entry={id:9,status:'ready',workout_text:'old workout',draft_text:'old OCR',title:'WOD',source_date:'2026-11-13',image_path:'test.jpg'};
+  const values={wodText:'',wodTitle:'',wodDate:'2026-11-13'};
+  const calls=[];
+  const ctx={
+    document:{getElementById:id=>({value:values[id]})},
+    window:{api:async(url,opt)=>calls.push({url,data:JSON.parse(opt.body)})},
+    validDate:x=>x,numberId:x=>x,s:{},console
+  };
+  vm.createContext(ctx);vm.runInContext(ui.slice(begin,end)+'\nthis.persistEntry=persistEntry;',ctx);
+  const result=await ctx.persistEntry(entry);
+  assert.equal(result,'');
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].data.workout_text,null);
+  assert.equal(calls[0].data.draft_text,null);
+  assert.equal(calls[0].data.status,'pending');
+  assert.equal(entry.status,'pending');
 });
-test('OCR veaga jääb originaalpilt alles ning kava ei salvestata ekslikult',async()=>{
-  const h=setup();
-  h.setRecognition(async()=>{throw new Error('Unable to load language data')});
-  const ok=await h.run(h.entry,{},true,true);
-  assert.equal(ok,false);
-  assert.equal(h.calls.length,0);
-  assert.equal(h.entry.workout_text,null);
-  assert.match(h.status.textContent,/Originaalfoto säilis/);
-  assert.equal(h.s.wodOcrBusy,false);
-});
-test('Uue foto lisamine käivitab OCR-i ning uuesti lugemise nupp on nähtav',()=>{
-  const bank=read('wod-bank.js');
-  const review=read('wod-review-ui.js');
-  assert.match(bank,/await makeDraft\(saved,file,true,true\)/);
-  assert.match(review,/retryWodDraft\('/);
-  assert.match(review,/id="wodOcrProgress"/);
-  assert.match(read('index.html'),/wod-bank\.js\?v=14/);
-  assert.match(read('sw.js'),/wod-review-ui\.js\?v=10/);
-});
-
-test('OCR-kaootilist teksti ei kanta WOD-i kavasse ka suure confidence puhul',async()=>{
-  const h=setup();
-  h.setRecognition(async()=>({data:{
-    text:'i ie 2 35355 3 : i\\ni 4 ol 8 Oy | ¢ 5 Jee\\n1 : PRX |S = 5 Ga po\\nHi | $33 © © oo wr',
-    confidence:93
-  }}));
-  const ok=await h.run(h.entry,{},true,true);
-  assert.equal(ok,false);
-  assert.equal(h.calls.length,0);
-  assert.equal(h.entry.workout_text,null);
-  assert.equal(h.entry.status,'pending');
-  assert.match(h.status.textContent,/WOD-i tekst jäeti tühjaks/);
-});
-
-test('AI kutsutakse enne OCR-i ja edu korral OCR jääb vahele',()=>{
- const bank=read('wod-bank.js');
- assert.match(bank,/window\.crossfitWodVision\?\.read\?\.\(id\)/);
- assert.match(bank,/recognitionSource='AI'/);
- const begin=bank.indexOf('const vision=await window.crossfitWodVision');
- const local=bank.indexOf('const T=await loadOcr()',begin);
- assert.ok(begin>0&&local>begin);
+test('Käsitsi lisatud WOD-i saab salvestada ja kasutada treeningus',async()=>{
+  const begin=ui.indexOf('  function editorData(entry,requireWorkout=false){');
+  const end=ui.indexOf('\n  async function saveText()',begin);
+  const entry={id:10,status:'pending',workout_text:null,title:'WOD',source_date:'2026-11-13',image_path:'test.jpg'};
+  const values={wodText:'4 rounds\n10 squats\n15 push-ups',wodTitle:'',wodDate:'2026-11-13'};
+  const calls=[];
+  const ctx={
+    document:{getElementById:id=>({value:values[id]})},
+    window:{api:async(url,opt)=>calls.push(JSON.parse(opt.body))},
+    validDate:x=>x,numberId:x=>x,s:{},console
+  };
+  vm.createContext(ctx);vm.runInContext(ui.slice(begin,end)+'\nthis.persistEntry=persistEntry;',ctx);
+  const result=await ctx.persistEntry(entry,true);
+  assert.match(result,/squats/);
+  assert.equal(calls[0].status,'ready');
+  values.wodText='';
+  await assert.rejects(()=>ctx.persistEntry(entry,true),/lisa WOD-i tekst/);
 });
