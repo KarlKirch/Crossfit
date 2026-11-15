@@ -141,8 +141,11 @@
       '<input id="tfDate" type="hidden" value="'+esc(safe)+'">'+
       '<button type="button" class="tf-calendar-trigger" id="tfDateTrigger" aria-controls="tfCalendarPanel" aria-expanded="false" aria-haspopup="dialog" onclick="crossfitTrainingForm.toggleCalendar()">'+
        esc(label)+' <span aria-hidden="true">▦</span></button>'+
-      '<div id="tfCalendarPanel" class="tf-calendar-panel" role="dialog" aria-label="Vali treeningu kuupäev" hidden></div>'+
+
       '</div>';
+  }
+  function calendarPanel(){
+    return '<div id="tfCalendarPanel" class="tf-calendar-panel tf-calendar-panel-inline" role="dialog" aria-label="Vali treeningu kuupäev" hidden></div>';
   }
   function renderCalendar(){
     const panel=byId('tfCalendarPanel');if(!panel)return;
@@ -208,11 +211,11 @@
       '<h2>'+(editing?'Muuda treeningut':'Lisa uus treening')+'</h2>'+
       '<p>Vali aeg, kohtade arv ja WOD. '+(editing?'Muudatused salvestatakse olemasolevale treeningule.':'Soovi korral loo korduvad ajad korraga.')+'</p></div>'+
       '<section class="tf-section"><h3>Millal toimub?</h3>'+
-      '<div class="tf-two">'+
+      '<div class="tf-two tf-datetime-row">'+
         calendarField(p.date)+
         '<div class="field"><label for="tfTime">Algusaeg (Eesti aeg)</label>'+
         '<select id="tfTime" onchange="crossfitTrainingForm.preview()">'+window.timeOptions(p.time)+'</select></div>'+
-      '</div>'+field('tfTitle','Treeningu nimetus',data.title||'CrossFit','maxlength="120" required')+
+      '</div>'+calendarPanel()+field('tfTitle','Treeningu nimetus',data.title||'CrossFit','maxlength="120" required')+
       '<div class="tf-two">'+
         field('tfDuration','Kestus (min)',String(Number.isFinite(currentDuration)&&currentDuration>0?currentDuration:90),'type="number" min="15" max="240" step="5" required inputmode="numeric"')+
         field('tfCapacity','Kohtade arv',String(data.capacity??12),'type="number" min="1" max="100" required inputmode="numeric"')+
