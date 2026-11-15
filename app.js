@@ -54,7 +54,7 @@ function regsFor(tid){
   const guests=state.guestBookings.filter(g=>g.training_id===tid).map(g=>({
     id:-Number(g.booking_id),training_id:g.training_id,user_id:'guest:'+g.booking_id,
     status:g.booking_status,payment_status:g.payment_status,payment_method:'cash',
-    credit_charged:false,is_guest:true,created_at:g.created_at
+    credit_charged:false,is_guest:true,attendance_status:g.attendance_status,created_at:g.created_at
   }));
   return [...registered,...guests];
 }
@@ -416,6 +416,16 @@ async function deleteTraining(id){
 }
 async function registerTraining(id,useCredit){try{await rpc('wod_register',{p_training_id:id,p_use_credit:useCredit});await reloadData('Registreerimine õnnestus');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
 async function cancelRegistration(id){const t=state.trainings.find(x=>x.id===id),late=t&&cancellationDeadline(t)<now();const text=late?'Tasuta tühistamise aeg on möödas. Tühistamisel treeningkorda või tasu ei tagastata. Kas jätkata?':'Kas tühistada registreering?';if(!confirm(text))return;try{await rpc('wod_cancel_registration',{p_training_id:id});await reloadData(late?'Registreering tühistatud hilise tühistusena':'Registreering tühistatud');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
+async function setGuestAttendance(guestBookingId,status){
+  if(!isTrainer())return;
+  try{
+    const response=await fetch(GUEST_API,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.session.access_token},
+      body:JSON.stringify({action:'attendance',booking_id:Number(guestBookingId),status})});
+    const result=await response.json();
+    if(!response.ok||!result.updated)throw new Error(result.error||'Kohalolekut ei saanud märkida');
+    await reloadData('Külalise kohalolek märgitud');
+  }catch(e){toast(e.message||'Kohaloleku märkimine ebaõnnestus')}
+}
 async function setPayment(regId,paid){try{
   if(Number(regId)<0){
     const response=await fetch(GUEST_API,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.session.access_token},body:JSON.stringify({action:'payment',booking_id:-Number(regId),paid:Boolean(paid)})});
@@ -714,5 +724,5 @@ Object.assign(window,{
   quickSheet,infoSheet,
   TZ,APP_URL
 });
-Object.assign(window,{go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
+Object.assign(window,{go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,setGuestAttendance,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
 boot();
