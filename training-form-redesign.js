@@ -218,7 +218,7 @@
       '</div>'+calendarPanel()+field('tfTitle','Treeningu nimetus',data.title||'CrossFit','maxlength="120" required')+
       '<div class="tf-two">'+
         field('tfDuration','Kestus (min)',String(Number.isFinite(currentDuration)&&currentDuration>0?currentDuration:90),'type="number" min="15" max="240" step="5" required inputmode="numeric"')+
-        field('tfCapacity','Kohtade arv',String(data.capacity??12),'type="number" min="1" max="100" required inputmode="numeric"')+
+        field('tfCapacity','Kohtade arv',String(data.capacity??14),'type="number" min="1" max="100" required inputmode="numeric"')+
       '</div><p class="tf-help">Uue treeningu vaikimisi kestus on 90 minutit.</p></section>'+
       workout(data)+repeat(data)+details(data)+
       '<div class="tf-actions"><button type="button" id="tfSubmit" class="tf-save" onclick="crossfitTrainingForm.save('+(editing?idOf(data.id):'null')+')">'+
