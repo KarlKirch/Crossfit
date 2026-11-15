@@ -172,7 +172,7 @@ async function loadData(){
     api(trainer?'wod_user_packages?select=*&order=purchased_at.desc':`wod_user_packages?select=*&user_id=eq.${uid}&order=purchased_at.desc`),
     api(`wod_notifications?select=*&user_id=eq.${uid}&order=created_at.desc&limit=80`)
   ];
-  queries.push(fetch(GUEST_API+'?mode=guests',{cache:'no-store'})
+  queries.push(fetch(GUEST_API+'?mode=guests',{cache:'no-store',headers:{'Authorization':'Bearer '+state.session.access_token}})
     .then(async response=>{if(!response.ok)throw new Error('Külaliste laadimine ebaõnnestus');return (await response.json()).guests||[]})
     .catch(error=>{console.warn('Külalisregistreeringuid ei saanud laadida',error);return []}));
   const [t,r,p,w,tx,pt,up,n,guests]=await Promise.all(queries);
