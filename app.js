@@ -4,8 +4,9 @@ const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
 const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
 const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57jxlxWajOTYfOfanDlWJmTI-cRzY';
 const APP_URL='https://karlkirch.github.io/Crossfit/';
+const GUEST_API='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rouge-guest-bookings';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.3.2';
+const APP_VERSION='6.4.0';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -15,7 +16,7 @@ const updateNow=document.getElementById('updateNow');
 
 const state={
   mode:'login',session:null,profile:null,view:'home',notificationsReturnView:'home',trainingTab:'upcoming',
-  trainings:[],registrations:[],profiles:[],wallets:[],creditTransactions:[],
+  trainings:[],registrations:[],guestBookings:[],profiles:[],wallets:[],creditTransactions:[],
   packageTypes:[],userPackages:[],notifications:[],
   modal:null,modalData:null,loading:false,installPrompt:null,swReg:null,pushBusy:false
 };
@@ -47,8 +48,16 @@ function fullDateTime(iso){return new Intl.DateTimeFormat('et-EE',{timeZone:TZ,w
 function shortDate(iso){return new Intl.DateTimeFormat('et-EE',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(iso))}
 function now(){return new Date()}
 function isTrainer(){return state.profile?.role==='trainer'}
-function pname(id){return state.profiles.find(p=>p.user_id===id)?.display_name||'Kasutaja'}
-function regsFor(tid){return state.registrations.filter(r=>r.training_id===tid)}
+function pname(id){if(String(id).startsWith('guest:')){const b=state.guestBookings.find(g=>'guest:'+g.booking_id===id);return b?b.full_name+' (külaline)':'Külaline'}return state.profiles.find(p=>p.user_id===id)?.display_name||'Kasutaja'}
+function regsFor(tid){
+  const registered=state.registrations.filter(r=>r.training_id===tid);
+  const guests=state.guestBookings.filter(g=>g.training_id===tid).map(g=>({
+    id:-Number(g.booking_id),training_id:g.training_id,user_id:'guest:'+g.booking_id,
+    status:g.booking_status,payment_status:g.payment_status,payment_method:'cash',
+    credit_charged:false,is_guest:true,created_at:g.created_at
+  }));
+  return [...registered,...guests];
+}
 function confirmedFor(tid){return regsFor(tid).filter(r=>r.status==='confirmed')}
 function waitlistFor(tid){return regsFor(tid).filter(r=>r.status==='waitlist').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)||a.id-b.id)}
 function mineFor(tid){return regsFor(tid).find(r=>r.user_id===state.session?.user?.id&&['confirmed','waitlist'].includes(r.status))}
@@ -163,7 +172,11 @@ async function loadData(){
     api(trainer?'wod_user_packages?select=*&order=purchased_at.desc':`wod_user_packages?select=*&user_id=eq.${uid}&order=purchased_at.desc`),
     api(`wod_notifications?select=*&user_id=eq.${uid}&order=created_at.desc&limit=80`)
   ];
-  const [t,r,p,w,tx,pt,up,n]=await Promise.all(queries);
+  queries.push(fetch(GUEST_API+'?mode=guests',{cache:'no-store'})
+    .then(async response=>{if(!response.ok)throw new Error('Külaliste laadimine ebaõnnestus');return (await response.json()).guests||[]})
+    .catch(error=>{console.warn('Külalisregistreeringuid ei saanud laadida',error);return []}));
+  const [t,r,p,w,tx,pt,up,n,guests]=await Promise.all(queries);
+  state.guestBookings=guests||[];
   state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
 }
 async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
@@ -403,7 +416,15 @@ async function deleteTraining(id){
 }
 async function registerTraining(id,useCredit){try{await rpc('wod_register',{p_training_id:id,p_use_credit:useCredit});await reloadData('Registreerimine õnnestus');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
 async function cancelRegistration(id){const t=state.trainings.find(x=>x.id===id),late=t&&cancellationDeadline(t)<now();const text=late?'Tasuta tühistamise aeg on möödas. Tühistamisel treeningkorda või tasu ei tagastata. Kas jätkata?':'Kas tühistada registreering?';if(!confirm(text))return;try{await rpc('wod_cancel_registration',{p_training_id:id});await reloadData(late?'Registreering tühistatud hilise tühistusena':'Registreering tühistatud');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
-async function setPayment(regId,paid){try{await rpc('wod_set_registration_payment',{p_registration_id:regId,p_paid:paid});await reloadData(paid?'Märgitud tasutuks':'Märgitud tasumata');render()}catch(e){toast(e.message)}}
+async function setPayment(regId,paid){try{
+  if(Number(regId)<0){
+    const response=await fetch(GUEST_API,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.session.access_token},body:JSON.stringify({action:'payment',booking_id:-Number(regId),paid:Boolean(paid)})});
+    const result=await response.json();if(!response.ok||!result.updated)throw new Error(result.error||'Külalise makseolekut ei saanud muuta');
+  }else{
+    await rpc('wod_set_registration_payment',{p_registration_id:regId,p_paid:paid});
+  }
+  await reloadData(paid?'Märgitud tasutuks':'Märgitud tasumata');render();
+}catch(e){toast(e.message||'Makseoleku muutmine ebaõnnestus')}}
 
 function openClient(uid){state.modal='client';state.modalData=uid;render()}
 function clientDetail(p){const uid=p.user_id,pkgs=state.userPackages.filter(x=>x.user_id===uid),regs=state.registrations.filter(r=>r.user_id===uid),future=regs.filter(r=>['confirmed','waitlist'].includes(r.status)&&state.trainings.some(t=>t.id===r.training_id&&new Date(t.starts_at)>now())).sort((a,b)=>new Date(state.trainings.find(t=>t.id===a.training_id)?.starts_at)-new Date(state.trainings.find(t=>t.id===b.training_id)?.starts_at)),past=regs.filter(r=>r.status==='confirmed'&&state.trainings.some(t=>t.id===r.training_id&&new Date(t.starts_at)<now()&&t.status!=='cancelled')).length,unpaid=regs.filter(r=>r.status==='confirmed'&&r.payment_status==='unpaid').length;return `<div class="card"><div class="card-title-row"><div><div class="card-title">${esc(p.display_name)}</div><div class="card-sub">${past} osaletud treeningut</div></div><span class="pill ${unpaid?'amber':'green'}">${unpaid?unpaid+' tasumata':'Maksed korras'}</span></div><div class="metric-grid" style="margin-top:12px;margin-bottom:0">${metric(totalCredits(uid)===Infinity?'∞':totalCredits(uid),'Kordi alles')}${metric(future.length,'Tulevasi')}${metric(past,'Osaletud')}</div></div><div class="section"><h2>Paketid</h2><button class="btn-link" onclick="openAssignPackage('${uid}')">+ Lisa</button></div><div class="stack">${pkgs.map(packageCard).join('')||'<div class="empty">Kliendil ei ole pakette.</div>'}${legacyCredits(uid)?`<div class="package-card"><div class="package-top"><div><div class="package-name">Varasemad treeningkorrad</div><div class="package-meta">Käsitsi hallatav krediidijääk</div></div><div class="package-balance">${legacyCredits(uid)}</div></div><div class="training-actions"><button class="btn btn-soft btn-sm" onclick="adjustCredits('${uid}',1)">+1</button><button class="btn btn-soft btn-sm" onclick="adjustCredits('${uid}',-1)">−1</button></div></div>`:''}</div><div class="section"><h2>Tulevased registreeringud</h2></div><div class="stack">${future.map(r=>registrationRow(r)).join('')||'<div class="empty">Tulevasi registreeringuid ei ole.</div>'}</div>`}
