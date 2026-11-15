@@ -82,10 +82,14 @@
       const cash=r.payment_method==='cash';
       const trainerPayment=trainer&&cash?'<span class="td-person-credit '+(r.payment_status==='paid'?'':'td-person-unpaid')+'">'+(r.payment_status==='paid'?'Sularaha tasutud':'Sularaha tasumata')+'</span>'+
         (!waitlist&&r.status==='confirmed'&&r.payment_status==='unpaid'?'<button type="button" class="td-cash-paid-btn" onclick="setPayment('+Number(r.id)+',true)">Märgi tasutuks</button>':''):'';
+      const guestAttendance=trainer&&r.is_guest&&r.status==='confirmed'?
+        '<span class="td-person-credit">Kohalolek: '+(r.attendance_status==='present'?'kohal':r.attendance_status==='absent'?'puudus':'märkimata')+'</span>'+
+        (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
+        (r.attendance_status!=='absent'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'absent\')">Puudus</button>':''):'';
       return '<div class="td-attendee">'+photo+
         '<div class="td-attendee-name"><strong>'+esc(name)+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':'Registreeritud')+'</small></div>'+
-        balance+trainerPayment+'</div>';
+        balance+trainerPayment+guestAttendance+'</div>';
     }).join('')+'</div>';
   }
   function attendeesSection(t,c,trainer){
