@@ -6,7 +6,7 @@ const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const GUEST_API='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rouge-guest-bookings';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.4.0';
+const APP_VERSION='6.4.1';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -158,6 +158,66 @@ async function maintainSession(){
 async function ensureProfile(){let rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`);if(!rows?.length){const name=(state.session.user.user_metadata?.display_name||state.session.user.email?.split('@')[0]||'Kasutaja').trim();await rpc('wod_ensure_profile',{new_display_name:name});rows=await api(`wod_profiles?select=user_id,display_name,role,avatar_path,approval_status&user_id=eq.${state.session.user.id}`)}state.profile=rows[0]}
 window.ensureProfile=ensureProfile;
 function isAwaitingApproval(){return Boolean(state.profile?.approval_status)&&state.profile.approval_status!=='approved'}
+// Kodulehe külalised on ühed ja samad CrossFiti osalejad.
+// Laeme nad otse autenditud andmebaasipäringuga; varasem teenus on ainult varulahendus.
+let guestSyncBusy=false;
+let guestSyncLast=0;
+async function fetchCrossfitGuests(){
+  try{
+    const rows=await rpc('wod_list_crossfit_guest_bookings');
+    if(!Array.isArray(rows))throw new Error('Külalisregistreeringute vastus on vigane.');
+    return rows;
+  }catch(error){
+    console.warn('CrossFiti külaliste andmebaasipäring ebaõnnestus; proovin varuühendust.',error);
+    const data=await request(GUEST_API+'?mode=guests',{
+      cache:'no-store',headers:{Authorization:'Bearer '+state.session.access_token}
+    });
+    if(!Array.isArray(data?.guests))throw new Error('Külalisregistreeringute vastus on vigane.');
+    return data.guests;
+  }
+}
+function onlyCrossfitGuests(rows){
+  const ids=new Set(state.trainings.map(t=>Number(t.id)));
+  return (rows||[]).filter(g=>ids.has(Number(g.training_id)));
+}
+function guestSignature(list){
+  return JSON.stringify((list||[]).map(g=>[
+    Number(g.booking_id),Number(g.training_id),g.full_name,g.booking_status,
+    g.payment_status,g.attendance_status
+  ]).sort((a,b)=>a[0]-b[0]));
+}
+async function refreshCrossfitGuests(force=false){
+  if(guestSyncBusy||!state.session?.user||!state.profile||isAwaitingApproval()||state.clientPreview)return;
+  const elapsed=Date.now()-guestSyncLast;
+  if(elapsed<(force?8000:45000))return;
+  guestSyncBusy=true;
+  try{
+    const fresh=onlyCrossfitGuests(await fetchCrossfitGuests());
+    const changed=guestSignature(fresh)!==guestSignature(state.guestBookings);
+    const wasError=Boolean(state.guestBookingsSyncError);
+    state.guestBookings=fresh;
+    state.guestBookingsSyncError=null;
+    if(changed||wasError)render();
+  }catch(error){
+    console.error('CrossFiti külaliste värskendamine ebaõnnestus',error);
+    if(!state.guestBookingsSyncError){
+      state.guestBookingsSyncError='Kodulehe registreeringuid ei saanud laadida.';
+      render();
+    }
+  }finally{
+    guestSyncLast=Date.now();
+    guestSyncBusy=false;
+  }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')refreshCrossfitGuests(true);
+});
+window.addEventListener('focus',()=>refreshCrossfitGuests(true));
+window.setInterval(()=>{
+  if(document.visibilityState==='visible')refreshCrossfitGuests();
+},45000);
+window.refreshCrossfitGuests=refreshCrossfitGuests;
+
 async function loadData(){
   const since=new Date(Date.now()-365*86400000).toISOString();
   const trainer=isTrainer();
@@ -172,10 +232,16 @@ async function loadData(){
     api(trainer?'wod_user_packages?select=*&order=purchased_at.desc':`wod_user_packages?select=*&user_id=eq.${uid}&order=purchased_at.desc`),
     api(`wod_notifications?select=*&user_id=eq.${uid}&order=created_at.desc&limit=80`)
   ];
-  queries.push(fetch(GUEST_API+'?mode=guests',{cache:'no-store',headers:{'Authorization':'Bearer '+state.session.access_token}})
-    .then(async response=>{if(!response.ok)throw new Error('Külaliste laadimine ebaõnnestus');return (await response.json()).guests||[]})
-    .catch(error=>{console.warn('Külalisregistreeringuid ei saanud laadida',error);return []}));
-  const [t,r,p,w,tx,pt,up,n,guests]=await Promise.all(queries);
+  queries.push(fetchCrossfitGuests()
+    .then(guests=>({guests,error:null}))
+    .catch(error=>{
+      console.error('Kodulehe külalisregistreeringuid ei saanud laadida.',error);
+      return {guests:[],error};
+    }));
+  const [t,r,p,w,tx,pt,up,n,guestResult]=await Promise.all(queries);
+  const guests=guestResult.guests;
+  state.guestBookingsSyncError=guestResult.error?'Kodulehe registreeringuid ei saanud laadida.':null;
+  guestSyncLast=Date.now();
   // CrossFiti äpp kuvab üksnes Karli CrossFit treeninguid. Kodulehe
   // teiste treeningute kirjed jäävad alles ja on kodulehel kasutatavad.
   state.trainings=(t||[]).filter(training=>!training.archived_at
@@ -297,7 +363,13 @@ window.addEventListener('popstate',event=>{
   }finally{handlingHistoryNavigation=false}
 });
 
-function render(){if(!state.session||!state.profile){renderAuth();return}if(isAwaitingApproval()){root.innerHTML=window.crossfitApprovals?.renderGate?.()||'<div class="auth"><div class="auth-box"><h1>Liitumine ootab kinnitust</h1></div></div>';return}ensureViewHistory();let content='';if(state.view==='home')content=window.renderHome();else if(state.view==='trainings')content=window.renderTrainings();else if(state.view==='people')content=isTrainer()?window.renderClients():window.renderMine();else if(state.view==='notifications')content=window.renderNotifications();else content=window.renderMore();renderShell(content)}
+function render(){if(!state.session||!state.profile){renderAuth();return}if(isAwaitingApproval()){root.innerHTML=window.crossfitApprovals?.renderGate?.()||'<div class="auth"><div class="auth-box"><h1>Liitumine ootab kinnitust</h1></div></div>';return}ensureViewHistory();let content='';if(state.view==='home')content=window.renderHome();else if(state.view==='trainings')content=window.renderTrainings();else if(state.view==='people')content=isTrainer()?window.renderClients():window.renderMine();else if(state.view==='notifications')content=window.renderNotifications();else content=window.renderMore();
+if(state.guestBookingsSyncError&&(state.view==='home'||state.view==='trainings')){
+  content='<div role="alert" class="guest-sync-warning"><strong>Kodulehe registreeringute ühendus puudub.</strong>'+
+    '<span>Osalejate arv võib olla puudulik. Kontrolli ühendust ja värskenda.</span>'+
+    '<button type="button" class="btn btn-primary" onclick="reloadData()">Värskenda</button></div>'+content;
+}
+renderShell(content)}
 
 function renderAuth(){root.innerHTML=window.crossfitAuth.render(state.mode,window.crossfitInstall?.authCard?.()||'')}
 function setAuthMode(mode){state.mode=mode;renderAuth()}
