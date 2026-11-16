@@ -38,6 +38,8 @@
     return `Tasuta tühistamine kuni ${t.cancellation_hours} h enne treeningut. Hilisema tühistamise korral kasutatud treeningkrediiti ei tagastata.`;
   };
 
+  // See krediidisüsteem asendab baas-laaduri: seetõttu tuleb siinsamas
+  // laadida ka kodulehe külalisregistreeringud ja hoida CrossFiti filter alles.
   window.loadData=async function(){
     const since=new Date(Date.now()-365*86400000).toISOString();
     const trainer=window.isTrainer();
@@ -50,14 +52,29 @@
       window.api(trainer?'wod_credit_transactions?select=*&order=created_at.desc&limit=400':`wod_credit_transactions?select=*&user_id=eq.${uid}&order=created_at.desc&limit=100`),
       window.api(`wod_notifications?select=*&user_id=eq.${uid}&order=created_at.desc&limit=80`)
     ];
-    if(trainer) queries.push(window.api('wod_removed_clients?select=user_id,removed_at,reason&order=removed_at.desc'));
+    if(trainer)queries.push(window.api('wod_removed_clients?select=user_id,removed_at,reason&order=removed_at.desc'));
+    const guestIndex=queries.length;
+    queries.push(window.fetchCrossfitGuests()
+      .then(guests=>({guests,error:null}))
+      .catch(error=>{
+        console.error('CrossFiti külalisregistreeringute laadimine ebaõnnestus',error);
+        return {guests:[],error};
+      }));
     const out=await Promise.all(queries);
-    s.trainings=out[0]||[];
-    s.registrations=out[1]||[];
+    // Nimekirjas on ainult Karli CrossFit treeningud, mitte kogu kodulehe kava.
+    s.trainings=(out[0]||[]).filter(t=>!t.archived_at
+      && t.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7'
+      && String(t.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit');
+    const allowedIds=new Set(s.trainings.map(t=>Number(t.id)));
+    s.registrations=(out[1]||[]).filter(r=>allowedIds.has(Number(r.training_id)));
+    const guestData=out[guestIndex];
+    s.guestBookings=(guestData.guests||[]).filter(g=>allowedIds.has(Number(g.training_id)));
+    s.guestBookingsSyncError=guestData.error?'Kodulehe registreeringuid ei saanud laadida.':null;
     s.profiles=out[2]||[];
     s.wallets=out[3]||[];
     s.creditTransactions=out[4]||[];
-    s.notifications=(out[5]||[]).filter(x=>!x.due_at||new Date(x.due_at)<=window.now());
+    s.notifications=(out[5]||[]).filter(n=>(!n.due_at||new Date(n.due_at)<=window.now())
+      && (n.training_id==null||allowedIds.has(Number(n.training_id))));
     s.removedClients=trainer?(out[6]||[]):[];
     s.packageTypes=[];
     s.userPackages=[];
