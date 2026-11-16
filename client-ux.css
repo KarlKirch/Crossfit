@@ -399,3 +399,14 @@ body :is(.rcf-join-entry,.rcf-join-actions button,.rcf-join-refresh):focus-visib
   body .rcf-join-entry{gap:7px;padding:11px}
   body .rcf-join-count{font-size:10px}
 }
+
+/* Külalisregistreeringute sünkroonimise tõrge peab olema nähtav, mitte vaikimisi 0 kohta. */
+.guest-sync-warning{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  padding:14px 16px;margin:10px 0 16px;border:1px solid #c99543;
+  border-radius:12px;background:#382c1d;color:#fff1d2;
+}
+.guest-sync-warning strong{font-size:14px;line-height:1.4}
+.guest-sync-warning span{font-size:13px;line-height:1.4;flex:1 1 210px}
+.guest-sync-warning button{min-height:40px;white-space:nowrap}
+@media(max-width:480px){.guest-sync-warning button{width:100%}}
