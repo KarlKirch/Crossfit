@@ -76,7 +76,7 @@
     if(!list.length)return '<div class="td-empty-attendees">Registreerunuid veel ei ole.</div>';
     return '<div class="td-attendee-list">'+list.map((r,i)=>{
       const nameFull=String(window.pname(r.user_id)||'Kasutaja');
-      const name=nameFull.trim()||'Kasutaja';
+      const name=(r.is_guest?nameFull.replace(/\s*\(külaline\)\s*$/i,''):nameFull).trim()||'Kasutaja';
       const photo=(r.is_guest?null:window.crossfitAvatars?.html(r.user_id,'medium'))||'<span class="td-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toLocaleUpperCase('et'))+'</span>';
       const balance=trainer&&r.status==='confirmed'&&r.credit_charged?'<span class="td-person-credit">1 krediit kasutatud</span>':'';
       const cash=r.payment_method==='cash';
@@ -87,7 +87,7 @@
         (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
         (r.attendance_status!=='absent'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'absent\')">Puudus</button>':''):'';
       return '<div class="td-attendee">'+photo+
-        '<div class="td-attendee-name"><strong>'+esc(name)+'</strong>'+
+        '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' <span class="guest-badge">Külaline</span>':'')+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':'Registreeritud')+'</small></div>'+
         balance+trainerPayment+guestAttendance+'</div>';
     }).join('')+'</div>';
