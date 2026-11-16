@@ -24,8 +24,9 @@
   const short=new Intl.DateTimeFormat('et-EE',{timeZone:'Europe/Tallinn',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const now=()=>Date.now();
   const future=()=>window.upcomingTrainings().slice().sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at));
-  const confirmed=t=>(s.registrations||[]).filter(r=>Number(r.training_id)===Number(t.id)&&r.status==='confirmed');
-  const waitlist=t=>(s.registrations||[]).filter(r=>Number(r.training_id)===Number(t.id)&&r.status==='waitlist');
+  // Ühine registreeringute arvestus: äpikasutajad ja kodulehe külalised.
+  const confirmed=t=>window.confirmedFor(t.id);
+  const waitlist=t=>window.waitlistFor(t.id);
   const available=t=>Math.max(0,Math.max(0,Number(t.capacity)||0)-confirmed(t).length);
   const myReg=t=>(s.registrations||[]).find(r=>r.user_id===s.session?.user?.id&&Number(r.training_id)===Number(t.id)&&['confirmed','waitlist'].includes(r.status));
   const credit=()=>{
