@@ -176,8 +176,18 @@ async function loadData(){
     .then(async response=>{if(!response.ok)throw new Error('Külaliste laadimine ebaõnnestus');return (await response.json()).guests||[]})
     .catch(error=>{console.warn('Külalisregistreeringuid ei saanud laadida',error);return []}));
   const [t,r,p,w,tx,pt,up,n,guests]=await Promise.all(queries);
-  state.guestBookings=guests||[];
-  state.trainings=(t||[]).filter(training=>!training.archived_at);state.registrations=r||[];state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];state.packageTypes=pt||[];state.userPackages=up||[];state.notifications=(n||[]).filter(x=>!x.due_at||new Date(x.due_at)<=now());
+  // CrossFiti äpp kuvab üksnes Karli CrossFit treeninguid. Kodulehe
+  // teiste treeningute kirjed jäävad alles ja on kodulehel kasutatavad.
+  state.trainings=(t||[]).filter(training=>!training.archived_at
+    && String(training.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit'
+    && training.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7');
+  const crossfitIds=new Set(state.trainings.map(training=>Number(training.id)));
+  state.guestBookings=(guests||[]).filter(guest=>crossfitIds.has(Number(guest.training_id)));
+  state.registrations=(r||[]).filter(reg=>crossfitIds.has(Number(reg.training_id)));
+  state.profiles=p||[];state.wallets=w||[];state.creditTransactions=tx||[];
+  state.packageTypes=pt||[];state.userPackages=up||[];
+  state.notifications=(n||[]).filter(item=>(!item.due_at||new Date(item.due_at)<=now())
+    && (item.training_id==null||crossfitIds.has(Number(item.training_id))));
 }
 async function reloadData(message){if(state.clientPreview){toast('Eelvaates ei saa pärisandmeid uuendada.');return;}try{state.loading=true;await window.loadData();render();if(message)toast(message)}catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}finally{state.loading=false}}
 
