@@ -45,9 +45,9 @@
     if(!list.length)return '<span class="tl-participants-none">Veel pole registreerunuid</span>';
     const top=list.slice(0,3).map(r=>{
       const realName=String(window.pname(r.user_id)||'Kasutaja');
-      const name=realName.trim()||'Kasutaja';
+      const name=(r.is_guest?realName.replace(/\s*\(külaline\)\s*$/i,''):realName).trim()||'Kasutaja';
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toLocaleUpperCase('et')||'?';
-      return '<span class="tl-person">'+((r.is_guest?null:window.crossfitAvatars?.html(r.user_id,'small'))||'<span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span>')+'<span>'+esc(name)+'</span></span>';
+      return '<span class="tl-person'+(r.is_guest?' tl-person--guest':'')+'">'+((r.is_guest?null:window.crossfitAvatars?.html(r.user_id,'small'))||'<span class="tl-person-avatar" aria-hidden="true">'+esc(initials)+'</span>')+'<span class="tl-person-name">'+esc(name)+'</span>'+(r.is_guest?'<span class="guest-badge guest-badge-small">Külaline</span>':'')+'</span>';
     }).join('');
     return top+(list.length>3?'<span class="tl-people-extra">+'+(list.length-3)+'</span>':'');
   }
