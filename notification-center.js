@@ -9,7 +9,7 @@
   if(!s||typeof window.renderNotifications!=='function')return;
   const previous=window.renderNotifications;
   const esc=value=>window.esc(value);
-  const IMPORTANT=new Set(['waitlist_promoted','training_cancelled','training_changed','training_details_changed','training_full','private_message','cash_booking','join_request']);
+  const IMPORTANT=new Set(['waitlist_promoted','training_cancelled','training_changed','training_details_changed','training_full','private_message','cash_booking','trainer_registration','join_request']);
   const CATEGORIES={
     registration_confirmed:{name:'Registreering',icon:'check'},
     waitlist_joined:{name:'Ootenimekiri',icon:'clock'},
@@ -21,7 +21,8 @@
     training_full:{name:'Treening täis',icon:'users'},
     announcement:{name:'Teadaanne',icon:'megaphone'},
     private_message:{name:'Privaatsõnum',icon:'bell'},
-    cash_booking:{name:'Sularahabroneering',icon:'bell'},
+    cash_booking:{name:'Registreerumine',icon:'bell'},
+    trainer_registration:{name:'Registreerumine',icon:'bell'},
     join_request:{name:'Liitumistaotlus',icon:'users'},
     join_decision:{name:'Liitumise otsus',icon:'check'}
   };
