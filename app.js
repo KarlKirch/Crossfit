@@ -176,6 +176,7 @@ async function fetchCrossfitGuests(){
     return data.guests;
   }
 }
+window.fetchCrossfitGuests=fetchCrossfitGuests;
 function onlyCrossfitGuests(rows){
   const ids=new Set(state.trainings.map(t=>Number(t.id)));
   return (rows||[]).filter(g=>ids.has(Number(g.training_id)));
