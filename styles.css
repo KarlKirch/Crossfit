@@ -268,8 +268,8 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .tl-participants-list{display:flex;flex-wrap:wrap;align-items:center;gap:6px 13px}
 .tl-person{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text);min-width:0}
 .tl-person-avatar{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:#788E70;color:#fff;font-size:9px;font-weight:900}
-.tl-person>span:last-child{max-width:116px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tl-people-extra{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#E9EFE5;color:var(--accent);font-size:10px;font-weight:850}
+.tl-person-name{max-width:116px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tl-person--guest .tl-person-name{max-width:94px}
+.guest-badge{display:inline-flex;align-items:center;vertical-align:middle;flex:none;white-space:nowrap;padding:3px 7px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:10px;font-weight:850;line-height:1.25;border:1px solid #BBD3E3}.guest-badge-small{font-size:9px;padding:2px 5px}.tl-people-extra{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#E9EFE5;color:var(--accent);font-size:10px;font-weight:850}
 .tl-participants-none{font-size:11px;color:var(--muted);font-style:italic}
 .tl-card-actions{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(100px,.65fr);gap:8px}
 .tl-action{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:43px;border-radius:12px;border:0;padding:8px 10px;font-weight:850;font-size:12px;line-height:1.25;text-align:center}
