@@ -87,7 +87,7 @@
         (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
         (r.attendance_status!=='absent'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'absent\')">Puudus</button>':''):'';
       return '<div class="td-attendee">'+photo+
-        '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' <span class="guest-badge">Külaline</span>':'')+'</strong>'+
+        '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':'Registreeritud')+'</small></div>'+
         balance+trainerPayment+guestAttendance+'</div>';
     }).join('')+'</div>';
