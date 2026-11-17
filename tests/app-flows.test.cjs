@@ -41,6 +41,8 @@ function harness({ confirmAction = true, response = 'archived', error = null } =
     },
     setTimeout: () => 1,
     clearTimeout() {},
+    setInterval: () => 1,
+    clearInterval() {},
     addEventListener() {},
     confirm(message) {
       confirmations.push(message);

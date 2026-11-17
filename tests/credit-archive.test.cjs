@@ -10,7 +10,8 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'credit-system.js'), '
 function load({trainer}) {
   const requests = [];
   const archived = {id: 90, title: 'Eemaldatud proovitrenn', archived_at:'2026-10-20T10:00:00Z'};
-  const active = {id: 91, title:'Tulevane treening', archived_at:null};
+  const active = {id: 91, title:'CrossFit', archived_at:null,
+    created_by:'783362cf-5a1c-4bc7-ac7c-76e011663bb7'};
   const state = {
     session:{user:{id:'test-client'}},profile:{role:trainer?'trainer':'client'},
     trainings:[],profiles:[],registrations:[],wallets:[],creditTransactions:[],
@@ -19,6 +20,7 @@ function load({trainer}) {
   const ctx = {
     state, setTimeout(){return 0;}, console,
     isTrainer:()=>trainer,
+    fetchCrossfitGuests:async()=>[],
     now:()=>new Date('2026-10-22T08:00:00Z'),
     renderModal(){return ''},
     rpc:async(name,args)=>{

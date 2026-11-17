@@ -83,8 +83,10 @@ test('WOD-panga enda tagasinavigatsiooni ei kirjutata üle',()=>{
 test('Kõik treenijad näevad osalejate täisnimesid',()=>{
   const list=read('training-list-redesign.js');
   const detail=read('training-detail-redesign.js');
-  assert.match(list,/const name=realName\.trim\(\)\|\|'Kasutaja'/);
-  assert.match(detail,/const name=nameFull\.trim\(\)\|\|'Kasutaja'/);
+  assert.match(list,/const name=\(r\.is_guest\?realName\.replace/);
+  assert.match(detail,/const name=\(r\.is_guest\?nameFull\.replace/);
+  assert.match(list,/\:realName\)\.trim\(\)\|\|'Kasutaja'/);
+  assert.match(detail,/\:nameFull\)\.trim\(\)\|\|'Kasutaja'/);
   assert.doesNotMatch(list,/trainer\?realName:/);
   assert.doesNotMatch(detail,/trainer\?nameFull:/);
 });
