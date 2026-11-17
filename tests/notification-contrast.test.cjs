@@ -23,11 +23,11 @@ test('Teadete loetuks märkimine ei eemalda tumeda kujunduse kaitset',()=>{
 });
 test('Uus kujundus jõuab PWA vahemällu',()=>{
  const html=read('index.html'),sw=read('sw.js'),app=read('app.js');
- for(const asset of ['graphite-theme.css?v=5','forest-theme.css?v=13','app.js?v=86']){
+ for(const asset of ['graphite-theme.css?v=5','forest-theme.css?v=13','app.js?v=87']){
    assert.ok(html.includes(asset),asset+' puudub HTML-is');
    assert.ok(sw.includes(asset),asset+' puudub PWA vahemälust');
  }
- assert.match(app,/const APP_VERSION='6\.4\.8'/);
- assert.match(sw,/crossfit-app-v121/);
- assert.match(app,/sw\.js\?v=121/);
+ assert.match(app,/const APP_VERSION='6\.4\.9'/);
+ assert.match(sw,/crossfit-app-v122/);
+ assert.match(app,/sw\.js\?v=122/);
 });
