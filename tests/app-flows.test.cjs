@@ -104,8 +104,8 @@ test('registreeringutega treeningu eemaldamine kutsub ajalugu säilitavat server
   assert.equal(h.requests.length, 1);
   assert.match(h.requests[0].url, /\/rest\/v1\/rpc\/wod_remove_training$/);
   assert.equal(JSON.parse(h.requests[0].options.body).p_training_id, 11);
-  assert.match(h.confirmations[0], /arvestus säilivad/i);
-  assert.match(h.elements.toast.textContent, /Krediidi- ja makseandmed säilitati/i);
+  assert.match(h.confirmations[0], /maksearvestus jäävad alles/i);
+  assert.match(h.elements.toast.textContent, /makseandmed säilisid/i);
 });
 
 test('vigast treeningu ID-d ei saadeta serverile', async () => {
