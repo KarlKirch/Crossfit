@@ -89,7 +89,7 @@ test('PWA vahemälu ja laaditavate failide versioonid on kooskõlas', () => {
   assert.ok(themeV && appV && cacheV);
   assert.ok(sw.includes('forest-theme.css?v=' + themeV));
   const registrations = [...app.matchAll(/sw\.js\?v=(\d+)/g)].map(match => match[1]);
-  assert.equal(registrations.length, 2);
+  assert.equal(registrations.length, 3);
   // Registreerimise URL võib jääda ühe versiooni võrra maha: SW sisu muutus
   // käivitab brauseris uuenduse ning uus cache tunnus puhastab vana vahemälu.
   assert.ok(registrations.every(version => Number(cacheV) - Number(version) >= 0 && Number(cacheV) - Number(version) <= 1));
@@ -459,7 +459,8 @@ test('Telefonis äpi uuendamise nupp käivitab serveripäringu ning annab proble
   assert.match(css,/\.update-banner a\[hidden\]/);
   assert.match(sw,/crossfit-app-v\d+/);
   assert.match(sw,/const REQUIRED=/);
-  assert.match(sw,/Promise\.allSettled\(CORE/);
+  assert.doesNotMatch(sw,/Promise\.allSettled\(CORE/);
+  assert.match(sw,/await cache\.addAll\(REQUIRED\)/);
   assert.match(sw,/uuenda\.html/);
   assert.match(repair,/id="tryUpdate"/);
   assert.match(repair,/id="resetUpdate"/);

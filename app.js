@@ -648,6 +648,12 @@ async function setupServiceWorker(){
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
+    // Listener tuleb lisada enne waiting-worker'i aktiveerimist.
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(appWorkerReloaded)return;
+      appWorkerReloaded=true;
+      location.replace('./?version=121&refresh='+Date.now());
+    });
     const handleReady=worker=>{
       if(!worker)return;
       const onState=()=>{
@@ -663,13 +669,13 @@ async function setupServiceWorker(){
     if(reg.waiting && navigator.serviceWorker.controller)handleReady(reg.waiting);
     if(reg.installing)handleReady(reg.installing);
     reg.addEventListener('updatefound',()=>handleReady(reg.installing));
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      if(appWorkerReloaded)return;
-      appWorkerReloaded=true;
-      location.replace('./?version=121&refresh='+Date.now());
-    });
+    let lastWorkerCheck=0;
     const check=async()=>{
-      await checkOnlineVersion();
+      // Pikaajaline ühenduseprobleem versioonifailiga ei blokeeri
+      // kunagi service worker'i enda kontrolli.
+      void checkOnlineVersion();
+      if(Date.now()-lastWorkerCheck<60000)return;
+      lastWorkerCheck=Date.now();
       await reg.update().catch(error=>console.warn('SW uuendamise kontroll ebaõnnestus',error));
       if(reg.waiting&&navigator.serviceWorker.controller)handleReady(reg.waiting);
     };
