@@ -455,7 +455,7 @@ test('Telefonis äpi uuendamise nupp käivitab serveripäringu ning annab proble
   assert.match(index,/id="updateHelp" href="\.\/uuenda\.html\?v=1" hidden/);
   assert.match(index,/id="updateStatus"/);
   assert.match(index,/app\.js\?v=\d+/);
-  assert.match(index,/styles\.css\?v=24/);
+  assert.match(index,/styles\.css\?v=25/);
   assert.match(css,/\.update-banner a\[hidden\]/);
   assert.match(sw,/crossfit-app-v\d+/);
   assert.match(sw,/const REQUIRED=/);

@@ -1036,3 +1036,10 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .update-banner a[hidden]{display:none}
 .update-banner button:disabled{opacity:.65;cursor:progress}
 .update-banner span{font-size:12px;line-height:1.35}
+
+/* Treeneri lisakoha kinnitamine: nupud mahutuvad ka kitsale telefoniekraanile. */
+.td-extra-seat-btn{flex:0 1 136px;min-width:96px;max-width:100%;white-space:normal;line-height:1.25;overflow-wrap:anywhere;text-align:center;cursor:pointer}
+@media(max-width:450px){
+  .td-attendee:has(.td-extra-seat-btn){flex-wrap:wrap}
+  body .td-extra-seat-btn{margin-left:51px;flex:1 1 calc(100% - 51px);min-height:38px}
+}
