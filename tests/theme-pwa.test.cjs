@@ -376,11 +376,11 @@ test('Kohaloleku andmed on eraldi broneeringutest, ainult treener märgib ja kli
   assert.match(mine,/crossfitAttendance\?\.statsCard/);
   assert.match(training,/crossfitAttendance\?\.panel/);
   assert.match(directory,/crossfitAttendance\?\.clientCard/);
-  assert.match(html,/attendance-stats\.js\?v=2/);
+  assert.match(html,/attendance-stats\.js\?v=3/);
   assert.match(html,/attendance\.css\?v=2/);
   assert.match(html,/app\.js\?v=\d+/);
   assert.match(sw,/crossfit-app-v\d+/);
-  assert.match(sw,/attendance-stats\.js\?v=2/);
+  assert.match(sw,/attendance-stats\.js\?v=3/);
 });
 
 test('Privaatsõnumi pooleli kirjutatud tekst säilib asünkroonse värskendamise ajal',()=>{
@@ -435,8 +435,8 @@ test('Minu treeningstatistika näitab nädalat, kuud, kogu ajalugu, seeriat ja s
   assert.match(css,/\.at-bar-count/);
   assert.match(css,/\.at-metric-date strong/);
   assert.match(css,/\.at-chart:focus-visible/);
-  assert.match(html,/attendance-stats\.js\?v=2/);
-  assert.match(sw,/attendance-stats\.js\?v=2/);
+  assert.match(html,/attendance-stats\.js\?v=3/);
+  assert.match(sw,/attendance-stats\.js\?v=3/);
 });
 
 test('Telefonis äpi uuendamise nupp käivitab serveripäringu ning annab probleemil taastamislingi',()=>{

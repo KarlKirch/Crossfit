@@ -110,5 +110,5 @@ test('Ühe mittekriitilise faili ebaõnnestumine ei takista uue töötaja instal
   assert.ok(cache.required.includes('./index.html'));
   assert.ok(cache.required.some(file=>/^\.\/app\.js\?v=\d+$/.test(file)));
   assert.equal(cache.files.length,0,'Ülejäänud failid ei tohi blokeerida installi');
-  assert.ok(workerCode.includes("'./attendance-stats.js?v=2'"));
+  assert.ok(workerCode.includes("'./attendance-stats.js?v=3'"));
 });

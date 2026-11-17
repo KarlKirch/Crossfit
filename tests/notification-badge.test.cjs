@@ -38,7 +38,7 @@ test('App installs new service worker and new notification assets',()=>{
   const app=read('app.js'),html=read('index.html'),sw=read('sw.js');
   assert.match(app,/const APP_VERSION='6\.4\.10'/);
   assert.match(app,/sw\.js\?v=123/);
-  assert.match(html,/app\.js\?v=87/);
+  assert.match(html,/app\.js\?v=88/);
   assert.match(sw,/const CACHE='crossfit-app-v123'/);
-  assert.match(sw,/app\.js\?v=87/);
+  assert.match(sw,/app\.js\?v=88/);
 });

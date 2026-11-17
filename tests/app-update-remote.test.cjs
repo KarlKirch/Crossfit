@@ -8,7 +8,7 @@ test('Serveri versioon ja äpi versioon on identsed',()=>{
  const json=JSON.parse(read('version.json'));
  assert.equal(json.app_version,app.match(/const APP_VERSION='([^']+)'/)[1]);
  assert.equal(json.worker_version,Number(sw.match(/crossfit-app-v(\d+)/)[1]));
- assert.match(html,/app\.js\?v=87/);
+ assert.match(html,/app\.js\?v=88/);
 });
 test('Telefoni esiplaanile tulek kontrollib serveri versiooni',()=>{
  assert.match(app,/fetch\('\.\/version\.json\?fresh='/);
