@@ -72,7 +72,7 @@
       '<div class="td-wod-body">'+esc(text)+'</div>':
       '<p class="td-muted">Treener ei ole veel WOD-i lisanud.</p>','td-wod');
   }
-  function attendees(list,waitlist,trainer){
+  function attendees(list,waitlist,trainer,t){
     if(!list.length)return '<div class="td-empty-attendees">Registreerunuid veel ei ole.</div>';
     return '<div class="td-attendee-list">'+list.map((r,i)=>{
       const nameFull=String(window.pname(r.user_id)||'Kasutaja');
@@ -82,6 +82,11 @@
       const cash=r.payment_method==='cash';
       const trainerPayment=trainer&&cash?'<span class="td-person-credit '+(r.payment_status==='paid'?'':'td-person-unpaid')+'">'+(r.payment_status==='paid'?'Sularaha tasutud':'Sularaha tasumata')+'</span>'+
         (!waitlist&&r.status==='confirmed'&&r.payment_status==='unpaid'?'<button type="button" class="td-cash-paid-btn" onclick="setPayment('+Number(r.id)+',true)">Märgi tasutuks</button>':''):'';
+      const extraLabel=trainer&&!waitlist&&r.coach_extra_seat?
+        '<span class="td-person-credit">Treeneri lisakoht</span>':'';
+      const extraAction=trainer&&waitlist&&t?.status==='published'&&!t.archived_at?
+        '<button type="button" class="td-cash-paid-btn td-extra-seat-btn" onclick="crossfitTrainingDetail.admitExtra('+
+        Number(t.id)+','+Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')">Kinnita lisakohale</button>':'';
       const guestAttendance=trainer&&r.is_guest&&r.status==='confirmed'?
         '<span class="td-person-credit">Kohalolek: '+(r.attendance_status==='present'?'kohal':r.attendance_status==='absent'?'puudus':'märkimata')+'</span>'+
         (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
@@ -89,15 +94,18 @@
       return '<div class="td-attendee">'+photo+
         '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':'Registreeritud')+'</small></div>'+
-        balance+trainerPayment+guestAttendance+'</div>';
+        balance+extraLabel+trainerPayment+guestAttendance+extraAction+'</div>';
     }).join('')+'</div>';
   }
   function attendeesSection(t,c,trainer){
     const pastTraining=past(t);
     if(!trainer&&(pastTraining||t.status==='cancelled'))return '';
-    const confirmed=block('Registreerunud ('+c.confirmed.length+'/'+c.capacity+')',attendees(c.confirmed,false,trainer),'td-people');
+    const extraCount=c.confirmed.filter(r=>r.coach_extra_seat).length;
+    const confirmed=block('Registreerunud ('+c.confirmed.length+'/'+c.capacity+')'+
+      (trainer&&extraCount?' · '+extraCount+' lisakohta':''),
+      attendees(c.confirmed,false,trainer,t),'td-people');
     const waiting=c.waitlisted.length?block('Ootenimekiri ('+c.waitlisted.length+')',
-      attendees(c.waitlisted,true,trainer),'td-people td-wait-list'):'';
+      attendees(c.waitlisted,true,trainer,t),'td-people td-wait-list'):'';
     return confirmed+waiting;
   }
   function ruleBlock(t){
@@ -201,5 +209,37 @@
         '<button type="button" class="sheet-close" onclick="closeModal()" aria-label="Sulge">×</button></div>'+
       '<div class="sheet-body">'+detail(t)+'</div></div></div>';
   };
-  window.crossfitTrainingDetail={detail,registrants};
+  let extraSeatBusy=false;
+  async function admitExtra(trainingId,registrationId,isGuest=false){
+    const tid=Number(trainingId),rid=Number(registrationId),guest=Boolean(isGuest);
+    if(extraSeatBusy||!window.isTrainer()||state.clientPreview)return false;
+    if(!Number.isSafeInteger(tid)||tid<1||!Number.isSafeInteger(rid)||rid<1)return false;
+    const training=state.trainings.find(t=>Number(t.id)===tid);
+    const waiting=(window.waitlistFor(tid)||[]).find(r=>
+      Number(r.id)===(guest?-rid:rid)&&Boolean(r.is_guest)===guest&&r.status==='waitlist');
+    if(!training||training.status!=='published'||training.archived_at||!waiting)return false;
+    const count=(window.confirmedFor(tid)||[]).length;
+    if(count<Number(training.capacity)){
+      window.toast('Treeningul on veel tavakohti. Lisakohta saab kinnitada täis treeningule.');
+      return false;
+    }
+    const name=String(window.pname(waiting.user_id)||'Osaleja');
+    const payment=guest||waiting.payment_method==='cash'?
+      'Tasumine jääb kohapealseks.':'Kinnitamisel arvestatakse üks treeningkrediit.';
+    if(!window.confirm('Kinnita '+name+' lisakohale?\n\n'+payment+
+      '\n\nTreeningu tavapärane kohtade arv jääb samaks; teistele on trenn endiselt täis.'))return false;
+    extraSeatBusy=true;
+    try{
+      const result=await window.rpc('wod_trainer_admit_extra',{
+        p_training_id:tid,p_registration_id:rid,p_is_guest:guest
+      });
+      if(result!==true)throw new Error('Server ei kinnitanud lisakohta.');
+      await window.reloadData('Lisakoht kinnitatud. Treening on teistele endiselt täis.');
+      return true;
+    }catch(error){
+      window.toast(error?.message||'Lisakoha kinnitamine ebaõnnestus');
+      return false;
+    }finally{extraSeatBusy=false}
+  }
+  window.crossfitTrainingDetail={detail,registrants,admitExtra};
 })();
