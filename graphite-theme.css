@@ -406,3 +406,35 @@ body .sheet .cf-profile-form input:disabled{
   opacity:1
 }
 body .sheet .cf-crop-body>p,body .sheet .cf-crop-body>label{color:#F4F6F7}
+
+/* Teavituse avamisel püsib telefoni puuteekraanil vahel :hover-olek.
+   Vana hele .nc-notice:hover taust koos tumeda teema heleda tekstiga
+   muutis juba loetud teavituse valgeks ja loetamatuks. */
+body .nc-list .nc-notice,
+body .nc-list .nc-notice:visited{
+  background:#293137!important;
+  border-color:#505D66;
+  color:#F4F6F7!important;
+}
+body .nc-list .nc-notice:is(:hover,:focus,:focus-visible,:active){
+  background:#38464F!important;
+  border-color:#70818A;
+  color:#F4F6F7!important;
+}
+body .nc-list .nc-notice.nc-unread{
+  background:#323D45!important;
+  border-color:#657681;
+  color:#F4F6F7!important;
+}
+body .nc-list .nc-notice.nc-unread:is(:hover,:focus,:focus-visible,:active){
+  background:#40505A!important;
+  border-color:#82939C;
+  color:#F4F6F7!important;
+}
+body .nc-list .nc-notice .nc-item-text>strong{
+  color:#F4F6F7!important;
+}
+body .nc-list .nc-notice :is(.nc-description,.nc-time,.nc-category){
+  color:#D4E1E6!important;
+}
+body .nc-list .nc-notice .nc-item-arrow{color:#B9EA6F}
