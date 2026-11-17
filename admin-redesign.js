@@ -93,6 +93,7 @@
         item(ic.avatar,'Minu profiil','Muuda nime ja profiilipilti','openProfileEdit()'),
         item(ic.share,'Kutsu sõber','Jaga CrossFiti linki või QR-koodi','openShare()'),
         install,
+        item(ic.phone,'Uuenda äppi','Kontrolli ja paigalda uusim versioon','updateAppNow()'),
         item(ic.info,'Rakenduse info','Versioon ja kasutuspõhimõtted','openInfo()'),
         item(ic.logout,'Logi välja','Lõpeta selle seadme seanss','logout()','ad-entry-danger')
       ])+

@@ -452,7 +452,7 @@ test('Telefonis äpi uuendamise nupp käivitab serveripäringu ning annab proble
   assert.match(app,/addEventListener\('controllerchange'/);
   assert.match(app,/addEventListener\('visibilitychange'/);
   assert.match(app,/Uuendamiseks on vaja internetiühendust/);
-  assert.match(index,/id="updateHelp" href="\.\/uuenda\.html\?v=1" hidden/);
+  assert.match(index,/id="updateHelp" href="\.\/uuenda\.html\?v=2" hidden/);
   assert.match(index,/id="updateStatus"/);
   assert.match(index,/app\.js\?v=\d+/);
   assert.match(index,/styles\.css\?v=25/);

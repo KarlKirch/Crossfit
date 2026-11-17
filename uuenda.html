@@ -55,13 +55,13 @@
   const btn=document.getElementById('tryUpdate');
   const reset=document.getElementById('resetUpdate');
   const feedback=document.getElementById('feedback');
-  const newWorker='./sw.js?v=89';
+  const newWorker='./sw.js';
   function status(text,error){
     feedback.textContent=text;
     feedback.classList.toggle('error',Boolean(error));
   }
   function openLatest(){
-    location.replace('./?version=89&parandatud='+Date.now());
+    location.replace('./?parandatud='+Date.now());
   }
   function readyWorker(reg,limitMs){
     const worker=reg.waiting||reg.installing;
@@ -95,8 +95,7 @@
         openLatest();
         return;
       }
-      let reg=await navigator.serviceWorker.getRegistration('./');
-      if(!reg)reg=await navigator.serviceWorker.register(newWorker,{scope:'./',updateViaCache:'none'});
+      const reg=await navigator.serviceWorker.register(newWorker,{scope:'./',updateViaCache:'none'});
       await reg.update();
       const waiting=reg.waiting||await readyWorker(reg,15000);
       if(waiting){

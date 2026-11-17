@@ -178,6 +178,7 @@
       (window.crossfitNotifications?.pushSettings?.()||'')+
       menuRow(icons.share,'Kutsu sõber','Jaga CrossFiti linki','openShare()')+
       install+
+      menuRow(icons.info,'Uuenda äppi','Kontrolli ja paigalda uusim versioon','updateAppNow()')+
       menuRow(icons.info,'Rakenduse info','Versioon ja kasutustingimused','openInfo()')+
       menuRow(icons.logout,'Logi välja','Lõpeta selle seadme seanss','logout()')+
       '</div></details>';

@@ -6,7 +6,7 @@ const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const GUEST_API='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rouge-guest-bookings';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.4.7';
+const APP_VERSION='6.4.8';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -272,7 +272,7 @@ function renderShell(content){
     <header class="topbar">
       <div class="brand-wrap"><div class="brand-mark"><img src="./brand-rcf.webp" alt="Rõuge CrossFit logo" width="40" height="40"></div><div><div class="brand">Rõuge CrossFit</div><div class="brand-sub">${trainer?'Treeneri vaade':esc(state.profile?.display_name||'')}</div></div></div>
       <div class="top-actions">
-        <button class="top-icon-action" type="button" onclick="reloadData('Andmed uuendatud')" aria-label="Uuenda andmeid" title="Uuenda andmeid"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.8 9A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 12.2-2"/></svg></button>
+        <button class="top-icon-action" type="button" onclick="refreshAppAndData()" aria-label="Kontrolli äpi uuendusi ja värskenda andmeid" title="Kontrolli äpi uuendusi ja värskenda andmeid"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.8 9A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 12.2-2"/></svg></button>
         ${state.view==='notifications'
           ?`<button class="top-icon-action top-notifications-active" type="button" onclick="backFromNotifications()" aria-label="Tagasi eelmisesse vaatesse" title="Tagasi"><span class="top-back-icon">${icon.chevron}</span></button>`
           :`<button class="top-icon-action" type="button" onclick="go('notifications')" aria-label="Teavitused${badge?', '+badge+' lugemata':''}" title="Teavitused">${icon.bell}${badge?`<span class="top-notification-badge">${badge>9?'9+':badge}</span>`:''}</button>`}
@@ -558,7 +558,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=120',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=121',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render();return true}catch(e){toast(e.message);return false}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -605,48 +605,100 @@ function waitForInstalledWorker(reg,timeoutMs=16000){
     worker.addEventListener('statechange',changed);
   });
 }
+// Kontrollime uusimat avaldatud versiooni eraldi SW installist.
+// See leiab uuenduse ka siis, kui vana avakuvaäpp jääb samale HTML-ile.
+let lastAppVersionCheck=0;
+function isNewerVersion(remote,current=APP_VERSION){
+  const parse=value=>String(value||'').split('.').map(v=>Number(v));
+  const a=parse(remote),b=parse(current);
+  if(a.length!==3||b.length!==3||[...a,...b].some(x=>!Number.isSafeInteger(x)||x<0))return false;
+  for(let i=0;i<3;i++)if(a[i]!==b[i])return a[i]>b[i];
+  return false;
+}
+async function checkOnlineVersion(force=false){
+  if(typeof fetch!=='function')return false;
+  if(!force&&Date.now()-lastAppVersionCheck<60000)return false;
+  lastAppVersionCheck=Date.now();
+  try{
+    const response=await fetch('./version.json?fresh='+Date.now(),{
+      cache:'no-store',headers:{'Cache-Control':'no-cache'}
+    });
+    if(!response.ok)throw new Error('Versiooniteenus ei vasta');
+    const latest=await response.json();
+    if(isNewerVersion(latest.app_version)){
+      showUpdateBanner();
+      const status=document.getElementById('updateStatus');
+      if(status)status.textContent='Saadaval on uus versioon '+latest.app_version+'. Vajuta „Uuenda“.';
+      return true;
+    }
+  }catch(error){console.warn('Uue äpiversiooni kontroll ebaõnnestus',error)}
+  return false;
+}
+function canActivateOnStart(startTime){
+  if(Date.now()-startTime>20000||state.modal||document.visibilityState==='hidden')return false;
+  const focused=document.activeElement;
+  if(focused && /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName||''))return false;
+  return true;
+}
 async function setupServiceWorker(){
   if(!('serviceWorker'in navigator))return;
+  const startTime=Date.now();
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js?v=120',{
+    const reg=await navigator.serviceWorker.register('./sw.js?v=121',{
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
-    const watch=worker=>{
+    const handleReady=worker=>{
       if(!worker)return;
       const onState=()=>{
-        if(worker.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner();
+        if(worker.state!=='installed'||!navigator.serviceWorker.controller)return;
+        showUpdateBanner();
+        // Rakenduse turvalisel esmasel avamisel aktiveerime uue versiooni
+        // ise, mitte ei jäta seda nähtamatult ootele.
+        if(canActivateOnStart(startTime))worker.postMessage({type:'SKIP_WAITING'});
       };
       worker.addEventListener('statechange',onState);
       onState();
     };
-    if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner();
-    if(reg.installing)watch(reg.installing);
-    reg.addEventListener('updatefound',()=>watch(reg.installing));
+    if(reg.waiting && navigator.serviceWorker.controller)handleReady(reg.waiting);
+    if(reg.installing)handleReady(reg.installing);
+    reg.addEventListener('updatefound',()=>handleReady(reg.installing));
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(appWorkerReloaded)return;
       appWorkerReloaded=true;
-      location.reload();
+      location.replace('./?version=121&refresh='+Date.now());
     });
-    // Mõnel telefonil ei kontrollita avakuvaäppi avades versiooni piisavalt tihti.
-    // Kontrollitakse serverit ka siis, kui rakendus uuesti esiplaanile tuleb.
-    await reg.update().catch(error=>console.warn('PWA uuenduse kontroll ebaõnnestus',error));
-    let lastCheck=Date.now();
+    const check=async()=>{
+      await checkOnlineVersion();
+      await reg.update().catch(error=>console.warn('SW uuendamise kontroll ebaõnnestus',error));
+      if(reg.waiting&&navigator.serviceWorker.controller)handleReady(reg.waiting);
+    };
+    void check();
     document.addEventListener('visibilitychange',()=>{
-      if(document.visibilityState!=='visible'||Date.now()-lastCheck<5*60000)return;
-      lastCheck=Date.now();
-      void reg.update().catch(error=>console.warn('PWA taustakontroll ebaõnnestus',error));
+      if(document.visibilityState==='visible')void check();
     });
+    window.addEventListener('focus',()=>{
+      if(document.visibilityState!=='hidden')void check();
+    });
+    window.setInterval?.(()=>{
+      if(document.visibilityState!=='hidden')void check();
+    },10*60000);
   }catch(error){
-    // Ära kuva uuenduste bannerit privaatrežiimis ega keskkondades,
-    // kus service worker on keelatud. Vea näitame ainult kasutaja
-    // enda algatatud uuenduskatsel.
     console.warn('PWA registreerimine ebaõnnestus',error);
+    void checkOnlineVersion();
   }
+}
+async function refreshAppAndData(){
+  if(await checkOnlineVersion(true)){
+    await updateAppNow();
+    return;
+  }
+  await reloadData('Andmed uuendatud');
 }
 async function updateAppNow(){
   if(appUpdateBusy)return;
   appUpdateBusy=true;
+  showUpdateBanner();
   updateNow.disabled=true;
   const status=document.getElementById('updateStatus');
   const link=document.getElementById('updateHelp');
@@ -656,15 +708,20 @@ async function updateAppNow(){
   try{
     if(navigator.onLine===false)throw new Error('Uuendamiseks on vaja internetiühendust.');
     if(!('serviceWorker'in navigator)){
-      location.assign('./?version=120&refresh='+Date.now());
+      location.assign('./?version=121&refresh='+Date.now());
       return;
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
-    if(!reg){
-      reg=await getAppRegistration();
+    // Vana SW registreering võis jääda versiooni-parameetriga URL-ile.
+    // Uuesti registreerimine sunnib brauserit uusimat scripti kontrollima.
+    if(typeof navigator.serviceWorker.register==='function'){
+      reg=await navigator.serviceWorker.register('./sw.js?v=121',{
+        scope:'./',updateViaCache:'none'
+      });
       state.swReg=reg;
     }
-    // Erinevalt varasemast nupust kutsume alati päriselt välja update().
+    if(!reg)throw new Error('Teenusetöötajat ei õnnestunud registreerida.');
+    // Ainult päris SW võrgukontroll näitab, kas uus worker on olemas.
     await reg.update();
     const waiting=reg.waiting||await waitForInstalledWorker(reg);
     if(waiting){
@@ -693,7 +750,7 @@ async function updateAppNow(){
       return;
     }
     // Kui worker on juba uus, võib brauseri HTML olla ikkagi vana.
-    location.assign('./?version=120&refresh='+Date.now());
+    location.assign('./?version=121&refresh='+Date.now());
   }catch(error){
     console.warn('PWA käsitsi uuendamine ebaõnnestus',error);
     updateHelp(error?.message||'Uuendamine ei õnnestunud. Ava parandamise juhis.');
@@ -808,5 +865,5 @@ Object.assign(window,{
   quickSheet,infoSheet,
   TZ,APP_URL
 });
-Object.assign(window,{go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,setGuestAttendance,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
+Object.assign(window,{updateAppNow,checkOnlineVersion,refreshAppAndData,go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,setGuestAttendance,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
 boot();
