@@ -204,6 +204,18 @@
       (regs.length?'<div class="at-attendees">'+rows+'</div>':'<p>Treeningul pole kinnitatud registreeringuid.</p>')+
       '<p class="at-note">Kohalolek on eraldi arvestus ega muuda makseid ega krediite.</p></section>';
   }
+  // Vaheta vaid kohaloleku plokk. Kogu modaal- või leherender
+  // kaotaks mobiilis kasutaja asukoha pikkade osalejate nimekirjas.
+  function refreshAttendancePanel(training){
+    if(s.modal!=='training'||Number(s.modalData)!==Number(training.id))return false;
+    const current=window.document?.querySelector?.('.sheet .at-panel[aria-label="Treeningu kohalolek"]');
+    if(!current)return false;
+    const sheet=current.closest?.('.sheet');
+    const before=sheet?.scrollTop;
+    current.outerHTML=panel(training);
+    if(sheet&&Number.isFinite(before))sheet.scrollTop=before;
+    return true;
+  }
   let busy=false;
   async function mark(id,status){
     if(busy||!window.isTrainer()||s.clientPreview)return false;
@@ -222,7 +234,11 @@
         s.attendanceRows.push(row);
       }
       s.clientAttendanceSummaries={};
-      window.render();
+      if(!refreshAttendancePanel(t)){
+        if(typeof window.renderKeepingTrainingScroll==='function')
+          window.renderKeepingTrainingScroll();
+        else window.render();
+      }
       window.toast('Kohalolek salvestatud');
       return true;
     }catch(error){window.toast(error?.message||'Kohaloleku salvestamine ebaõnnestus');return false}
