@@ -41,6 +41,7 @@
   }
   const titleFor=t=>escapeText(t.title||'CrossFit');
   function statusBadge(t){
+    if(t.status==='cancelled')return '<span class="home-status" style="color:#9b1c30;background:#fff0f1">✕ Tühistatud</span>';
     const {free}=seatCount(t),mine=booking(t);
     if(mine?.status==='confirmed')return '<span class="home-status home-status-booked">Registreeritud</span>';
     if(mine?.status==='waitlist')return '<span class="home-status home-status-waiting">Ootenimekirjas</span>';
@@ -52,6 +53,7 @@
   // Registreerumise juures on teadlikult üks otsene tegevus, kuid
   // olemasoleva RPC krediidi- ja ootenimekirjareegleid ei muudeta.
   function mainAction(t){
+    if(t.status==='cancelled')return '<button type="button" class="home-primary-cta" onclick="openTraining('+numericId(t)+')">✕ Treening tühistatud'+svg.right+'</button>';
     const id=numericId(t),mine=booking(t),free=seatCount(t).free,credits=userBalance();
     if(mine)return '<button type="button" class="home-primary-cta" onclick="openTraining('+id+')">'+
       (mine.status==='waitlist'?'Vaata ootenimekirja kohta':'Vaata oma registreeringut')+svg.right+'</button>';
@@ -109,8 +111,8 @@
     const nextBooked=future.find(t=>s.registrations.some(r=>r.user_id===uid&&r.training_id===t.id&&r.status==='confirmed'));
     // Too fookusesse järgmine registreerimata aeg; kui kõik ajad on
     // juba broneeritud, näita järgmise treeningu registreeringut.
-    const openSpot=future.find(t=>!booking(t)&&seatCount(t).free>0);
-    const availableToBook=openSpot||future.find(t=>!booking(t));
+    const openSpot=future.find(t=>t.status==='published'&&!booking(t)&&seatCount(t).free>0);
+    const availableToBook=openSpot||future.find(t=>t.status==='published'&&!booking(t));
     const spotlight=availableToBook||future[0]||null;
     const later=future.filter(t=>t.id!==spotlight?.id).slice(0,3);
     const credits=userBalance();
