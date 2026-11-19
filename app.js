@@ -6,7 +6,7 @@ const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const GUEST_API='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rouge-guest-bookings';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.4.10';
+const APP_VERSION='6.4.11';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -290,6 +290,41 @@ async function reloadData(message){
   }catch(e){toast(e.message||'Andmete uuendamine ebaõnnestus')}
   finally{state.loading=false}
 }
+
+
+let lastCrossfitScheduleCheck=0;
+let crossfitScheduleCheckBusy=false;
+// Kodulehe administraator ja äpp kasutavad sama treeningute tabelit. Värskenda
+// taustal avatud äppi siis, kui CrossFiti treeningud on muudetud või tühistatud.
+async function syncCrossfitSchedule(force=false){
+  if(!state.session?.access_token||!state.profile||state.clientPreview||
+     isAwaitingApproval()||state.loading||state.modal||
+     document.visibilityState==='hidden'||crossfitScheduleCheckBusy)return;
+  const nowMs=Date.now();
+  if(nowMs-lastCrossfitScheduleCheck<(force?12000:40000))return;
+  lastCrossfitScheduleCheck=nowMs;
+  crossfitScheduleCheckBusy=true;
+  try{
+    const since=new Date(Date.now()-365*86400000).toISOString();
+    const rows=await rpc('wod_list_trainings_secure',{p_since:since});
+    const isOurs=t=>!t.archived_at&&
+      String(t.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit'&&
+      t.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7';
+    const signature=items=>items.filter(isOurs)
+      .map(t=>[t.id,t.updated_at,t.starts_at,t.status,t.capacity,t.price_cents].join(':'))
+      .join('|');
+    if(signature(rows||[])!==signature(state.trainings||[]))await reloadData();
+  }catch(error){
+    console.warn('CrossFiti tunniplaani sünkroonimine ebaõnnestus',error);
+  }finally{crossfitScheduleCheckBusy=false}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')void syncCrossfitSchedule(true);
+});
+window.addEventListener('focus',()=>void syncCrossfitSchedule(true));
+window.setInterval(()=>{
+  if(document.visibilityState==='visible')void syncCrossfitSchedule();
+},45000);
 
 function navButton(view,label,svg){
   const active=state.view===view||(state.view==='notifications'&&state.notificationsReturnView===view);
@@ -599,7 +634,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=123',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=124',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render();return true}catch(e){toast(e.message);return false}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -685,7 +720,7 @@ async function setupServiceWorker(){
   if(!('serviceWorker'in navigator))return;
   const startTime=Date.now();
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js?v=123',{
+    const reg=await navigator.serviceWorker.register('./sw.js?v=124',{
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
@@ -693,7 +728,7 @@ async function setupServiceWorker(){
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(appWorkerReloaded)return;
       appWorkerReloaded=true;
-      location.replace('./?version=123&refresh='+Date.now());
+      location.replace('./?version=124&refresh='+Date.now());
     });
     const handleReady=worker=>{
       if(!worker)return;
@@ -755,14 +790,14 @@ async function updateAppNow(){
   try{
     if(navigator.onLine===false)throw new Error('Uuendamiseks on vaja internetiühendust.');
     if(!('serviceWorker'in navigator)){
-      location.assign('./?version=123&refresh='+Date.now());
+      location.assign('./?version=124&refresh='+Date.now());
       return;
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
     // Vana SW registreering võis jääda versiooni-parameetriga URL-ile.
     // Uuesti registreerimine sunnib brauserit uusimat scripti kontrollima.
     if(typeof navigator.serviceWorker.register==='function'){
-      reg=await navigator.serviceWorker.register('./sw.js?v=123',{
+      reg=await navigator.serviceWorker.register('./sw.js?v=124',{
         scope:'./',updateViaCache:'none'
       });
       state.swReg=reg;
@@ -797,7 +832,7 @@ async function updateAppNow(){
       return;
     }
     // Kui worker on juba uus, võib brauseri HTML olla ikkagi vana.
-    location.assign('./?version=123&refresh='+Date.now());
+    location.assign('./?version=124&refresh='+Date.now());
   }catch(error){
     console.warn('PWA käsitsi uuendamine ebaõnnestus',error);
     updateHelp(error?.message||'Uuendamine ei õnnestunud. Ava parandamise juhis.');
