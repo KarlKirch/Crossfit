@@ -1,0 +1,63 @@
+/* Fotoarhiiv: Rõuge CrossFiti roheline ja mobiilis kompaktne vaade */
+body .pa-archive{display:grid;gap:14px}
+body .pa-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+body .pa-heading h2{margin:0;font-size:19px;font-weight:850;color:var(--text)}
+body .pa-heading p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
+body .pa-photo-count{white-space:nowrap;border-radius:30px;background:#E3EFE3;color:#2B6749;padding:7px 11px;font-size:12px;font-weight:750}
+body .pa-month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:15px;background:var(--card);padding:7px 9px}
+body .pa-month-nav strong{font-size:15px;font-weight:850}
+body .pa-month-nav button{width:42px;height:40px;border-radius:10px;border:0;background:#E6F1E5;color:#266245;font-size:28px;line-height:1;cursor:pointer}
+body .pa-month-nav button:disabled{opacity:.26;cursor:default}
+body .pa-mine{display:flex;align-items:center;gap:9px;color:var(--text);font-size:13px;font-weight:650}
+body .pa-mine input{accent-color:#2E7350;width:17px;height:17px}
+body .pa-calendar{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:13px 11px}
+body .pa-weekdays,body .pa-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+body .pa-weekdays{margin-bottom:7px;text-align:center}
+body .pa-weekdays span{font-size:10px;font-weight:750;color:var(--muted)}
+body .pa-day{position:relative;min-height:38px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:0;border-radius:10px;background:transparent;color:var(--text);font:inherit;font-size:12px}
+body button.pa-day{cursor:pointer}
+body .pa-day-training{background:#EAF0E9;color:#255A43;font-weight:850}
+body .pa-day-photo{background:#D7EADD;color:#1C6340}
+body .pa-dot{width:5px;height:5px;background:#A8B5AC;border-radius:50%;position:absolute;bottom:4px}
+body .pa-day-photo .pa-dot{background:#248153}
+body .pa-legend{display:flex;justify-content:center;gap:15px;margin-top:13px;font-size:10px;color:var(--muted)}
+body .pa-legend span{display:flex;align-items:center;gap:5px}
+body .pa-legend i{width:8px;height:8px;border-radius:50%;background:#248153}
+body .pa-legend span:last-child i{background:#A8B5AC}
+body .pa-results{display:grid;gap:9px}
+body .pa-results-count{font-size:12px;color:var(--muted);font-weight:700}
+body .pa-archive-card{display:flex;gap:12px;border:1px solid var(--line);border-radius:15px;background:var(--card);padding:11px;align-items:center;min-width:0}
+body .pa-thumb,body .pa-empty-thumb{flex:none;width:94px;min-height:94px;height:94px;border-radius:11px;border:1px solid #D6E2D8;background:#EDF4EC;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;color:#4C755C}
+body .pa-thumb{cursor:zoom-in}
+body .pa-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+body .pa-thumb img[hidden],body .pa-photo-placeholder[hidden]{display:none!important}
+body .pa-photo-placeholder,body .pa-empty-thumb{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;font-size:25px}
+body .pa-empty-thumb small,body .pa-photo-placeholder small{font-size:10px;text-align:center;font-weight:650}
+body .pa-archive-main{display:grid;gap:6px;min-width:0;flex:1}
+body .pa-archive-main>strong{font-size:13px;font-weight:850;line-height:1.4}
+body .pa-archive-main>span{font-size:11px;color:var(--muted)}
+body .pa-tag{color:#6A6F68!important;font-weight:700}
+body .pa-tag-ready{color:#32724B!important}
+body .pa-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+body .pa-actions button{padding:7px 9px;border:1px solid #C9D9CC;border-radius:9px;background:#F0F5EF;color:#24553C;font-weight:750;font-size:11px;cursor:pointer}
+body .pa-actions .pa-manage{background:#286746;color:#fff;border-color:#286746}
+body .pa-empty,body .pa-detail-empty{border-radius:12px;background:#F1F5EF;padding:18px;color:#62766B;font-size:13px;line-height:1.5}
+body .pa-detail{margin:12px 0;padding:14px;border:1px solid #CBDCCD;border-radius:16px;background:#F8FBF7;display:grid;gap:10px}
+body .pa-detail-heading{display:flex;justify-content:space-between;gap:10px;align-items:center}
+body .pa-detail-heading h3{margin:0;font-size:16px;color:#1A5139;font-weight:850}
+body .pa-detail-heading span{font-size:11px;color:#658173}
+body .pa-detail-photo .pa-thumb{width:100%;height:auto;min-height:160px;max-height:330px;aspect-ratio:4/3}
+body .pa-detail-photo .pa-thumb img{max-height:330px;object-fit:contain;background:#E5EBE1}
+body .pa-detail-actions{display:flex;flex-wrap:wrap;gap:8px}
+body .pa-upload,body .pa-delete{padding:10px 12px;border-radius:10px;font-size:12px;font-weight:800;border:1px solid #286746;cursor:pointer}
+body .pa-upload{background:#286746;color:#fff}
+body .pa-delete{background:#fff;color:#A13E3E;border-color:#E3C7C7}
+body .pa-upload:disabled,body .pa-delete:disabled{opacity:.5}
+body .pa-file[hidden]{display:none}
+body .pa-preview-open{overflow:hidden}
+body .pa-preview{position:fixed;z-index:9999;inset:0;background:rgba(5,12,8,.94);display:flex;align-items:center;justify-content:center;padding:50px 8px 24px}
+body .pa-preview-content{position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+body .pa-preview img{max-width:100%;max-height:calc(100dvh - 118px);object-fit:contain;border-radius:8px;touch-action:pinch-zoom}
+body .pa-preview p{color:#C8D4C9;font-size:11px;text-align:center;margin:0}
+body .pa-preview-close{position:fixed;right:16px;top:calc(12px + env(safe-area-inset-top));width:42px;height:42px;border-radius:50%;background:#fff;color:#142A1F;border:0;font-size:27px;z-index:1;cursor:pointer}
+@media(max-width:380px){body .pa-thumb,body .pa-empty-thumb{width:78px;min-height:82px;height:82px}body .pa-archive-card{gap:8px;padding:9px}body .pa-actions button{padding:7px}}
