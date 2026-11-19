@@ -89,8 +89,8 @@ test('Äpi failid ja versioon on omavahel kooskõlas',()=>{
  assert.match(html,/photo-archive\.js\?v=1/);
  assert.match(html,/photo-archive\.css\?v=1/);
  assert.match(sw,/photo-archive\.js\?v=1/);
- assert.match(sw,/crossfit-app-v126/);
- assert.match(app,/APP_VERSION='6\.4\.13'/);
- assert.equal(v.app_version,'6.4.13');
- assert.equal(v.worker_version,126);
+ assert.match(sw,/crossfit-app-v127/);
+ assert.match(app,/APP_VERSION='6\.4\.14'/);
+ assert.equal(v.app_version,'6.4.14');
+ assert.equal(v.worker_version,127);
 });
