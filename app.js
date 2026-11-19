@@ -6,7 +6,7 @@ const VAPID_PUBLIC='BJYpdEsob-TJHXH5cn27pxwAgHZRVKTetdZraQO5LVmcwQYUzkYR3bQ0wc57
 const APP_URL='https://karlkirch.github.io/Crossfit/';
 const GUEST_API='https://aanxpugvehwtcwwpefwx.supabase.co/functions/v1/rouge-guest-bookings';
 const SHARE_URL=APP_URL+'liitu.html';
-const APP_VERSION='6.4.11';
+const APP_VERSION='6.4.12';
 const TZ='Europe/Tallinn';
 
 const root=document.getElementById('appRoot');
@@ -63,7 +63,7 @@ function confirmedFor(tid){return regsFor(tid).filter(r=>r.status==='confirmed')
 function waitlistFor(tid){return regsFor(tid).filter(r=>r.status==='waitlist').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)||a.id-b.id)}
 function mineFor(tid){return regsFor(tid).find(r=>r.user_id===state.session?.user?.id&&['confirmed','waitlist'].includes(r.status))}
 function mineAnyFor(tid){return regsFor(tid).find(r=>r.user_id===state.session?.user?.id)}
-function upcomingTrainings(){return state.trainings.filter(t=>!t.archived_at&&new Date(t.starts_at)>now()&&(t.status==='published'||(isTrainer()&&t.status==='cancelled'))).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at))}
+function upcomingTrainings(){return state.trainings.filter(t=>!t.archived_at&&new Date(t.starts_at)>now()&&(t.status==='published'||t.status==='cancelled')).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at))}
 function pastTrainings(){return state.trainings.filter(t=>!t.archived_at&&new Date(t.starts_at)<=now()).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at))}
 function activeUserPackages(uid=state.session?.user?.id){const n=Date.now();return state.userPackages.filter(p=>p.user_id===uid&&p.status==='active'&&(!p.expires_at||new Date(p.expires_at).getTime()>=n)&&(p.kind==='unlimited'||Number(p.credits_remaining)>0))}
 function legacyCredits(uid=state.session?.user?.id){return Number(state.wallets.find(w=>w.user_id===uid)?.credits||0)}
@@ -634,7 +634,7 @@ function pushSupported(){return 'serviceWorker'in navigator&&'PushManager'in win
 function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isStandaloneMode(){return !!window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
 function urlBase64ToUint8Array(s){const pad='='.repeat((4-s.length%4)%4),base=(s+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=124',{scope:'./',updateViaCache:'none'});return reg}
+async function getAppRegistration(){let reg=await navigator.serviceWorker.getRegistration('/Crossfit/');if(!reg)reg=await navigator.serviceWorker.register('./sw.js?v=125',{scope:'./',updateViaCache:'none'});return reg}
 async function pushRequest(path,opt={}){return api(path,opt)}
 async function cleanupOldWodSubscription(){try{const old=await navigator.serviceWorker.getRegistration('/Futbol/wod/');const sub=await old?.pushManager?.getSubscription();if(sub){await api(`wod_push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`,{method:'DELETE'}).catch(()=>{});await sub.unsubscribe()}}catch(_){}}
 async function enablePush(){if(state.pushBusy)return;state.pushBusy=true;try{if(isIOSDevice()&&!isStandaloneMode())throw new Error('iPhone’i teavitused töötavad ainult avakuvale lisatud CrossFiti veebirakenduses. Ava äpp avakuva ikoonist.');if(!pushSupported())throw new Error('See brauser ei toeta push-teavitusi.');const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Teavitused on brauseris blokeeritud.':'Teavituste luba ei antud.');await cleanupOldWodSubscription();const reg=await getAppRegistration();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});const j=sub.toJSON();await api('wod_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.session.user.id,endpoint:sub.endpoint,p256dh:j.keys?.p256dh||'',auth:j.keys?.auth||'',updated_at:new Date().toISOString()})});toast('Teavitused on lubatud');render();return true}catch(e){toast(e.message);return false}finally{state.pushBusy=false;updatePushStateSoon(true)}}
@@ -720,7 +720,7 @@ async function setupServiceWorker(){
   if(!('serviceWorker'in navigator))return;
   const startTime=Date.now();
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js?v=124',{
+    const reg=await navigator.serviceWorker.register('./sw.js?v=125',{
       scope:'./',updateViaCache:'none'
     });
     state.swReg=reg;
@@ -728,7 +728,7 @@ async function setupServiceWorker(){
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(appWorkerReloaded)return;
       appWorkerReloaded=true;
-      location.replace('./?version=124&refresh='+Date.now());
+      location.replace('./?version=125&refresh='+Date.now());
     });
     const handleReady=worker=>{
       if(!worker)return;
@@ -790,14 +790,14 @@ async function updateAppNow(){
   try{
     if(navigator.onLine===false)throw new Error('Uuendamiseks on vaja internetiühendust.');
     if(!('serviceWorker'in navigator)){
-      location.assign('./?version=124&refresh='+Date.now());
+      location.assign('./?version=125&refresh='+Date.now());
       return;
     }
     let reg=state.swReg||await navigator.serviceWorker.getRegistration('./');
     // Vana SW registreering võis jääda versiooni-parameetriga URL-ile.
     // Uuesti registreerimine sunnib brauserit uusimat scripti kontrollima.
     if(typeof navigator.serviceWorker.register==='function'){
-      reg=await navigator.serviceWorker.register('./sw.js?v=124',{
+      reg=await navigator.serviceWorker.register('./sw.js?v=125',{
         scope:'./',updateViaCache:'none'
       });
       state.swReg=reg;
@@ -832,7 +832,7 @@ async function updateAppNow(){
       return;
     }
     // Kui worker on juba uus, võib brauseri HTML olla ikkagi vana.
-    location.assign('./?version=124&refresh='+Date.now());
+    location.assign('./?version=125&refresh='+Date.now());
   }catch(error){
     console.warn('PWA käsitsi uuendamine ebaõnnestus',error);
     updateHelp(error?.message||'Uuendamine ei õnnestunud. Ava parandamise juhis.');
