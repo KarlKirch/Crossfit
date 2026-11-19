@@ -144,7 +144,7 @@
       '<div class="pa-actions">'+
       '<button type="button" onclick="openTraining('+id+')">Vaata treeningut</button>'+
       (canManage?'<button type="button" class="pa-manage" onclick="crossfitPhotoArchive.choose('+id+')">'+(row?'Asenda foto':'+ Lisa foto')+'</button>':'')+
-      '</div></div></article>';
+      '</div>'+(trainer()?'<button type="button" class="tl-history-remove" onclick="deleteTraining('+id+')">Eemalda ajaloost</button>':'')+'</article>';
   }
   window.renderTrainings=function(){
     const base=pastList();

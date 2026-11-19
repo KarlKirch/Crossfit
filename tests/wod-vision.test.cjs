@@ -10,8 +10,8 @@ test('AI-pildilugemine ei ole äppi ühendatud ja server on maksepäringuteks su
  assert.match(edge,/code:'AI_DISABLED'/);
  assert.doesNotMatch(edge,/api\.openai\.com/);
 });
-test('Versioon 6.4.10 kasutab foto ja käsitsi kava salvestamist',()=>{
- assert.match(read('app.js'),/const APP_VERSION='6\.4\.10'/);
+test('Versioon 6.4.13 kasutab foto ja käsitsi kava salvestamist',()=>{
+ assert.match(read('app.js'),/const APP_VERSION='6\.4\.13'/);
  assert.match(read('index.html'),/wod-bank\.js\?v=15/);
  assert.match(read('sw.js'),/wod-review-ui\.js\?v=11/);
 });
