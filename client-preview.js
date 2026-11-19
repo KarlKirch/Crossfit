@@ -8,9 +8,11 @@
   const s=window.state;
   if(!s||typeof window.render!=='function')return;
   const DEMO='ffffffff-ffff-4fff-8fff-fffffffffff1';
+  const SUPABASE_URL='https://aanxpugvehwtcwwpefwx.supabase.co';
+  const SUPABASE_KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
   const originalMore=window.renderMore,originalModal=window.renderModal;
   const keys=['session','profile','view','modal','modalData','trainingTab',
-    'trainings','registrations','profiles','wallets','creditTransactions',
+    'trainings','registrations','guestBookings','profiles','wallets','creditTransactions',
     'userPackages','notifications','packageTypes','removedClients','privateMessages','messageClientId'];
   let original=null,scenario='booked';
   const validId=v=>{const n=Number(v);return Number.isSafeInteger(n)&&n>0?n:null;};
@@ -39,7 +41,10 @@
     s.profile={user_id:DEMO,display_name:'Näidisklient',role:'client',avatar_path:null};
     s.session={user:{id:DEMO,email:'naidisklient@example.invalid',user_metadata:{display_name:'Näidisklient'}},
       access_token:null,refresh_token:null};
-    s.profiles=[s.profile]; // Päris klientide nimesid eelvaates ei kasutata.
+    // Toimunud treeningute nimed on pärisandmed, tulevase registreerimise
+    // stsenaarium jääb näidiseks. Need profiilid ei anna eelvaatele
+    // õigust midagi serveris muuta.
+    s.profiles=[s.profile,...(original.profiles||[]).filter(p=>p.user_id!==DEMO)];
     s.wallets=[{user_id:DEMO,credits:key==='empty'?0:3}];
     s.userPackages=[];
     s.creditTransactions=key==='empty'?[]:[{id:900001,user_id:DEMO,delta:3,reason:'Näidis: lisatud treeningkrediit',
@@ -54,6 +59,17 @@
     s.profiles=[s.profile,...pretendPeople.map(p=>({
       user_id:p.id,display_name:p.name,role:'client',avatar_path:null
     }))];
+    // Eelmise treeningu 3/14 viga: kasutaja registreeringud asendati
+    // näidisandmetega, samal ajal kui 3 külalist jäid alles.
+    // Hoia möödunud avaldatud CrossFiti tunnid pärisandmetena alles.
+    const historicIds=new Set((original.trainings||[])
+      .filter(t=>t.status==='published'&&!t.archived_at&&
+        Date.parse(t.starts_at)+Math.max(0,Number(t.duration_minutes)||0)*60000<=Date.now())
+      .map(t=>Number(t.id)));
+    const historicRegistrations=(original.registrations||[])
+      .filter(r=>historicIds.has(Number(r.training_id)));
+    s.guestBookings=(original.guestBookings||[])
+      .filter(g=>historicIds.has(Number(g.training_id)));
     const filled=pretendPeople.map((p,i)=>({
       id:900100+i,user_id:p.id,training_id:id,status:'confirmed',
       credit_charged:true,payment_status:'credit',created_at:new Date().toISOString()
@@ -63,7 +79,7 @@
       status:key==='waitlist'?'waitlist':'confirmed',
       credit_charged:key==='booked',payment_status:'credit',created_at:new Date().toISOString()
     }]:[];
-    s.registrations=filled.concat(own);
+    s.registrations=[...historicRegistrations,...filled,...own];
     s.notifications=(key==='booked'||key==='waitlist')&&id?[{
       id:900003,user_id:DEMO,training_id:id,kind:key==='waitlist'?'waitlist_joined':'registration_confirmed',
       title:key==='waitlist'?'Oled ootenimekirjas':'Registreering kinnitatud',
@@ -100,11 +116,33 @@
     return true;
   }
   function setScenario(key){if(!isPreview())return false;return renderDemo(key);}
+
+  // Eelvaate sünteetilisel kasutajal puudub tahtlikult autentimistoken.
+  // Lugemiseks kasutame ainult eelvaate avanud treeneri olemasolevat tokenit
+  // ning juba serveris õigustega piiratud toimunud treeningute RPC-d.
+  async function readCompletedAttendees(trainingId){
+    if(!isPreview())throw Error('Kliendieelvaade ei ole aktiivne.');
+    const id=validId(trainingId);
+    const training=(original.trainings||[]).find(t=>Number(t.id)===id);
+    if(!id||!training||training.status!=='published'||training.archived_at||
+      Date.parse(training.starts_at)+Math.max(0,Number(training.duration_minutes)||0)*60000>Date.now())
+      throw Error('Toimunud treening puudub.');
+    const token=original.session?.access_token;
+    if(!token)throw Error('Administraatori sisselogimisseanss puudub.');
+    const response=await fetch(SUPABASE_URL+'/rest/v1/rpc/wod_completed_attendees_secure',{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token,
+        'Content-Type':'application/json'},
+      body:JSON.stringify({p_training_id:id})
+    });
+    if(!response.ok)throw Error('Kohalolijate nimekirja laadimine ebaõnnestus.');
+    return response.json();
+  }
   function banner(){
     if(!isPreview())return '';
     return '<aside class="rcf-client-preview-banner" role="region" aria-label="KLIENDIVAADE – näidis">'+
       '<div class="rcf-preview-label"><strong>KLIENDIVAADE · NÄIDIS</strong>'+
-      '<span>Kirjutuskaitstud eelvaade – ei muuda pärisandmeid</span></div>'+
+      '<span>Varasemad treeningud on pärisandmetega; näidisregistreerimine ei muuda neid</span></div>'+
       '<div class="rcf-preview-controls" role="group" aria-label="Kliendi olukord">'+
         scenarios.map(([key,label])=>'<button type="button" class="rcf-preview-scenario'+
           (scenario===key?' is-selected':'')+'" aria-pressed="'+(scenario===key)+
@@ -116,7 +154,7 @@
     return '<section class="rcf-preview-entry"><div><span class="rcf-preview-kicker">KASUTAJAKOGEMUS</span>'+
       '<h2>Vaata rakendust kliendina</h2><p>Testi avalehte, treeninguid, krediiti ja registreeringuid ilma kliendikontot loomata.</p></div>'+
       '<button type="button" class="rcf-preview-start" onclick="rcfClientPreview.start()">Vaata kliendina</button>'+
-      '<small>Kliendieelvaade kasutab näidisandmeid ja on kirjutuskaitstud.</small></section>';
+      '<small>Tulevase registreerimise näidis on kirjutuskaitstud. Möödunud treeningud näitavad pärisandmeid.</small></section>';
   }
   function help(){
     if(!s.session?.user)return false;
@@ -158,5 +196,5 @@
   }
   document.addEventListener('click',blockUnsafe,true);
   window.openCreditHelp=help;
-  window.rcfClientPreview={start,exit,setScenario,banner,isActive:isPreview,scenarioLabel};
+  window.rcfClientPreview={start,exit,setScenario,banner,isActive:isPreview,scenarioLabel,readCompletedAttendees};
 })();

@@ -4,8 +4,8 @@
 (function(){
   const s=window.state;
   if(!s||typeof window.renderModal!=='function'||typeof window.openTraining!=='function')return;
-  const ROOT='https://aanxpugvehwtcwwpefwx.supabase.co';
-  const KEY='sb_publishable_ICMR8EF0LK69VjfVRWe0ew_120LIV7A';
+  // Kliendieelvaade kasutab eraldi kirjutuskaitstud päringut oma
+  // algse treenerisessiooniga, sest näidiskliendil puudub päris token.
   const previousModal=window.renderModal;
   const previousOpenTraining=window.openTraining;
   const previousLoad=window.loadData;
@@ -34,22 +34,18 @@
       '" aria-label="Toimunud treeningu osalejad"><h3>'+title+'</h3>'+body+'</section>';
   }
   async function query(id){
+    if(s.clientPreview){
+      if(!window.rcfClientPreview?.readCompletedAttendees)
+        throw Error('Kliendieelvaate lugemisõigus puudub.');
+      return window.rcfClientPreview.readCompletedAttendees(id);
+    }
     if(!s.session?.access_token)throw Error('Sessioon puudub.');
-    if(!s.clientPreview)return window.rpc('wod_completed_attendees_secure',{p_training_id:id});
-    // Kliendieelvaade on kirjutuskaitstud. Loe sama turvalist RPC-d otse:
-    // app.js-i api() ei luba eelvaates päringut, kuid see on vaid SELECT.
-    const response=await fetch(ROOT+'/rest/v1/rpc/wod_completed_attendees_secure',{
-      method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.session.access_token,
-        'Content-Type':'application/json'},
-      body:JSON.stringify({p_training_id:id})
-    });
-    if(!response.ok)throw Error('Osalejate andmete laadimine ebaõnnestus.');
-    return response.json();
+    return window.rpc('wod_completed_attendees_secure',{p_training_id:id});
   }
   async function refresh(id,force=false){
     id=safeId(id);
     const t=s.trainings.find(x=>Number(x.id)===id);
-    if(id===null||!eligible(t)||!s.session?.access_token)return false;
+    if(id===null||!eligible(t)||(!s.session?.access_token&&!s.clientPreview))return false;
     if(requests.has(id))return requests.get(id);
     if(rowsByTraining.has(id)&&!force)return true;
     const task=(async()=>{
@@ -80,6 +76,10 @@
     if(!html.includes(target))return html;
     if(!rowsByTraining.has(id)&&!requests.has(id))
       Promise.resolve().then(()=>refresh(id)).catch(()=>{});
+    // Jäta kava foto ja treeningu päis nähtavale, osalejate nimed nende alla.
+    const hero=html.indexOf('<section class="td-hero">');
+    const end=hero<0?-1:html.indexOf('</section>',hero);
+    if(end>=0)return html.slice(0,end+10)+section(id)+html.slice(end+10);
     return html.replace(target,target+section(id));
   };
   window.openTraining=function(id){

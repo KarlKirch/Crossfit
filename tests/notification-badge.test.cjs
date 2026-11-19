@@ -36,9 +36,9 @@ test('Monochrome RCF notification badge is truly transparent PNG, not launcher i
 });
 test('App installs new service worker and new notification assets',()=>{
   const app=read('app.js'),html=read('index.html'),sw=read('sw.js');
-  assert.match(app,/const APP_VERSION='6\.4\.14'/);
-  assert.match(app,/sw\.js\?v=127/);
-  assert.match(html,/app\.js\?v=92/);
-  assert.match(sw,/const CACHE='crossfit-app-v127'/);
-  assert.match(sw,/app\.js\?v=92/);
+  assert.match(app,/const APP_VERSION='6\.4\.15'/);
+  assert.match(app,/sw\.js\?v=128/);
+  assert.match(html,/app\.js\?v=93/);
+  assert.match(sw,/const CACHE='crossfit-app-v128'/);
+  assert.match(sw,/app\.js\?v=93/);
 });
