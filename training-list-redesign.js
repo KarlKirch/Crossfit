@@ -54,6 +54,7 @@
   function action(t,past,trainer,c){
     const id=safeId(t);if(id===null)return '';
     const reg=mine(t);
+    if(t.status==='cancelled')return '<button type="button" class="tl-action tl-action-secondary" onclick="openTraining('+id+')">✕ Treening tühistatud'+svg.arrow+'</button>';
     if(trainer)return '<button type="button" class="tl-action tl-action-main" onclick="openTraining('+id+')">'+(past?'Vaata treeningut':'Halda treeningut')+svg.arrow+'</button>';
     if(past)return '<button type="button" class="tl-action tl-action-secondary" onclick="openTraining('+id+')">Vaata treeningut'+svg.arrow+'</button>';
     if(reg)return '<button type="button" class="tl-action tl-action-secondary" onclick="openTraining('+id+')">'+
