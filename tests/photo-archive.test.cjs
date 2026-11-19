@@ -92,5 +92,5 @@ test('Äpi failid ja versioon on omavahel kooskõlas',()=>{
  assert.match(sw,/crossfit-app-v128/);
  assert.match(app,/APP_VERSION='6\.4\.15'/);
  assert.equal(v.app_version,'6.4.15');
- assert.equal(v.worker_version,127);
+ assert.equal(v.worker_version,128);
 });

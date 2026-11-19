@@ -56,7 +56,7 @@
       id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),
       name:'Näidisosaleja '+(i+1)
     }));
-    s.profiles=[s.profile,...pretendPeople.map(p=>({
+    s.profiles=[s.profile,...(original.profiles||[]).filter(p=>p.user_id!==DEMO),...pretendPeople.map(p=>({
       user_id:p.id,display_name:p.name,role:'client',avatar_path:null
     }))];
     // Eelmise treeningu 3/14 viga: kasutaja registreeringud asendati
