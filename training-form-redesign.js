@@ -264,10 +264,15 @@
     const id=idOf(idValue),data=validateForm(id);
     if(data.error){window.toast(data.error);return false;}
     if(data.starts.length>1&&!window.confirm('Avaldad '+data.starts.length+' treeningut. Kas soovid jätkata?'))return false;
-    const existingSlots=(s.trainings||[]).filter(t=>t.status==='published'&&Number(t.id)!==id)
+    const existingSlots=(s.trainings||[]).filter(t=>t.status==='published'&&Number(t.id)!==id
+      && String(t.title||'').trim().toLocaleLowerCase('et-EE')===data.title.toLocaleLowerCase('et-EE'))
       .map(t=>Date.parse(t.starts_at));
     const repeated=data.starts.filter(x=>existingSlots.includes(Date.parse(x)));
-    if(repeated.length&&!window.confirm('Mõne valitud aja kohta on juba treening olemas ('+repeated.length+'). Kas soovid siiski jätkata?'))return false;
+    if(repeated.length===data.starts.length&&!id){
+      window.toast('See treening on valitud kuupäeval ja kellaajal juba olemas. Ava olemasolev treening kalendrist, kui soovid seda muuta.');
+      return false;
+    }
+    if(repeated.length&&!window.confirm('Juba olemas '+repeated.length+' sama treeningu aega. Need jäetakse vahele ja lisatakse ainult uued ajad. Kas jätkata?'))return false;
     saving=true;
     const button=byId('tfSubmit');if(button){button.disabled=true;button.textContent='Salvestan…'}
     const {title,duration,capacity,price,cancel,workout,note,starts}=data;
@@ -280,15 +285,23 @@
           body:JSON.stringify({...fields,starts_at:starts[0],updated_at:new Date().toISOString()})
         });
       }else{
-        await window.api('wod_trainings',{
-          method:'POST',headers:{Prefer:'return=minimal'},
-          body:JSON.stringify(starts.map(starts_at=>({
-            ...fields,starts_at,created_by:s.session.user.id,status:'published'
-          })))
+        // Turvaline hulgilisamine: olemasolevaid aegu ei dubleerita.
+        const result=await window.rpc('wod_create_trainings_secure',{
+          p_rows:starts.map(starts_at=>({...fields,starts_at}))
         });
+        const created=Number(result?.created||0),skipped=Number(result?.skipped||0);
+        if(created===0){
+          const first=result?.skipped_rows?.[0];
+          const when=first?.starts_at?fmt.format(new Date(first.starts_at)):'valitud ajal';
+          window.toast('Treening on juba olemas: '+when+'. Ava olemasolev treening, kui soovid seda muuta.');
+          return false;
+        }
+        s.modal=null;s.modalData=null;
+        await window.reloadData('Avaldatud '+created+' treeningut'+(skipped?', juba olemas '+skipped+' aega jäeti vahele.':'.'));
+        return true;
       }
       s.modal=null;s.modalData=null;
-      await window.reloadData(id?'Treening uuendatud':starts.length===1?'Treening avaldatud':starts.length+' treeningut avaldatud');
+      await window.reloadData('Treening uuendatud');
       return true;
     }catch(e){window.toast(e.message||'Treeningu salvestamine ebaõnnestus');return false}
     finally{saving=false;if(button?.isConnected){button.disabled=false;button.textContent=id?'Salvesta muudatused':'Avalda treening'}}
