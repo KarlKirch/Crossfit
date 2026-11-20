@@ -247,7 +247,7 @@ async function loadData(){
   // CrossFiti äpp kuvab üksnes Karli CrossFit treeninguid. Kodulehe
   // teiste treeningute kirjed jäävad alles ja on kodulehel kasutatavad.
   state.trainings=(t||[]).filter(training=>!training.archived_at
-    && String(training.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit'
+    && String(training.title||'').trim().toLocaleLowerCase('et-EE').startsWith('crossfit')
     && training.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7');
   const crossfitIds=new Set(state.trainings.map(training=>Number(training.id)));
   state.guestBookings=(guests||[]).filter(guest=>crossfitIds.has(Number(guest.training_id)));
@@ -308,7 +308,7 @@ async function syncCrossfitSchedule(force=false){
     const since=new Date(Date.now()-365*86400000).toISOString();
     const rows=await rpc('wod_list_trainings_secure',{p_since:since});
     const isOurs=t=>!t.archived_at&&
-      String(t.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit'&&
+      String(t.title||'').trim().toLocaleLowerCase('et-EE').startsWith('crossfit')&&
       t.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7';
     const signature=items=>items.filter(isOurs)
       .map(t=>[t.id,t.updated_at,t.starts_at,t.status,t.capacity,t.price_cents].join(':'))
