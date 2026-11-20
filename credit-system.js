@@ -64,7 +64,7 @@
     // Nimekirjas on ainult Karli CrossFit treeningud, mitte kogu kodulehe kava.
     s.trainings=(out[0]||[]).filter(t=>!t.archived_at
       && t.created_by==='783362cf-5a1c-4bc7-ac7c-76e011663bb7'
-      && String(t.title||'').trim().toLocaleLowerCase('et-EE')==='crossfit');
+      && String(t.title||'').trim().toLocaleLowerCase('et-EE').startsWith('crossfit'));
     const allowedIds=new Set(s.trainings.map(t=>Number(t.id)));
     s.registrations=(out[1]||[]).filter(r=>allowedIds.has(Number(r.training_id)));
     const guestData=out[guestIndex];
