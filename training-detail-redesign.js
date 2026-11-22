@@ -92,11 +92,15 @@
       const removeAction=trainer&&t&&!t.archived_at&&r.status&&['confirmed','waitlist'].includes(r.status)?
         '<button type="button" class="td-cash-paid-btn td-remove-booking-btn" onclick="trainerCancelBooking('+
         Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')">Tühista registreering</button>':'';
-      return '<div class="td-attendee">'+photo+
-        '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
-        '<small>'+(waitlist?(i+1)+'. ootenimekirjas':
-          (trainer&&r.coach_extra_seat?'Registreeritud · Treeneri lisakoht':'Registreeritud'))+'</small></div>'+
-        balance+trainerPayment+guestAttendance+extraAction+removeAction+'</div>';
+      return '<div class="td-attendee">'+
+        '<div class="td-attendee-primary">'+photo+
+          '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
+          '<small>'+(waitlist?(i+1)+'. ootenimekirjas':
+            (trainer&&r.coach_extra_seat?'Registreeritud · Treeneri lisakoht':'Registreeritud'))+'</small></div>'+
+        '</div>'+
+        '<div class="td-attendee-controls">'+
+          balance+trainerPayment+guestAttendance+extraAction+removeAction+
+        '</div></div>';
     }).join('')+'</div>';
   }
   function attendeesSection(t,c,trainer){
