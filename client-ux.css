@@ -412,13 +412,12 @@ body :is(.rcf-join-entry,.rcf-join-actions button,.rcf-join-refresh):focus-visib
 @media(max-width:480px){.guest-sync-warning button{width:100%}}
 
 
-/* Treeningu osalejakaart: nimi on eraldi real ning treeneri tegevusnupud
-   ei tohi külaliste pikkade nimede peale nihkuda ka kitsal telefoniekraanil. */
+/* Osaleja nimi, makseolek ja tegevused on eraldi; nupud ühes reas. */
 body .td-attendee{
   display:grid;
   grid-template-columns:minmax(0,1fr);
   align-items:stretch;
-  gap:8px;
+  gap:7px;
 }
 body .td-attendee-primary{
   display:flex;
@@ -436,25 +435,61 @@ body .td-attendee-primary .td-attendee-name strong{
   overflow-wrap:anywhere;
 }
 body .td-attendee-controls{
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  justify-content:flex-start;
-  gap:7px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:6px;
   min-width:0;
   padding-left:51px;
 }
-body .td-attendee-controls:empty{display:none}
-body .td-attendee-controls .td-cash-paid-btn{
-  margin:0;
-  max-width:100%;
-  min-height:36px;
-  box-sizing:border-box;
-  white-space:normal;
-  overflow-wrap:anywhere;
-  line-height:1.3;
-  text-align:center;
+body .td-attendee-controls:not(:has(.td-person-credit,.td-cash-paid-btn)){display:none}
+body .td-attendee-meta{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:4px 10px;
+  min-width:0;
 }
-@media(max-width:520px){
+body .td-attendee-meta:empty{display:none}
+body .td-attendee-actions{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:5px;
+  min-width:0;
+}
+body .td-attendee-actions:empty{display:none}
+body .td-attendee-actions > .td-cash-paid-btn{
+  flex:1 1 0;
+  min-width:0;
+  max-width:none;
+  min-height:35px;
+  box-sizing:border-box;
+  margin:0;
+  padding:6px 3px;
+  font-size:11px;
+  line-height:1.2;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+body .td-attendee-actions .td-action-short{display:none}
+@media(max-width:600px){
   body .td-attendee-controls{padding-left:0}
+  body .td-attendee-actions .td-action-long{display:none}
+  body .td-attendee-actions .td-action-short{display:inline}
+  body .td-attendee-actions > .td-cash-paid-btn{
+    min-height:34px;
+    padding:6px 2px;
+    font-size:10px;
+  }
+}
+@media(max-width:360px){
+  body .td-attendee-actions{gap:3px}
+  body .td-attendee-actions > .td-cash-paid-btn{
+    font-size:9px;
+    padding:6px 1px;
+    letter-spacing:-.1px;
+  }
 }
