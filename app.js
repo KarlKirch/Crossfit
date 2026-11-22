@@ -576,6 +576,29 @@ async function deleteTraining(id){
 }
 async function registerTraining(id,useCredit){try{await rpc('wod_register',{p_training_id:id,p_use_credit:useCredit});await reloadData('Registreerimine õnnestus');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
 async function cancelRegistration(id){const t=state.trainings.find(x=>x.id===id),late=t&&cancellationDeadline(t)<now();const text=late?'Tasuta tühistamise aeg on möödas. Tühistamisel treeningkorda või tasu ei tagastata. Kas jätkata?':'Kas tühistada registreering?';if(!confirm(text))return;try{await rpc('wod_cancel_registration',{p_training_id:id});await reloadData(late?'Registreering tühistatud hilise tühistusena':'Registreering tühistatud');state.modal='training';state.modalData=id;render()}catch(e){toast(e.message)}}
+async function trainerCancelBooking(registrationId,isGuest){
+  if(!isTrainer()){toast('Ainult treener saab registreeringut eemaldada.');return;}
+  const id=Math.abs(Number(registrationId));
+  if(!Number.isSafeInteger(id)||id<1){toast('Vigane registreering.');return;}
+  const guest=Boolean(isGuest);
+  const r=guest
+    ?state.guestBookings.find(b=>Number(b.booking_id)===id)
+    :state.registrations.find(b=>Number(b.id)===id);
+  if(!r){toast('Registreeringut ei leitud.');return;}
+  const name=guest?r.full_name:pname(r.user_id);
+  const training=state.trainings.find(t=>Number(t.id)===Number(r.training_id));
+  const when=training?' ('+fullDateTime(training.starts_at)+')':'';
+  const paymentInfo=r.payment_status==='paid'
+    ?' Makse on märgitud tasutuks: võimaliku rahalise tagastuse pead eraldi korraldama.'
+    :r.credit_charged?' Kasutatud treeningkrediit tagastatakse automaatselt.':'';
+  if(!confirm('Tühistada '+name+' registreering'+when+'?'+paymentInfo+
+    ' Konto jääb alles ja kanne eemaldatakse mõlema keskkonna osalejate nimekirjast.'))return;
+  try{
+    const result=await rpc('wod_trainer_cancel_booking',{p_booking_id:id,p_is_guest:guest});
+    if(result!==true)throw new Error('Registreering oli juba tühistatud või seda ei leitud.');
+    await reloadData(name+' registreering tühistatud.');
+  }catch(e){toast(e.message||'Registreeringu tühistamine ebaõnnestus.')}
+}
 async function setGuestAttendance(guestBookingId,status){
   if(!isTrainer())return;
   try{
@@ -947,5 +970,5 @@ Object.assign(window,{
   quickSheet,infoSheet,
   TZ,APP_URL
 });
-Object.assign(window,{updateAppNow,checkOnlineVersion,refreshAppAndData,renderKeepingTrainingScroll,go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,setPayment,setGuestAttendance,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
+Object.assign(window,{updateAppNow,checkOnlineVersion,refreshAppAndData,renderKeepingTrainingScroll,go,backFromNotifications,setAuthMode,submitAuth,setTrainingTab,openTraining,openTrainingForm,saveTrainingForm,copyTraining,copyLatestTraining,cancelTraining,deleteTraining,registerTraining,cancelRegistration,trainerCancelBooking,setPayment,setGuestAttendance,openClient,adjustCredits,openAssignPackage,assignPackage,openPackageTypeForm,togglePackageCredits,savePackageType,openCalendar,openGoogleCalendar,downloadIcs,openShare,nativeShare,shareVia,copyInvite,openProfileEdit,saveProfile,openInfo,openQuickActions,closeModal,backdropClose,markNotificationsRead,enablePush,togglePush,installApp,logout,toast,state,reloadData});
 boot();
