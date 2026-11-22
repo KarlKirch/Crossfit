@@ -89,11 +89,14 @@
         '<span class="td-person-credit">Kohalolek: '+(r.attendance_status==='present'?'kohal':r.attendance_status==='absent'?'puudus':'märkimata')+'</span>'+
         (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
         (r.attendance_status!=='absent'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'absent\')">Puudus</button>':''):'';
+      const removeAction=trainer&&t&&!t.archived_at&&r.status&&['confirmed','waitlist'].includes(r.status)?
+        '<button type="button" class="td-cash-paid-btn td-remove-booking-btn" onclick="trainerCancelBooking('+
+        Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')">Tühista registreering</button>':'';
       return '<div class="td-attendee">'+photo+
         '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
         '<small>'+(waitlist?(i+1)+'. ootenimekirjas':
           (trainer&&r.coach_extra_seat?'Registreeritud · Treeneri lisakoht':'Registreeritud'))+'</small></div>'+
-        balance+trainerPayment+guestAttendance+extraAction+'</div>';
+        balance+trainerPayment+guestAttendance+extraAction+removeAction+'</div>';
     }).join('')+'</div>';
   }
   function attendeesSection(t,c,trainer){
