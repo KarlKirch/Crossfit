@@ -80,18 +80,20 @@
       const photo=(r.is_guest?null:window.crossfitAvatars?.html(r.user_id,'medium'))||'<span class="td-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toLocaleUpperCase('et'))+'</span>';
       const balance=trainer&&r.status==='confirmed'&&r.credit_charged?'<span class="td-person-credit">1 krediit kasutatud</span>':'';
       const cash=r.payment_method==='cash';
-      const trainerPayment=trainer&&cash?'<span class="td-person-credit '+(r.payment_status==='paid'?'':'td-person-unpaid')+'">'+(r.payment_status==='paid'?'Sularaha tasutud':'Sularaha tasumata')+'</span>'+
-        (!waitlist&&r.status==='confirmed'&&r.payment_status==='unpaid'?'<button type="button" class="td-cash-paid-btn" onclick="setPayment('+Number(r.id)+',true)">Märgi tasutuks</button>':''):'';
+      const paymentStatus=trainer&&cash?'<span class="td-person-credit '+(r.payment_status==='paid'?'':'td-person-unpaid')+'">'+(r.payment_status==='paid'?'Sularaha tasutud':'Sularaha tasumata')+'</span>':'';
+      const paymentAction=trainer&&cash&&!waitlist&&r.status==='confirmed'&&r.payment_status==='unpaid'?
+        '<button type="button" class="td-cash-paid-btn" aria-label="Märgi tasutuks" onclick="setPayment('+Number(r.id)+',true)"><span class="td-action-long">Märgi tasutuks</span><span class="td-action-short" aria-hidden="true">Tasu</span></button>':'';
       const extraAction=trainer&&waitlist&&t?.status==='published'&&!t.archived_at?
         '<button type="button" class="td-cash-paid-btn td-extra-seat-btn" onclick="crossfitTrainingDetail.admitExtra('+
         Number(t.id)+','+Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')">Kinnita lisakohale</button>':'';
+      const attendanceStatus=trainer&&r.is_guest&&r.status==='confirmed'?
+        '<span class="td-person-credit">Kohalolek: '+(r.attendance_status==='present'?'kohal':r.attendance_status==='absent'?'puudus':'märkimata')+'</span>':'';
       const guestAttendance=trainer&&r.is_guest&&r.status==='confirmed'?
-        '<span class="td-person-credit">Kohalolek: '+(r.attendance_status==='present'?'kohal':r.attendance_status==='absent'?'puudus':'märkimata')+'</span>'+
         (r.attendance_status!=='present'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'present\')">Kohal</button>':'')+
         (r.attendance_status!=='absent'?'<button type="button" class="td-cash-paid-btn" onclick="setGuestAttendance('+(-Number(r.id))+',\'absent\')">Puudus</button>':''):'';
       const removeAction=trainer&&t&&!t.archived_at&&r.status&&['confirmed','waitlist'].includes(r.status)?
-        '<button type="button" class="td-cash-paid-btn td-remove-booking-btn" onclick="trainerCancelBooking('+
-        Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')">Tühista registreering</button>':'';
+        '<button type="button" class="td-cash-paid-btn td-remove-booking-btn" aria-label="Tühista registreering" onclick="trainerCancelBooking('+
+        Math.abs(Number(r.id))+','+Boolean(r.is_guest)+')"><span class="td-action-long">Tühista registreering</span><span class="td-action-short" aria-hidden="true">Tühista</span></button>':'';
       return '<div class="td-attendee">'+
         '<div class="td-attendee-primary">'+photo+
           '<div class="td-attendee-name"><strong>'+esc(name)+(r.is_guest?' (külaline)':'')+'</strong>'+
@@ -99,7 +101,8 @@
             (trainer&&r.coach_extra_seat?'Registreeritud · Treeneri lisakoht':'Registreeritud'))+'</small></div>'+
         '</div>'+
         '<div class="td-attendee-controls">'+
-          balance+trainerPayment+guestAttendance+extraAction+removeAction+
+          '<div class="td-attendee-meta">'+balance+paymentStatus+attendanceStatus+'</div>'+
+          '<div class="td-attendee-actions">'+paymentAction+guestAttendance+extraAction+removeAction+'</div>'+
         '</div></div>';
     }).join('')+'</div>';
   }
