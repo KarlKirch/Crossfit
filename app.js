@@ -199,12 +199,14 @@ async function refreshCrossfitGuests(force=false){
     const wasError=Boolean(state.guestBookingsSyncError);
     state.guestBookings=fresh;
     state.guestBookingsSyncError=null;
-    if(changed||wasError)render();
+    // Teadaande koostamisel ei asenda taustasünkroonimine avatud vormi.
+    // Andmed uuenevad olekus ning kuvatakse pärast vormist väljumist.
+    if((changed||wasError)&&state.modal!=='announcement')render();
   }catch(error){
     console.error('CrossFiti külaliste värskendamine ebaõnnestus',error);
     if(!state.guestBookingsSyncError){
       state.guestBookingsSyncError='Kodulehe registreeringuid ei saanud laadida.';
-      render();
+      if(state.modal!=='announcement')render();
     }
   }finally{
     guestSyncLast=Date.now();
