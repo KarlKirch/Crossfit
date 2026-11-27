@@ -324,22 +324,48 @@
   window.toggleAnnouncementTraining=function(){
     const scope=document.getElementById('annScope')?.value;
     document.getElementById('annTrainingWrap')?.classList.toggle('hidden',scope==='all');
+    window.announcementDraftChanged();
   };
   window.sendAnnouncement=async function(){
-    const title=document.getElementById('annTitle')?.value.trim();
-    const body=document.getElementById('annBody')?.value.trim();
-    const scope=document.getElementById('annScope')?.value||'all';
-    const tid=scope==='all'?null:Number(document.getElementById('annTraining')?.value||0)||null;
+    if(sendingAnnouncement)return;
+    const draft=captureAnnouncementDraft();
+    const title=draft.title.trim();
+    const body=draft.body.trim();
+    const scope=validAnnouncementScope(draft.scope);
+    const tid=scope==='all'?null:Number(draft.trainingId)||null;
     if(!title||!body){window.toast('Lisa pealkiri ja teate tekst');return}
     if(scope!=='all'&&!tid){window.toast('Vali treening');return}
+    sendingAnnouncement=true;
+    const button=document.getElementById('annSend');
+    if(button){button.disabled=true;button.textContent='Saadan…'}
     try{
-      const result=await window.rpc('wod_send_announcement',{p_title:title,p_body:body,p_scope:scope,p_training_id:tid});
+      const result=await window.rpc('wod_send_announcement',{
+        p_title:title,p_body:body,p_scope:scope,p_training_id:tid
+      });
       const count=Array.isArray(result)?Number(result[0]??0):Number(result??0);
-      await window.reloadData(count===1?'Teadaanne saadeti 1 kliendile':`Teadaanne saadeti ${count} kliendile`);
+      // Mustand kustutatakse ainult pärast serveri kinnitatud saatmist.
+      resetAnnouncementDraft();
+      const message=count===1?'Teadaanne saadeti 1 kliendile':
+        'Teadaanne saadeti '+count+' kliendile';
+      await window.reloadData(message);
       s.modal='announcement';
       window.render();
-    }catch(e){window.toast(e.message||'Teadaande saatmine ebaõnnestus')}
+    }catch(e){
+      window.toast(e.message||'Teadaande saatmine ebaõnnestus. Mustand jäi alles.');
+    }finally{
+      sendingAnnouncement=false;
+      const active=document.getElementById('annSend');
+      if(active){active.disabled=false;active.textContent='Saada teadaanne'}
+    }
   };
+  // Sulgemisel ning vahekaardi vahetusel säilitame viimase sisestuse.
+  window.addEventListener('pagehide',()=>{
+    if(s.modal==='announcement')captureAnnouncementDraft();
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'&&s.modal==='announcement')
+      captureAnnouncementDraft();
+  });
 
   function statsData(){
     const nowMs=Date.now(),d90=nowMs-90*86400000,d30=nowMs-30*86400000;
