@@ -335,6 +335,15 @@ function navButton(view,label,svg){
 function viewFromPushLink(){const query=String(window.location?.search||'');return /(?:^\?|&)view=notifications(?:&|$)/.test(query)?'notifications':'home'}
 function unreadCount(){return state.notifications.filter(n=>!n.read_at).length}
 function renderShell(content){
+  // Taustavärskenduse korral taasta teadaande sisestusfookus ja kerimispositsioon.
+  const editingAnnouncement=state.modal==='announcement'&&!!document.getElementById('annBody');
+  const activeElement=editingAnnouncement?document.activeElement:null;
+  const focusedId=editingAnnouncement&&['annTitle','annBody','annScope','annTraining'].includes(activeElement?.id)
+    ?activeElement.id:null;
+  const selectionStart=focusedId==='annTitle'||focusedId==='annBody'?activeElement.selectionStart:null;
+  const selectionEnd=focusedId==='annTitle'||focusedId==='annBody'?activeElement.selectionEnd:null;
+  const savedSheetScroll=editingAnnouncement?(document.querySelector('.sheet-body')?.scrollTop??0):null;
+  const savedWindowScroll=editingAnnouncement?window.scrollY:null;
   const trainer=isTrainer();
   const badge=unreadCount();
   root.innerHTML=`<div class="app-shell">
@@ -357,6 +366,19 @@ function renderShell(content){
       ${trainer?navButton('more','Haldus',icon.settings):''}
     </nav>
   </div>${window.renderModal()}`;
+  if(editingAnnouncement){
+    const sheet=document.querySelector('.sheet-body');
+    if(sheet)sheet.scrollTop=savedSheetScroll;
+    if(focusedId){
+      const input=document.getElementById(focusedId);
+      if(input){
+        input.focus({preventScroll:true});
+        if(selectionStart!==null&&selectionEnd!==null&&typeof input.setSelectionRange==='function')
+          input.setSelectionRange(selectionStart,selectionEnd);
+      }
+    }
+    if(savedWindowScroll!==null)window.scrollTo({top:savedWindowScroll,behavior:'instant'});
+  }
   syncModalHistory();
   updatePushStateSoon();
 }
