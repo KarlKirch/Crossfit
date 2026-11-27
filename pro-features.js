@@ -203,6 +203,102 @@
     return `<div class="sheet-backdrop" onclick="backdropClose(event)"><div class="sheet" onclick="event.stopPropagation()"><div class="sheet-head"><div class="sheet-title">${window.esc(title)}</div><button class="sheet-close" onclick="closeModal()" aria-label="Sulge">×</button></div><div class="sheet-body">${body}</div></div></div>`;
   }
 
+  // Teadaande koostamise mustand säilib ka vormi uuestijoonistamisel.
+  // Hoidla võti sisaldab treeneri kontot, et kasutajate mustandid ei seguneks.
+  const ANN_DRAFT_PREFIX='rcf-announcement-draft-v1:';
+  let announcementDraftKey=null;
+  let announcementDraft=null;
+  let announcementDraftPersisted=false;
+  let sendingAnnouncement=false;
+  const blankAnnouncementDraft=()=>({title:'',body:'',scope:'all',trainingId:''});
+  const validAnnouncementScope=value=>['all','training','waitlist'].includes(value)?value:'all';
+  function announcementKey(){
+    const uid=s.session?.user?.id;
+    return window.isTrainer()&&uid?ANN_DRAFT_PREFIX+uid:null;
+  }
+  function currentAnnouncementDraft(){
+    const key=announcementKey();
+    if(announcementDraftKey!==key){
+      announcementDraftKey=key;
+      announcementDraft=blankAnnouncementDraft();
+      announcementDraftPersisted=false;
+      if(key){
+        try{
+          const saved=JSON.parse(localStorage.getItem(key)||'null');
+          if(saved&&typeof saved==='object'){
+            announcementDraft={
+              title:String(saved.title||'').slice(0,80),
+              body:String(saved.body||'').slice(0,500),
+              scope:validAnnouncementScope(saved.scope),
+              trainingId:String(saved.trainingId||'').slice(0,30)
+            };
+          }
+          announcementDraftPersisted=true;
+        }catch(error){console.warn('Teadaande mustandi laadimine:',error)}
+      }
+    }
+    return announcementDraft||blankAnnouncementDraft();
+  }
+  function storeAnnouncementDraft(){
+    const key=announcementKey();
+    if(!key)return false;
+    try{
+      localStorage.setItem(key,JSON.stringify(currentAnnouncementDraft()));
+      announcementDraftPersisted=true;
+      return true;
+    }catch(error){
+      console.warn('Teadaande mustandi salvestamine:',error);
+      announcementDraftPersisted=false;
+      return false;
+    }
+  }
+  function captureAnnouncementDraft(){
+    const draft=currentAnnouncementDraft();
+    const title=document.getElementById('annTitle');
+    const body=document.getElementById('annBody');
+    if(s.modal!=='announcement'||!title||!body)return draft;
+    draft.title=title.value.slice(0,80);
+    draft.body=body.value.slice(0,500);
+    draft.scope=validAnnouncementScope(document.getElementById('annScope')?.value);
+    draft.trainingId=String(document.getElementById('annTraining')?.value||draft.trainingId||'');
+    storeAnnouncementDraft();
+    return draft;
+  }
+  function resetAnnouncementDraft(){
+    const key=announcementKey();
+    announcementDraftKey=key;
+    announcementDraft=blankAnnouncementDraft();
+    announcementDraftPersisted=true;
+    if(key){
+      try{localStorage.removeItem(key)}
+      catch(error){console.warn('Teadaande mustandi kustutamine:',error)}
+    }
+    const title=document.getElementById('annTitle');
+    const body=document.getElementById('annBody');
+    const scope=document.getElementById('annScope');
+    if(title)title.value='';
+    if(body)body.value='';
+    if(scope)scope.value='all';
+    document.getElementById('annTrainingWrap')?.classList.add('hidden');
+  }
+  function announcementDraftNotice(){
+    return announcementDraftPersisted
+      ?'Mustand salvestatakse automaatselt selles brauseris. Võid selle sulgeda ja hiljem jätkata.'
+      :'Mustand säilib praeguses vaates, kuid brauseri salvestusruum pole kättesaadav.';
+  }
+  window.announcementDraftChanged=function(){
+    captureAnnouncementDraft();
+    const status=document.getElementById('annDraftStatus');
+    if(status)status.textContent=announcementDraftNotice();
+  };
+  window.discardAnnouncementDraft=function(){
+    const draft=captureAnnouncementDraft();
+    if((draft.title.trim()||draft.body.trim())&&
+       !window.confirm('Kas kustutada teadaande salvestatud mustand?'))return;
+    resetAnnouncementDraft();
+    window.render();
+  };
+
   function announcementForm(){
     const trainings=window.upcomingTrainings();
     const history=(s.announcements||[]).slice(0,8);
