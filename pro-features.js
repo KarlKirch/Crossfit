@@ -300,14 +300,17 @@
   };
 
   function announcementForm(){
+    const draft=captureAnnouncementDraft();
     const trainings=window.upcomingTrainings();
     const history=(s.announcements||[]).slice(0,8);
     return `<div class="form">
-      <div class="field"><label>Pealkiri</label><input id="annTitle" maxlength="80" placeholder="Näiteks: Neljapäevase trenni muudatus"></div>
-      <div class="field"><label>Teade</label><textarea id="annBody" maxlength="500" placeholder="Kirjuta kliendile saadetav teade..."></textarea></div>
-      <div class="field"><label>Sihtrühm</label><select id="annScope" onchange="toggleAnnouncementTraining()"><option value="all">Kõik aktiivsed kliendid</option><option value="training">Valitud treeningu registreerunud</option><option value="waitlist">Valitud treeningu ootenimekiri</option></select></div>
-      <div id="annTrainingWrap" class="field hidden"><label>Treening</label><select id="annTraining">${trainings.map(t=>`<option value="${t.id}">${window.esc(window.dateTime(t.starts_at)+' · '+t.title)}</option>`).join('')}</select></div>
-      <div class="form-actions"><button class="btn btn-primary" onclick="sendAnnouncement()">Saada teadaanne</button><button class="btn btn-soft" onclick="closeModal()">Katkesta</button></div>
+      <div class="field"><label>Pealkiri</label><input id="annTitle" maxlength="80" placeholder="Näiteks: Neljapäevase trenni muudatus" value="${window.esc(draft.title)}" oninput="announcementDraftChanged()"></div>
+      <div class="field"><label>Teade</label><textarea id="annBody" maxlength="500" placeholder="Kirjuta kliendile saadetav teade..." oninput="announcementDraftChanged()">${window.esc(draft.body)}</textarea></div>
+      <div class="field"><label>Sihtrühm</label><select id="annScope" onchange="toggleAnnouncementTraining()"><option value="all"${draft.scope==='all'?' selected':''}>Kõik aktiivsed kliendid</option><option value="training"${draft.scope==='training'?' selected':''}>Valitud treeningu registreerunud</option><option value="waitlist"${draft.scope==='waitlist'?' selected':''}>Valitud treeningu ootenimekiri</option></select></div>
+      <div id="annTrainingWrap" class="field${draft.scope==='all'?' hidden':''}"><label>Treening</label><select id="annTraining" onchange="announcementDraftChanged()">${trainings.map(t=>`<option value="${t.id}"${String(t.id)===String(draft.trainingId)?' selected':''}>${window.esc(window.dateTime(t.starts_at)+' · '+t.title)}</option>`).join('')}</select></div>
+      <p id="annDraftStatus" class="card-sub" role="status">${announcementDraftNotice()}</p>
+      <div class="form-actions"><button id="annSend" class="btn btn-primary" onclick="sendAnnouncement()">Saada teadaanne</button><button class="btn btn-soft" onclick="closeModal()">Sulge</button></div>
+      <button type="button" class="btn-link" onclick="discardAnnouncementDraft()">Kustuta mustand</button>
     </div>
     <div class="section"><h2>Viimased teadaanded</h2><small>${history.length}</small></div>
     <div class="stack">${history.map(a=>`<div class="notification"><div class="notif-dot read"></div><div><div class="notif-title">${window.esc(a.title)}</div><div class="notif-body">${window.esc(a.body)}</div><div class="notif-time">${window.esc(window.dateTime(a.created_at))} · ${a.recipient_count} saajat · ${scopeLabel(a.scope)}</div></div></div>`).join('')||'<div class="empty">Teadaandeid pole veel saadetud.</div>'}</div>`;
