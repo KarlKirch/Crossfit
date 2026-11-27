@@ -338,11 +338,13 @@
     sendingAnnouncement=true;
     const button=document.getElementById('annSend');
     if(button){button.disabled=true;button.textContent='Saadan…'}
+    let sent=false;
     try{
       const result=await window.rpc('wod_send_announcement',{
         p_title:title,p_body:body,p_scope:scope,p_training_id:tid
       });
       const count=Array.isArray(result)?Number(result[0]??0):Number(result??0);
+      sent=true;
       // Mustand kustutatakse ainult pärast serveri kinnitatud saatmist.
       resetAnnouncementDraft();
       const message=count===1?'Teadaanne saadeti 1 kliendile':
@@ -351,7 +353,8 @@
       s.modal='announcement';
       window.render();
     }catch(e){
-      window.toast(e.message||'Teadaande saatmine ebaõnnestus. Mustand jäi alles.');
+      window.toast(sent?'Teadaanne saadeti, kuid vaate värskendamine ebaõnnestus.':
+        (e.message||'Teadaande saatmine ebaõnnestus. Mustand jäi alles.'));
     }finally{
       sendingAnnouncement=false;
       const active=document.getElementById('annSend');
